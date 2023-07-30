@@ -1,6 +1,6 @@
 # vscode-mogami
 
-A VS Code extension for checking the latest versions of dependencies in a Python and Ruby project.
+A VS Code extension for checking the latest versions of dependencies.
 
 ## Supported Formats
 
@@ -14,3 +14,7 @@ A VS Code extension for checking the latest versions of dependencies in a Python
 - `Gemfile`
 - `Gemfile.lock`
 - `*.gemspec`
+
+## Alternatives
+
+- [vscode-versionlens](https://gitlab.com/versionlens/vscode-versionlens)
