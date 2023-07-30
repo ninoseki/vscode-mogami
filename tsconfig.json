@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "commonjs",
+		"lib": [
+			"esnext"
+		],
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"strict": true,
+		"strictNullChecks": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": true,
+		"baseUrl": ".",
+		"rootDirs": [
+			"src",
+			"test"
+		],
+		"paths": {
+			"@/*": [
+				"src/*"
+			]
+		},
+	},
+	"exclude": [
+		"node_modules",
+		".vscode-test"
+	],
+}
