@@ -35,15 +35,15 @@
     "commands": []
   },
   "scripts": {
-    "build": "tsup --minify",
+    "build": "tsup",
     "coverage": "jest --coverage && cat ./coverage/lcov.info",
     "lint": "eslint src test --ext ts",
     "pack": "vsce package",
     "prepare": "husky install",
     "publish": "vsce publish",
     "test": "jest",
-    "vscode:prepublish": "npm run build",
-    "watch": "tsup --watch --sourcemap"
+    "vscode:prepublish": "npm run build -- --minify",
+    "watch": "npm run build -- --sourcemap"
   },
   "lint-staged": {
     "*.ts": [
