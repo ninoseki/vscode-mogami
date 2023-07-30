@@ -1,7 +1,7 @@
 {
   "name": "vscode-mogami",
   "displayName": "mogami",
-  "description": "A VS Code extension for checking the latest versions of dependencies",
+  "description": "A VS Code extension for checking the latest version of each dependency",
   "repository": {
     "type": "git",
     "url": "https://github.com/ninoseki/vscode-pylens.git"

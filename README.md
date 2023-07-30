@@ -1,6 +1,6 @@
 # vscode-mogami
 
-A VS Code extension for checking the latest versions of dependencies.
+A VS Code extension for checking the latest version of each dependency.
 
 ## Supported Formats
 
