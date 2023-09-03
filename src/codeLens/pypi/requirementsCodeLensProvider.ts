@@ -8,24 +8,19 @@ import { pypiDependencyRegexp } from "@/utils/regexps";
 
 export class RequirementsCodeLensProvider extends AbstractCodeLensProvider {
   constructor() {
-    super([
-      {
-        pattern: "**/requirements.txt",
-        scheme: "file",
-      },
-      {
-        pattern: "**/requirements-*.txt",
-        scheme: "file",
-      },
-      {
-        pattern: "**/requirements/*.txt",
-        scheme: "file",
-      },
-      {
-        pattern: "**/*-requirements.txt",
-        scheme: "file",
-      },
-    ]);
+    const patterns = [
+      "**/*-requirements.txt",
+      "**/*.requirements.txt",
+      "**/requirements-*.txt",
+      "**/requirements.txt",
+      "**/requirements/*.txt",
+    ];
+
+    super(
+      patterns.map((pattern) => {
+        return { pattern, scheme: "file" };
+      }),
+    );
   }
 
   public async provideCodeLenses(document: vscode.TextDocument) {

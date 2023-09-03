@@ -27,28 +27,20 @@ export function buildHoverMessage(pkg: PypiPackage): string {
 
 export class PypiHoverProvider extends AbstractHoverProvider {
   constructor() {
-    super([
-      {
-        pattern: "**/pyproject.toml",
-        scheme: "file",
-      },
-      {
-        pattern: "**/requirements.txt",
-        scheme: "file",
-      },
-      {
-        pattern: "**/requirements-*.txt",
-        scheme: "file",
-      },
-      {
-        pattern: "**/requirements/*.txt",
-        scheme: "file",
-      },
-      {
-        pattern: "**/*-requirements.txt",
-        scheme: "file",
-      },
-    ]);
+    const patterns = [
+      "**/pyproject.toml",
+      "**/*-requirements.txt",
+      "**/*.requirements.txt",
+      "**/requirements-*.txt",
+      "**/requirements.txt",
+      "**/requirements/*.txt",
+    ];
+
+    super(
+      patterns.map((pattern) => {
+        return { pattern, scheme: "file" };
+      }),
+    );
   }
 
   public async provideHover(
