@@ -14,8 +14,7 @@ export abstract class AbstractCodeLensProvider
   constructor(private documentSelector: vscode.DocumentSelector) {
     this.documentSelector = documentSelector;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    vscode.workspace.onDidChangeConfiguration((_) => {
+    vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
     });
   }
