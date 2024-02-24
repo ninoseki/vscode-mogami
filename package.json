@@ -83,6 +83,7 @@
     "axios": "^1.6.7",
     "axios-cache-interceptor": "^1.5.1",
     "neverthrow": "^6.1.0",
-    "semver": "^7.6.0"
+    "semver": "^7.6.0",
+    "zod": "^3.22.4"
   }
 }

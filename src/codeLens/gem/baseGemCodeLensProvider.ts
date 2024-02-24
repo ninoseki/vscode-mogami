@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 import { API } from "@/api";
 import { AbstractCodeLensProvider } from "@/codeLens/abstractCodeLensProvider";
 import { GemSuggestionProvider } from "@/suggestion/gem/gemSuggestionProvider";
-import { GemDependency } from "@/types";
+import type { GemDependency } from "@/types";
 import { extractDependencyByMapper } from "@/utils/gem";
 
 export class BaseGemCodeLensProvider extends AbstractCodeLensProvider {

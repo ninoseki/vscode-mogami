@@ -1,13 +1,13 @@
 import * as vscode from "vscode";
 
 import { API } from "@/api";
-import { PypiPackage } from "@/types";
+import type { PypiPackageType } from "@/schemas";
 import { extractDependency } from "@/utils/pypi";
 import { pypiDependencyRegexp } from "@/utils/regexps";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
 
-export function buildHoverMessage(pkg: PypiPackage): string {
+export function buildHoverMessage(pkg: PypiPackageType): string {
   const url = (() => {
     // Select URL to display by following the order
     // - home_page

@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 import { API } from "@/api";
 import { AbstractHoverProvider } from "@/hover/abstractHoverProvider";
-import { GemDependency } from "@/types";
+import type { GemDependency } from "@/types";
 import { buildMessage, extractDependencyByMapper } from "@/utils/gem";
 
 export class BaseGemHoverProvider extends AbstractHoverProvider {
