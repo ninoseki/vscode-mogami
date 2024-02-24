@@ -44,26 +44,24 @@ export class PyprojectCodeLensProvider extends AbstractCodeLensProvider {
         continue;
       }
 
-      try {
-        const pkg = await API.getPypiPackage(dependency.name);
-        const indexOf = line.text.indexOf(matches[0]);
-        const position = new vscode.Position(line.lineNumber, indexOf);
-        const range = document.getWordRangeAtPosition(
-          position,
-          pypiDependencyRegexp,
-        );
-
-        if (range) {
-          const codeLens = new vscode.CodeLens(range);
-          const suggestionProvider = new PypiSuggestionProvider(
-            dependency,
-            pkg,
-          );
-          codeLens.command = suggestionProvider.suggest();
-          codeLenses.push(codeLens);
-        }
-      } catch (_) {
+      const result = await API.safeGetPypiPackage(dependency.name);
+      if (result.isErr()) {
         continue;
+      }
+
+      const pkg = result.value;
+      const indexOf = line.text.indexOf(matches[0]);
+      const position = new vscode.Position(line.lineNumber, indexOf);
+      const range = document.getWordRangeAtPosition(
+        position,
+        pypiDependencyRegexp,
+      );
+
+      if (range) {
+        const codeLens = new vscode.CodeLens(range);
+        const suggestionProvider = new PypiSuggestionProvider(dependency, pkg);
+        codeLens.command = suggestionProvider.suggest();
+        codeLenses.push(codeLens);
       }
     }
 

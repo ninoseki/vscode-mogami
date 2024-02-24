@@ -58,11 +58,12 @@ export class PypiHoverProvider extends AbstractHoverProvider {
       return;
     }
 
-    const pkg = await API.getPypiPackage(dependency.name);
-    if (!pkg) {
+    const result = await API.safeGetPypiPackage(dependency.name);
+    if (result.isErr()) {
       return;
     }
 
+    const pkg = result.value;
     const message = buildHoverMessage(pkg);
     const link = new vscode.Hover(message, range);
     return link;

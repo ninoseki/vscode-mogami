@@ -43,20 +43,20 @@ export class BaseGemCodeLensProvider extends AbstractCodeLensProvider {
         continue;
       }
 
-      try {
-        const gem = await API.getGem(dependency.name);
-
-        const indexOf = line.text.indexOf(matches[0]);
-        const position = new vscode.Position(line.lineNumber, indexOf);
-        const range = document.getWordRangeAtPosition(position, this.regexp);
-        if (range) {
-          const codeLens = new vscode.CodeLens(range);
-          const suggestionProvider = new GemSuggestionProvider(dependency, gem);
-          codeLens.command = suggestionProvider.suggest();
-          codeLenses.push(codeLens);
-        }
-      } catch (_) {
+      const result = await API.safeGetGem(dependency.name);
+      if (result.isErr()) {
         continue;
+      }
+
+      const gem = result.value;
+      const indexOf = line.text.indexOf(matches[0]);
+      const position = new vscode.Position(line.lineNumber, indexOf);
+      const range = document.getWordRangeAtPosition(position, this.regexp);
+      if (range) {
+        const codeLens = new vscode.CodeLens(range);
+        const suggestionProvider = new GemSuggestionProvider(dependency, gem);
+        codeLens.command = suggestionProvider.suggest();
+        codeLenses.push(codeLens);
       }
     }
 
