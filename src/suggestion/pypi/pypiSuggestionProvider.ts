@@ -1,3 +1,4 @@
+import { Result } from "neverthrow";
 import * as semver from "semver";
 import * as vscode from "vscode";
 
@@ -27,11 +28,11 @@ export class PypiSuggestionProvider extends AbstractSuggestionProvider {
       return true;
     }
 
-    if (!this.dependency.requirements) {
-      return false;
-    }
+    const inner = () => {
+      if (!this.dependency.requirements) {
+        return false;
+      }
 
-    try {
       const v1 = semver.clean(this.dependency.requirements);
       if (!v1) {
         return false;
@@ -43,8 +44,8 @@ export class PypiSuggestionProvider extends AbstractSuggestionProvider {
       }
 
       return semver.eq(v1, v2);
-    } catch (_err) {
-      return false;
-    }
+    };
+
+    return Result.fromThrowable(inner)().unwrapOr(false);
   }
 }
