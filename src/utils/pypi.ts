@@ -1,4 +1,4 @@
-import { PypiDependency } from "@/types";
+import type { PypiDependency } from "@/types";
 
 import {
   bracketsRegexp,

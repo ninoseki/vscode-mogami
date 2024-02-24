@@ -2,29 +2,28 @@ import axios from "axios";
 import { setupCache } from "axios-cache-interceptor";
 import { ResultAsync } from "neverthrow";
 
-import { Gem, PypiPackage } from "@/types";
+import type { GemType, PypiPackageType } from "@/schemas";
+import { GemSchema, PypiPackageSchema } from "@/schemas";
 
 const client = axios.create();
 
 setupCache(client);
 
 export const API = {
-  async getPypiPackage(name: string): Promise<PypiPackage> {
-    const res = await client.get<PypiPackage>(
-      `https://pypi.org/pypi/${name}/json`,
-    );
-    return res.data;
+  async getPypiPackage(name: string): Promise<PypiPackageType> {
+    const res = await client.get(`https://pypi.org/pypi/${name}/json`);
+    return PypiPackageSchema.parse(res.data);
   },
 
   async safeGetPypiPackage(name: string) {
     return await ResultAsync.fromSafePromise(this.getPypiPackage(name));
   },
 
-  async getGem(name: string): Promise<Gem> {
-    const res = await client.get<Gem>(
+  async getGem(name: string): Promise<GemType> {
+    const res = await client.get(
       `https://rubygems.org/api/v1/gems/${name}.json`,
     );
-    return res.data;
+    return GemSchema.parse(res.data);
   },
 
   async safeGetGem(name: string) {

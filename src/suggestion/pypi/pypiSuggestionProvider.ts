@@ -2,14 +2,15 @@ import { Result } from "neverthrow";
 import * as semver from "semver";
 import * as vscode from "vscode";
 
+import type { PypiPackageType } from "@/schemas";
 import { AbstractSuggestionProvider } from "@/suggestion/abstractSuggestionProvider";
-import { PypiDependency, PypiPackage } from "@/types";
+import type { PypiDependency } from "@/types";
 
 export class PypiSuggestionProvider extends AbstractSuggestionProvider {
   private dependency: PypiDependency;
-  private pkg: PypiPackage;
+  private pkg: PypiPackageType;
 
-  constructor(dependency: PypiDependency, pkg: PypiPackage) {
+  constructor(dependency: PypiDependency, pkg: PypiPackageType) {
     super();
 
     this.dependency = dependency;

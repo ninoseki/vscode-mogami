@@ -1,4 +1,5 @@
-import { Gem, GemDependency } from "@/types";
+import type { GemType } from "@/schemas";
+import type { GemDependency } from "@/types";
 
 export function quoteMapper(line: string): string {
   const quoteIndex = line.indexOf("'");
@@ -61,6 +62,6 @@ export function gemspecMapper(line: string): GemDependency | undefined {
   return undefined;
 }
 
-export function buildMessage(gem: Gem): string {
+export function buildMessage(gem: GemType): string {
   return `${gem.info}\n\nLatest version: ${gem.version}\n\n${gem.homepage_uri}`;
 }

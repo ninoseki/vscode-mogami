@@ -2,14 +2,15 @@ import { Result } from "neverthrow";
 import * as semver from "semver";
 import * as vscode from "vscode";
 
+import type { GemType } from "@/schemas";
 import { AbstractSuggestionProvider } from "@/suggestion/abstractSuggestionProvider";
-import { Gem, GemDependency } from "@/types";
+import type { GemDependency } from "@/types";
 
 export class GemSuggestionProvider extends AbstractSuggestionProvider {
   private dependency: GemDependency;
-  private gem: Gem;
+  private gem: GemType;
 
-  constructor(dependency: GemDependency, gem: Gem) {
+  constructor(dependency: GemDependency, gem: GemType) {
     super();
 
     this.dependency = dependency;
