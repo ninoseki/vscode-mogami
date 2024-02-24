@@ -36,12 +36,13 @@ export class BaseGemHoverProvider extends AbstractHoverProvider {
       return;
     }
 
-    const gem = await API.getGem(dependency.name);
+    const result = await API.safeGetGem(dependency.name);
 
-    if (!gem) {
+    if (result.isErr()) {
       return;
     }
 
+    const gem = result.value;
     const message = buildMessage(gem);
     const link = new vscode.Hover(message, range);
     return link;
