@@ -6,5 +6,12 @@ export default defineConfig({
   shims: false,
   dts: false,
   external: ["vscode"],
-  noExternal: ["axios-cache-interceptor", "axios", "semver", "@iarna/toml"],
+  noExternal: [
+    "@iarna/toml",
+    "axios-cache-interceptor",
+    "axios",
+    "neverthrow",
+    "semver",
+    "zod",
+  ],
 });
