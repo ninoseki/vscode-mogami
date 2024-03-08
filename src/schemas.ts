@@ -3,11 +3,11 @@ import { z } from "zod";
 export const PypiInfoSchema = z.object({
   name: z.string(),
   summary: z.string(),
-  home_page: z.string(),
+  home_page: z.string().nullish(),
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  package_url: z.string(),
+  package_url: z.string().nullish(),
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  project_url: z.string(),
+  project_url: z.string().nullish(),
   version: z.string(),
 });
 
@@ -46,7 +46,7 @@ export const GemSchema = z.object({
 
 export const GemDependencySchema = z.object({
   name: z.string(),
-  requirements: z.union([z.string(), z.undefined()]),
+  requirements: z.union([z.string(), z.undefined(), z.null()]),
 });
 
 export type GemType = z.infer<typeof GemSchema>;
