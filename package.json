@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/ninoseki/vscode-mogami.git"
   },
-  "version": "0.0.7",
+  "version": "0.0.8",
   "author": "Manabu Niseki",
   "publisher": "ninoseki",
   "engines": {
@@ -63,8 +63,8 @@
     "@types/jest": "^29.5.12",
     "@types/node": "20.12.7",
     "@types/vscode": "^1.88.0",
-    "@typescript-eslint/eslint-plugin": "^7.7.0",
-    "@typescript-eslint/parser": "^7.7.0",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jest": "^28.2.0",
@@ -83,9 +83,9 @@
     "axios": "^1.6.8",
     "axios-cache-interceptor": "^1.5.1",
     "fp-ts": "^2.16.5",
-    "neverthrow": "6.1.0",
+    "neverthrow": "6.2.1",
     "p-limit": "^5.0.0",
     "semver": "^7.6.0",
-    "zod": "^3.23.0"
+    "zod": "^3.23.3"
   }
 }
