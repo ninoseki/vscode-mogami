@@ -13,5 +13,7 @@ export default defineConfig({
     "neverthrow",
     "semver",
     "zod",
+    "p-limit",
+    "fp-ts",
   ],
 });

@@ -16,7 +16,10 @@ export const API = {
   },
 
   async safeGetPypiPackage(name: string) {
-    return await ResultAsync.fromPromise(this.getPypiPackage(name), (e) => e);
+    return await ResultAsync.fromPromise(
+      this.getPypiPackage(name),
+      (e: unknown) => e,
+    );
   },
 
   async getGem(name: string): Promise<GemType> {
@@ -27,6 +30,6 @@ export const API = {
   },
 
   async safeGetGem(name: string) {
-    return await ResultAsync.fromPromise(this.getGem(name), (e) => e);
+    return await ResultAsync.fromPromise(this.getGem(name), (e: unknown) => e);
   },
 };
