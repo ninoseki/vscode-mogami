@@ -22,5 +22,5 @@ export interface PoetryProject {
 
 export interface GemDependency {
   name: string;
-  requirements: string | undefined;
+  requirements?: string;
 }
