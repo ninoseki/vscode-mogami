@@ -1,6 +1,6 @@
 export interface PypiDependency {
   name: string;
-  requirements: string;
+  requirements?: string;
 }
 
 export interface KeyValueMap {

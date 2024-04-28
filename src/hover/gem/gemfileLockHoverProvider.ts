@@ -1,12 +1,6 @@
-import { GemDependency } from "@/types";
-import { extractDependencyByMapper, gemfileLockMapper } from "@/utils/gem";
-import { gemfileLockRegexp } from "@/utils/regexps";
+import { gemfileLockRegExp, parse } from "@/format/gemfileLock";
 
 import { BaseGemHoverProvider } from "./baseGemHoverProvider";
-
-export function extractDependency(line: string): GemDependency | undefined {
-  return extractDependencyByMapper(line, gemfileLockMapper);
-}
 
 export class GemfileLockHoverProvider extends BaseGemHoverProvider {
   constructor() {
@@ -15,8 +9,8 @@ export class GemfileLockHoverProvider extends BaseGemHoverProvider {
         pattern: "**/Gemfile.lock",
         scheme: "file",
       },
-      regexp: gemfileLockRegexp,
-      mapper: gemfileLockMapper,
+      regExp: gemfileLockRegExp,
+      parse: parse,
     });
   }
 }

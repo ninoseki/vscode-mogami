@@ -6,14 +6,16 @@ import { AbstractHoverProvider } from "./abstractHoverProvider";
 import { GemfileHoverProvider } from "./gem/gemfileHoverProvider";
 import { GemfileLockHoverProvider } from "./gem/gemfileLockHoverProvider";
 import { GemspecHoverProvider } from "./gem/gemspecHoverProvider";
-import { PypiHoverProvider } from "./pypi/pypiHoverProvider";
+import { PyProjectHoverProvider } from "./pypi/pyprojectHoverProvider";
+import { RequirementsHoverProvider } from "./pypi/requirementsHoverProvider";
 
 export class HoverManager implements ExtensionComponent {
   private hoverProviders: AbstractHoverProvider[] = [];
 
   constructor() {
     this.hoverProviders = [
-      new PypiHoverProvider(),
+      new RequirementsHoverProvider(),
+      new PyProjectHoverProvider(),
       new GemfileHoverProvider(),
       new GemfileLockHoverProvider(),
       new GemspecHoverProvider(),

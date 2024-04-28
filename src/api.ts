@@ -1,5 +1,6 @@
 import axios from "axios";
 import { setupCache } from "axios-cache-interceptor";
+import camelcaseKeys from "camelcase-keys";
 import { ResultAsync } from "neverthrow";
 
 import type { GemType, PypiPackageType } from "@/schemas";
@@ -12,7 +13,7 @@ setupCache(client);
 export const API = {
   async getPypiPackage(name: string): Promise<PypiPackageType> {
     const res = await client.get(`https://pypi.org/pypi/${name}/json`);
-    return PypiPackageSchema.parse(res.data);
+    return PypiPackageSchema.parse(camelcaseKeys(res.data, { deep: true }));
   },
 
   async safeGetPypiPackage(name: string) {
@@ -26,7 +27,7 @@ export const API = {
     const res = await client.get(
       `https://rubygems.org/api/v1/gems/${name}.json`,
     );
-    return GemSchema.parse(res.data);
+    return GemSchema.parse(camelcaseKeys(res.data, { deep: true }));
   },
 
   async safeGetGem(name: string) {
