@@ -1,5 +1,5 @@
-import { gemspecMapper } from "@/utils/gem";
-import { gemspecRegexp } from "@/utils/regexps";
+import { gemspecRegExp } from "@/format/gemspec";
+import { parse } from "@/format/gemspec";
 
 import { BaseGemCodeLensProvider } from "./baseGemCodeLensProvider";
 
@@ -10,8 +10,8 @@ export class GemspecCodelensProvider extends BaseGemCodeLensProvider {
         pattern: "**/*.gemspec",
         scheme: "file",
       },
-      regexp: gemspecRegexp,
-      mapper: gemspecMapper,
+      regExp: gemspecRegExp,
+      parse: parse,
     });
   }
 }

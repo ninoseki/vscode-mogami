@@ -1,5 +1,4 @@
-import { gemspecMapper } from "@/utils/gem";
-import { gemspecRegexp } from "@/utils/regexps";
+import { gemspecRegExp, parse } from "@/format/gemspec";
 
 import { BaseGemHoverProvider } from "./baseGemHoverProvider";
 
@@ -10,8 +9,8 @@ export class GemspecHoverProvider extends BaseGemHoverProvider {
         pattern: "**/*.gemspec",
         scheme: "file",
       },
-      regexp: gemspecRegexp,
-      mapper: gemspecMapper,
+      regExp: gemspecRegExp,
+      parse: parse,
     });
   }
 }

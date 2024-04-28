@@ -5,43 +5,21 @@ import * as vscode from "vscode";
 
 import { API } from "@/api";
 import { AbstractCodeLensProvider } from "@/codeLens/abstractCodeLensProvider";
-import { DependencyPosLineType, DependencyPosType } from "@/schemas";
-import { GemSuggestionProvider } from "@/suggestion/gem/gemSuggestionProvider";
+import { DependencyPosLineType } from "@/schemas";
+import { PypiSuggestionProvider } from "@/suggestion/pypi/pypiSuggestionProvider";
 
-export class BaseGemCodeLensProvider extends AbstractCodeLensProvider {
-  private regExp: RegExp;
-  private parse: (line: string) => DependencyPosType | undefined;
-
-  constructor({
-    regExp,
-    parse,
-    documentSelector,
-  }: {
-    regExp: RegExp;
-    parse: (line: string) => DependencyPosType | undefined;
-    documentSelector: vscode.DocumentSelector;
-  }) {
-    super(documentSelector);
-
-    this.parse = parse;
-    this.regExp = regExp;
-  }
+export abstract class BasePyPICodeLensProvider extends AbstractCodeLensProvider {
+  abstract getDepsPosLines(
+    document: vscode.TextDocument,
+  ): DependencyPosLineType[];
 
   public async provideCodeLenses(document: vscode.TextDocument) {
-    const depsPosLines: DependencyPosLineType[] = [];
-    for (let i = 0; i < document.lineCount; i++) {
-      const line = document.lineAt(i);
-      const depsPos = this.parse(line.text);
-      if (!depsPos) {
-        continue;
-      }
-      depsPosLines.push({ ...depsPos, line: line.lineNumber });
-    }
+    const depsPosLines = this.getDepsPosLines(document);
 
     const limit = pLimit(5);
     const input = depsPosLines.map((x) =>
       limit(() => {
-        return API.safeGetGem(x.name);
+        return API.safeGetPypiPackage(x.name);
       }),
     );
     const results = await Promise.all(input);
@@ -59,11 +37,11 @@ export class BaseGemCodeLensProvider extends AbstractCodeLensProvider {
             line.lineNumber,
             item.depPosLine.pos,
           );
-          const range = document.getWordRangeAtPosition(position, this.regExp);
+          const range = document.getWordRangeAtPosition(position);
 
           if (range) {
             const codeLens = new vscode.CodeLens(range);
-            const suggestionProvider = new GemSuggestionProvider(
+            const suggestionProvider = new PypiSuggestionProvider(
               { name, specifier },
               pkg,
             );

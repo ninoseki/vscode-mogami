@@ -5,7 +5,7 @@ import { ExtensionComponent } from "@/extensionComponent";
 import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
 import { GemfileCodelensProvider } from "./gem/gemfileCodeLensProvider";
 import { GemspecCodelensProvider } from "./gem/gemspecCodeLensProvider";
-import { PyprojectCodeLensProvider } from "./pypi/pyprojectCodeLensProvider";
+import { PyProjectCodeLensProvider } from "./pypi/pyprojectCodeLensProvider";
 import { RequirementsCodeLensProvider } from "./pypi/requirementsCodeLensProvider";
 
 export class CodeLensManager implements ExtensionComponent {
@@ -14,7 +14,7 @@ export class CodeLensManager implements ExtensionComponent {
   constructor() {
     this.codeLensProviders = [
       new RequirementsCodeLensProvider(),
-      new PyprojectCodeLensProvider(),
+      new PyProjectCodeLensProvider(),
       new GemfileCodelensProvider(),
       new GemspecCodelensProvider(),
     ];

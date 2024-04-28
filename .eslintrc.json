@@ -11,7 +11,8 @@
         "@typescript-eslint",
         "jest",
         "prettier",
-        "simple-import-sort"
+        "simple-import-sort",
+        "neverthrow"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -20,6 +21,7 @@
     },
     "rules": {
         "simple-import-sort/imports": "warn",
-        "simple-import-sort/exports": "warn"
+        "simple-import-sort/exports": "warn",
+        "neverthrow/must-use-result": "error"
     }
 }
