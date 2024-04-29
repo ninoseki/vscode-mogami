@@ -1,16 +1,17 @@
-import { gemfileRegExp, parse } from "@/format/gemfile";
+import { parse } from "@/format/gemfile";
 
 import { BaseGemCodeLensProvider } from "./baseGemCodeLensProvider";
 
 export class GemfileCodelensProvider extends BaseGemCodeLensProvider {
   constructor() {
-    super({
-      documentSelector: {
+    super(
+      {
         pattern: "**/Gemfile",
         scheme: "file",
       },
-      regExp: gemfileRegExp,
-      parse: parse,
-    });
+      {
+        parseFn: parse,
+      },
+    );
   }
 }

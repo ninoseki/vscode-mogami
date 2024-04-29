@@ -7,12 +7,10 @@ import { BasePyPICodeLensProvider } from "./basePyPICodeLensProvider";
 
 export class PyProjectCodeLensProvider extends BasePyPICodeLensProvider {
   constructor() {
-    super([
-      {
-        pattern: "**/pyproject.toml",
-        scheme: "file",
-      },
-    ]);
+    super({
+      pattern: "**/pyproject.toml",
+      scheme: "file",
+    });
   }
 
   getDepsPosLines(document: vscode.TextDocument) {

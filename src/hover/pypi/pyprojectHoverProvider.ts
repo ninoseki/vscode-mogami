@@ -4,7 +4,6 @@ import { API } from "@/api";
 import { buildDepsRegExp, parse } from "@/format/poetry";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
-import { buildHoverMessage } from "./common";
 
 export class PyProjectHoverProvider extends AbstractHoverProvider {
   constructor() {
@@ -25,19 +24,17 @@ export class PyProjectHoverProvider extends AbstractHoverProvider {
     const range = document.getWordRangeAtPosition(position, depsRegExp);
     const line = document.lineAt(position.line).text.trim();
 
-    const depPos = parse(line, depsRegExp);
-    if (!depPos) {
+    const depsPos = parse(line, depsRegExp);
+    if (!depsPos) {
       return;
     }
 
-    const result = await API.safeGetPypiPackage(depPos.name);
-    if (result.isErr()) {
-      return;
-    }
-
-    const pkg = result.value;
-    const message = buildHoverMessage(pkg);
-    const link = new vscode.Hover(message, range);
-    return link;
+    const result = await API.safeGetPypiPackage(depsPos.name);
+    return result
+      .map((pkg) => {
+        const message = `${pkg.summary}\n\nLatest version: ${pkg.version}\n\n${pkg.url}`;
+        return new vscode.Hover(message, range);
+      })
+      .unwrapOr(undefined);
   }
 }
