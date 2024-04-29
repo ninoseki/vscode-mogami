@@ -8,8 +8,8 @@ export default defineConfig({
   external: ["vscode"],
   noExternal: [
     "@iarna/toml",
-    "@renovate/pep440",
-    "@renovate/ruby-semver",
+    "@renovatebot/pep440",
+    "@renovatebot/ruby-semver",
     "axios-cache-interceptor",
     "axios",
     "camelcase-keys",
