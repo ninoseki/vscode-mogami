@@ -5,6 +5,7 @@ import { ExtensionComponent } from "@/extensionComponent";
 import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
 import { GemfileCodelensProvider } from "./gem/gemfileCodeLensProvider";
 import { GemspecCodelensProvider } from "./gem/gemspecCodeLensProvider";
+import { OnUpdateDependencyClick } from "./onUpdateDependencyClick";
 import { PyProjectCodeLensProvider } from "./pypi/pyprojectCodeLensProvider";
 import { RequirementsCodeLensProvider } from "./pypi/requirementsCodeLensProvider";
 
@@ -22,5 +23,6 @@ export class CodeLensManager implements ExtensionComponent {
 
   public activate(context: vscode.ExtensionContext) {
     this.codeLensProviders.forEach((provider) => provider.activate(context));
+    new OnUpdateDependencyClick();
   }
 }

@@ -1,64 +1,57 @@
 import { zipWith } from "fp-ts/Array";
-import { err, ok } from "neverthrow";
+import { err } from "neverthrow";
 import pLimit from "p-limit";
 import * as vscode from "vscode";
 
 import { API } from "@/api";
 import { AbstractCodeLensProvider } from "@/codeLens/abstractCodeLensProvider";
 import { DependencyPosLineType } from "@/schemas";
-import { PypiSuggestionProvider } from "@/suggestion/pypi/pypiSuggestionProvider";
+import { satisfies } from "@/versioning/poetry";
+
+import { createCodeLens } from "../codeLensFactory";
 
 export abstract class BasePyPICodeLensProvider extends AbstractCodeLensProvider {
   abstract getDepsPosLines(
     document: vscode.TextDocument,
   ): DependencyPosLineType[];
 
+  constructor(documentSelector: vscode.DocumentSelector) {
+    super(documentSelector);
+  }
+
   public async provideCodeLenses(document: vscode.TextDocument) {
     const depsPosLines = this.getDepsPosLines(document);
+    const names = depsPosLines.map((x) => x.name);
 
     const limit = pLimit(5);
-    const input = depsPosLines.map((x) =>
+    const input = names.map((name) =>
       limit(() => {
-        return API.safeGetPypiPackage(x.name);
+        return API.safeGetPypiPackage(name);
       }),
     );
     const results = await Promise.all(input);
 
-    const zipped = zipWith(depsPosLines, results, (depPosLine, result) => {
+    return zipWith(depsPosLines, results, (depPosLine, result) => {
       return { depPosLine, result };
-    });
-    return zipped
+    })
       .map((item) => {
-        const line = document.lineAt(item.depPosLine.line);
-        const { name, specifier } = item.depPosLine;
-
-        return item.result.andThen((pkg) => {
-          const position = new vscode.Position(
-            line.lineNumber,
-            item.depPosLine.pos,
-          );
-          const range = document.getWordRangeAtPosition(position);
-
-          if (range) {
-            const codeLens = new vscode.CodeLens(range);
-            const suggestionProvider = new PypiSuggestionProvider(
-              { name, specifier },
-              pkg,
-            );
-            codeLens.command = suggestionProvider.suggest();
-            return ok(codeLens);
-          }
-          return err("range not found");
+        if (item.result.isErr()) {
+          return err("Package not found");
+        }
+        const { line, pos, name, specifier } = item.depPosLine;
+        const pkg = item.result.value;
+        return createCodeLens({
+          document,
+          pkg,
+          deps: { name, specifier },
+          pos,
+          line,
+          satisfies,
         });
       })
       .map((result) => {
-        if (result.isOk()) {
-          return result.value;
-        }
-        return undefined;
+        return result.unwrapOr(undefined);
       })
-      .filter(
-        (item): item is Exclude<typeof item, undefined> => item !== undefined,
-      );
+      .filter((i): i is Exclude<typeof i, undefined> => i !== undefined);
   }
 }

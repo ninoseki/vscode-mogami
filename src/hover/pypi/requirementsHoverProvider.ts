@@ -4,7 +4,6 @@ import { API } from "@/api";
 import { parse, pkgValRegExp } from "@/format/pip";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
-import { buildHoverMessage } from "./common";
 
 export class RequirementsHoverProvider extends AbstractHoverProvider {
   constructor() {
@@ -30,19 +29,17 @@ export class RequirementsHoverProvider extends AbstractHoverProvider {
     const range = document.getWordRangeAtPosition(position, pkgValRegExp);
     const line = document.lineAt(position.line).text.trim();
 
-    const depPos = parse(line);
-    if (!depPos) {
+    const depsPos = parse(line);
+    if (!depsPos) {
       return;
     }
 
-    const result = await API.safeGetPypiPackage(depPos.name);
-    if (result.isErr()) {
-      return;
-    }
-
-    const pkg = result.value;
-    const message = buildHoverMessage(pkg);
-    const link = new vscode.Hover(message, range);
-    return link;
+    const result = await API.safeGetPypiPackage(depsPos.name);
+    return result
+      .map((pkg) => {
+        const message = `${pkg.summary}\n\nLatest version: ${pkg.version}\n\n${pkg.url}`;
+        return new vscode.Hover(message, range);
+      })
+      .unwrapOr(undefined);
   }
 }

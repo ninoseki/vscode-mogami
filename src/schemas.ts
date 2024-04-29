@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import { z } from "zod";
 
 export const PypiInfoSchema = z.object({
@@ -15,39 +16,28 @@ export const PypiPackageSchema = z.object({
 
 export type PypiPackageType = z.infer<typeof PypiPackageSchema>;
 
-export const PypiDependencySchema = z.object({
-  name: z.string(),
-  requirements: z.string(),
-});
-
-export const keyValueMapSchema = z.record(z.string());
-
-export const PoetrySchema = z.object({
-  dependencies: keyValueMapSchema,
-  devDependencies: keyValueMapSchema,
-});
-
-export const PoetryToolSchema = z.object({
-  poetry: PoetrySchema,
-});
-
-export const PoetryProjectSchema = z.object({
-  tool: PoetryToolSchema,
-});
-
 export const GemSchema = z.object({
   version: z.string(),
   info: z.string(),
   homepageUri: z.string(),
 });
 
-export const GemDependencySchema = z.object({
+export const GemPackageSchema = z.object({
   name: z.string(),
   requirements: z.string().nullish(),
 });
 
 export type GemType = z.infer<typeof GemSchema>;
-export type GemDependencyType = z.infer<typeof GemDependencySchema>;
+export type GemPackageType = z.infer<typeof GemPackageSchema>;
+
+export const PackageSchema = z.object({
+  name: z.string(),
+  version: z.string(),
+  summary: z.string(),
+  url: z.string().optional(),
+});
+
+export type PackageType = z.infer<typeof PackageSchema>;
 
 export const DependencySchema = z.object({
   name: z.string(),
@@ -67,3 +57,10 @@ export const DependencyPosLineSchema = DependencyPosSchema.extend({
 });
 
 export type DependencyPosLineType = z.infer<typeof DependencyPosLineSchema>;
+
+export interface CodeLensType {
+  codeLens: vscode.CodeLens;
+  documentUrl: vscode.Uri;
+  pkg: PackageType;
+  deps: DependencyType;
+}

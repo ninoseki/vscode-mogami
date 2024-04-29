@@ -36,14 +36,11 @@ export class BaseGemHoverProvider extends AbstractHoverProvider {
     }
 
     const result = await API.safeGetGem(depsPos.name);
-
-    if (result.isErr()) {
-      return;
-    }
-
-    const gem = result.value;
-    const message = `${gem.info}\n\nLatest version: ${gem.version}\n\n${gem.homepageUri}`;
-    const link = new vscode.Hover(message, range);
-    return link;
+    return result
+      .map((pkg) => {
+        const message = `${pkg.summary}\n\nLatest version: ${pkg.version}\n\n${pkg.url}`;
+        return new vscode.Hover(message, range);
+      })
+      .unwrapOr(undefined);
   }
 }

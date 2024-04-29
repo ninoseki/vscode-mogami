@@ -1,86 +1,67 @@
 import { zipWith } from "fp-ts/Array";
-import { err, ok } from "neverthrow";
+import { err } from "neverthrow";
 import pLimit from "p-limit";
 import * as vscode from "vscode";
 
 import { API } from "@/api";
 import { AbstractCodeLensProvider } from "@/codeLens/abstractCodeLensProvider";
-import { DependencyPosLineType, DependencyPosType } from "@/schemas";
-import { GemSuggestionProvider } from "@/suggestion/gem/gemSuggestionProvider";
+import { DependencyPosType } from "@/schemas";
+import { satisfies } from "@/versioning/gem";
+
+import { createCodeLens } from "../codeLensFactory";
+import { createDepsPosLines } from "../depsPosLineFactory";
 
 export class BaseGemCodeLensProvider extends AbstractCodeLensProvider {
-  private regExp: RegExp;
-  private parse: (line: string) => DependencyPosType | undefined;
+  private parseFn: (line: string) => DependencyPosType | undefined;
 
-  constructor({
-    regExp,
-    parse,
-    documentSelector,
-  }: {
-    regExp: RegExp;
-    parse: (line: string) => DependencyPosType | undefined;
-    documentSelector: vscode.DocumentSelector;
-  }) {
+  constructor(
+    documentSelector: vscode.DocumentSelector,
+    {
+      parseFn,
+    }: {
+      parseFn: (line: string) => DependencyPosType | undefined;
+    },
+  ) {
     super(documentSelector);
-
-    this.parse = parse;
-    this.regExp = regExp;
+    this.parseFn = parseFn;
   }
 
   public async provideCodeLenses(document: vscode.TextDocument) {
-    const depsPosLines: DependencyPosLineType[] = [];
-    for (let i = 0; i < document.lineCount; i++) {
-      const line = document.lineAt(i);
-      const depsPos = this.parse(line.text);
-      if (!depsPos) {
-        continue;
-      }
-      depsPosLines.push({ ...depsPos, line: line.lineNumber });
-    }
+    const depsPosLines = createDepsPosLines({
+      document,
+      parseFn: this.parseFn,
+    });
+    const names = depsPosLines.map((x) => x.name);
 
     const limit = pLimit(5);
-    const input = depsPosLines.map((x) =>
+    const input = names.map((name) =>
       limit(() => {
-        return API.safeGetGem(x.name);
+        return API.safeGetGem(name);
       }),
     );
     const results = await Promise.all(input);
 
-    const zipped = zipWith(depsPosLines, results, (depPosLine, result) => {
+    return zipWith(depsPosLines, results, (depPosLine, result) => {
       return { depPosLine, result };
-    });
-    return zipped
+    })
       .map((item) => {
-        const line = document.lineAt(item.depPosLine.line);
-        const { name, specifier } = item.depPosLine;
-
-        return item.result.andThen((pkg) => {
-          const position = new vscode.Position(
-            line.lineNumber,
-            item.depPosLine.pos,
-          );
-          const range = document.getWordRangeAtPosition(position, this.regExp);
-
-          if (range) {
-            const codeLens = new vscode.CodeLens(range);
-            const suggestionProvider = new GemSuggestionProvider(
-              { name, specifier },
-              pkg,
-            );
-            codeLens.command = suggestionProvider.suggest();
-            return ok(codeLens);
-          }
-          return err("range not found");
+        if (item.result.isErr()) {
+          return err("Package not found");
+        }
+        const { line, pos, name, specifier } = item.depPosLine;
+        const pkg = item.result.value;
+        return createCodeLens({
+          document,
+          pkg,
+          deps: { name, specifier },
+          pos,
+          line,
+          satisfies,
         });
       })
       .map((result) => {
-        if (result.isOk()) {
-          return result.value;
-        }
-        return undefined;
+        return result.unwrapOr(undefined);
       })
-      .filter(
-        (item): item is Exclude<typeof item, undefined> => item !== undefined,
-      );
+      .filter((i): i is Exclude<typeof i, undefined> => i !== undefined);
   }
 }

@@ -7,16 +7,14 @@ import { BasePyPICodeLensProvider } from "./basePyPICodeLensProvider";
 
 export class RequirementsCodeLensProvider extends BasePyPICodeLensProvider {
   constructor() {
-    const patterns = [
-      "**/*-requirements.txt",
-      "**/*.requirements.txt",
-      "**/requirements-*.txt",
-      "**/requirements.txt",
-      "**/requirements/*.txt",
-    ];
-
     super(
-      patterns.map((pattern) => {
+      [
+        "**/*-requirements.txt",
+        "**/*.requirements.txt",
+        "**/requirements-*.txt",
+        "**/requirements.txt",
+        "**/requirements/*.txt",
+      ].map((pattern) => {
         return { pattern, scheme: "file" };
       }),
     );
