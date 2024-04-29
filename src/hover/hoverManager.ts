@@ -4,7 +4,6 @@ import { ExtensionComponent } from "@/extensionComponent";
 
 import { AbstractHoverProvider } from "./abstractHoverProvider";
 import { GemfileHoverProvider } from "./gem/gemfileHoverProvider";
-import { GemfileLockHoverProvider } from "./gem/gemfileLockHoverProvider";
 import { GemspecHoverProvider } from "./gem/gemspecHoverProvider";
 import { PyProjectHoverProvider } from "./pypi/pyprojectHoverProvider";
 import { RequirementsHoverProvider } from "./pypi/requirementsHoverProvider";
@@ -17,7 +16,6 @@ export class HoverManager implements ExtensionComponent {
       new RequirementsHoverProvider(),
       new PyProjectHoverProvider(),
       new GemfileHoverProvider(),
-      new GemfileLockHoverProvider(),
       new GemspecHoverProvider(),
     ];
   }

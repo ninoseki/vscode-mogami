@@ -12,7 +12,6 @@ A VS Code extension for checking the latest version of each dependency.
 ### Ruby
 
 - `Gemfile`
-- `Gemfile.lock`
 - `*.gemspec`
 
 ## Alternatives
