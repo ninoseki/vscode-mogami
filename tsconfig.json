@@ -1,21 +1,17 @@
 {
 	"compilerOptions": {
-		"target": "esnext",
-		"module": "commonjs",
+		"target": "ESNext",
+		"module": "CommonJS",
 		"lib": [
-			"esnext"
+			"ESNext"
 		],
-		"moduleResolution": "node",
 		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
 		"strict": true,
-		"strictNullChecks": true,
-		"resolveJsonModule": true,
 		"skipLibCheck": true,
-		"skipDefaultLibCheck": true,
 		"baseUrl": ".",
 		"rootDirs": [
-			"src",
-			"test"
+			"src"
 		],
 		"paths": {
 			"@/*": [

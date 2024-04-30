@@ -10,9 +10,9 @@
     "plugins": [
         "@typescript-eslint",
         "jest",
+        "neverthrow",
         "prettier",
-        "simple-import-sort",
-        "neverthrow"
+        "simple-import-sort"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -20,8 +20,8 @@
         "tsconfigRootDir": "."
     },
     "rules": {
-        "simple-import-sort/imports": "warn",
+        "neverthrow/must-use-result": "error",
         "simple-import-sort/exports": "warn",
-        "neverthrow/must-use-result": "error"
+        "simple-import-sort/imports": "warn"
     }
 }
