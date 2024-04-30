@@ -33,7 +33,7 @@ export function createCodeLens({
   const replaceRange: vscode.Range | undefined = (() => {
     return pipe(
       O.fromNullable(deps.specifier),
-      O.chain((s: string) => {
+      O.flatMap((s: string) => {
         const index = docLine.text.lastIndexOf(s);
         if (index > 0) {
           return O.some(
