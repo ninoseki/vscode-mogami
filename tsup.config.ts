@@ -19,7 +19,6 @@ export default defineConfig({
     "p-limit",
     "semver",
     "snyk-poetry-lockfile-parser",
-    "unquote",
     "zod",
   ],
 });
