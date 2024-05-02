@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import { getDependenciesFrom } from "snyk-poetry-lockfile-parser/dist/manifest-parser";
 
-import type { DependencyPosType } from "@/schemas";
+import type { DependencyType } from "@/schemas";
 
 const RANGE_PATTERN = [
   "(?<operator>(===|~=|==|!=|<=|>=|<|>|\\^))",
@@ -34,7 +34,7 @@ export function buildDepsRegExp(text: string) {
 export function parse(
   line: string,
   depsRegExp: RegExp,
-): DependencyPosType | undefined {
+): DependencyType | undefined {
   const matches = depsRegExp.exec(line);
   if (!matches) {
     return undefined;
@@ -58,5 +58,5 @@ export function parse(
     );
   })();
 
-  return { name, specifier, pos: matches.index };
+  return { name, specifier };
 }

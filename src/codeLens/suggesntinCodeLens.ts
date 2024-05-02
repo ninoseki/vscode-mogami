@@ -5,7 +5,7 @@ import { DependencyType, PackageType } from "@/schemas";
 export class SuggestionCodeLens extends CodeLens {
   replaceRange?: Range;
   pkg: PackageType;
-  deps: DependencyType;
+  dependency: DependencyType;
   documentUrl: Uri;
 
   constructor(
@@ -14,19 +14,19 @@ export class SuggestionCodeLens extends CodeLens {
       replaceRange,
       documentUrl,
       pkg,
-      deps,
+      dependency,
     }: {
       replaceRange?: Range;
       documentUrl: Uri;
       pkg: PackageType;
-      deps: DependencyType;
+      dependency: DependencyType;
     },
   ) {
     super(commandRange);
     this.replaceRange = replaceRange;
     this.documentUrl = documentUrl;
     this.pkg = pkg;
-    this.deps = deps;
+    this.dependency = dependency;
 
     this.command = undefined;
   }

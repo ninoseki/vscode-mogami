@@ -10,7 +10,7 @@ export class GemspecCodelensProvider extends BaseGemCodeLensProvider {
         scheme: "file",
       },
       {
-        parseFn: parse,
+        parse,
       },
     );
   }

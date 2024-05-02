@@ -1,7 +1,7 @@
 // Forked from https://github.com/renovatebot/renovate
 import { RANGE_PATTERN } from "@renovatebot/pep440";
 
-import type { DependencyPosType } from "@/schemas";
+import type { DependencyType } from "@/schemas";
 
 const packagePattern = "[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]";
 const extrasPattern = "(?:\\s*\\[[^\\]]+\\])?";
@@ -16,7 +16,7 @@ const dependencyPattern = `(${packagePattern})(${extrasPattern})(${specifierPatt
 
 export const pkgValRegExp = RegExp(`^${dependencyPattern}$`);
 
-export function parse(line: string): DependencyPosType | undefined {
+export function parse(line: string): DependencyType | undefined {
   const [_line] = line.split("#").map((part) => part.trim());
   const [lineNoEnvMarkers] = _line.split(";").map((part) => part.trim());
   const lineNoHashes = lineNoEnvMarkers.split(" \\")[0];
@@ -25,5 +25,5 @@ export function parse(line: string): DependencyPosType | undefined {
     return undefined;
   }
   const [, name, , specifier] = matches;
-  return { name, specifier: specifier.trim(), pos: matches.index };
+  return { name, specifier: specifier.trim() };
 }
