@@ -84,17 +84,15 @@ export async function createCodeLenses({
     return { dependencyPosition, result };
   })
     .map((item) => {
-      if (item.result.isErr()) {
-        return err("Package not found");
-      }
       const { dependency, position } = item.dependencyPosition;
-      const pkg = item.result.value;
-      return createCodeLens({
-        document,
-        pkg,
-        dependency,
-        position,
-        satisfies,
+      return item.result.andThen((pkg) => {
+        return createCodeLens({
+          document,
+          pkg,
+          dependency,
+          position,
+          satisfies,
+        });
       });
     })
     .map((result) => {
