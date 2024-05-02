@@ -24,13 +24,12 @@ export class PyProjectHoverProvider extends AbstractHoverProvider {
     const range = document.getWordRangeAtPosition(position, depsRegExp);
     const line = document.lineAt(position.line).text.trim();
 
-    const depsPos = parse(line, depsRegExp);
-    if (!depsPos) {
+    const dependency = parse(line, depsRegExp);
+    if (!dependency) {
       return;
     }
 
-    const result = await API.safeGetPypiPackage(depsPos.name);
-    return result
+    return (await API.safeGetPypiPackage(dependency.name))
       .map((pkg) => {
         const message = `${pkg.summary}\n\nLatest version: ${pkg.version}\n\n${pkg.url}`;
         return new vscode.Hover(message, range);

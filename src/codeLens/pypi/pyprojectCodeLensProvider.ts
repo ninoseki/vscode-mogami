@@ -1,11 +1,13 @@
 import * as vscode from "vscode";
 
-import { buildDepsRegExp, parse } from "@/format/poetry";
-import { DependencyPosLineType } from "@/schemas";
+import { API } from "@/api";
+import { buildDepsRegExp, parse as _parse } from "@/format/poetry";
+import { satisfies } from "@/versioning/poetry";
 
-import { BasePyPICodeLensProvider } from "./basePyPICodeLensProvider";
+import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
+import { createCodeLenses } from "../codeLensFactory";
 
-export class PyProjectCodeLensProvider extends BasePyPICodeLensProvider {
+export class PyProjectCodeLensProvider extends AbstractCodeLensProvider {
   constructor() {
     super({
       pattern: "**/pyproject.toml",
@@ -13,18 +15,16 @@ export class PyProjectCodeLensProvider extends BasePyPICodeLensProvider {
     });
   }
 
-  getDepsPosLines(document: vscode.TextDocument) {
-    const depsPosLines: DependencyPosLineType[] = [];
+  public async provideCodeLenses(document: vscode.TextDocument) {
     const depsRegExp = buildDepsRegExp(document.getText());
-
-    for (let i = 0; i < document.lineCount; i++) {
-      const line = document.lineAt(i);
-      const depsPos = parse(line.text, depsRegExp);
-      if (!depsPos) {
-        continue;
-      }
-      depsPosLines.push({ ...depsPos, line: line.lineNumber });
-    }
-    return depsPosLines;
+    const parse = (line: string) => {
+      return _parse(line, depsRegExp);
+    };
+    return await createCodeLenses({
+      document,
+      parse,
+      getPackage: API.getPypiPackage,
+      satisfies,
+    });
   }
 }

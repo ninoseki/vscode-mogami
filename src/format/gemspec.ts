@@ -1,9 +1,9 @@
-import type { DependencyPosType } from "@/schemas";
+import type { DependencyType } from "@/schemas";
 
 export const gemspecRegExp =
   /\b\w+\.(add_development_dependency|add_runtime_dependency|add_dependency)[\s\t]+("|')(?<name>(.+))("|'),[\s\t]("|')(?<specifier>(.+))("|')/;
 
-export function parse(line: string): DependencyPosType | undefined {
+export function parse(line: string): DependencyType | undefined {
   const matches = gemspecRegExp.exec(line);
   if (!matches) {
     return undefined;
@@ -13,5 +13,5 @@ export function parse(line: string): DependencyPosType | undefined {
     return undefined;
   }
   const specifier = matches.groups?.specifier;
-  return { name, specifier, pos: matches.index };
+  return { name, specifier };
 }

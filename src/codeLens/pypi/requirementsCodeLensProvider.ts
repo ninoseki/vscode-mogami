@@ -1,11 +1,13 @@
 import * as vscode from "vscode";
 
+import { API } from "@/api";
 import { parse } from "@/format/pip";
-import { DependencyPosLineType } from "@/schemas";
+import { satisfies } from "@/versioning/poetry";
 
-import { BasePyPICodeLensProvider } from "./basePyPICodeLensProvider";
+import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
+import { createCodeLenses } from "../codeLensFactory";
 
-export class RequirementsCodeLensProvider extends BasePyPICodeLensProvider {
+export class RequirementsCodeLensProvider extends AbstractCodeLensProvider {
   constructor() {
     super(
       [
@@ -20,16 +22,12 @@ export class RequirementsCodeLensProvider extends BasePyPICodeLensProvider {
     );
   }
 
-  public getDepsPosLines(document: vscode.TextDocument) {
-    const depsPosLines: DependencyPosLineType[] = [];
-    for (let i = 0; i < document.lineCount; i++) {
-      const line = document.lineAt(i);
-      const depsPos = parse(line.text);
-      if (!depsPos) {
-        continue;
-      }
-      depsPosLines.push({ ...depsPos, line: line.lineNumber });
-    }
-    return depsPosLines;
+  public async provideCodeLenses(document: vscode.TextDocument) {
+    return await createCodeLenses({
+      document,
+      parse,
+      getPackage: API.getPypiPackage,
+      satisfies,
+    });
   }
 }

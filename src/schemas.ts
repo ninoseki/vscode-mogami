@@ -46,17 +46,17 @@ export const DependencySchema = z.object({
 
 export type DependencyType = z.infer<typeof DependencySchema>;
 
-export const DependencyPosSchema = DependencySchema.extend({
-  pos: z.number(),
-});
-
-export type DependencyPosType = z.infer<typeof DependencyPosSchema>;
-
-export const DependencyPosLineSchema = DependencyPosSchema.extend({
+export const PositionSchema = z.object({
   line: z.number(),
+  character: z.number(),
 });
 
-export type DependencyPosLineType = z.infer<typeof DependencyPosLineSchema>;
+export type PositionType = z.infer<typeof PositionSchema>;
+
+export interface DependencyPositionType {
+  position: vscode.Position;
+  dependency: DependencyType;
+}
 
 export interface CodeLensType {
   codeLens: vscode.CodeLens;

@@ -11,7 +11,7 @@ const client = axios.create();
 setupCache(client);
 
 export const API = {
-  async getPypiPackage(name: string): Promise<PackageType> {
+  async getPypiPackage(this: void, name: string): Promise<PackageType> {
     const res = await client.get(`https://pypi.org/pypi/${name}/json`);
     const parsed = PypiPackageSchema.parse(
       camelcaseKeys(res.data, { deep: true }),
@@ -38,7 +38,7 @@ export const API = {
     );
   },
 
-  async getGem(name: string): Promise<PackageType> {
+  async getGem(this: void, name: string): Promise<PackageType> {
     const res = await client.get(
       `https://rubygems.org/api/v1/gems/${name}.json`,
     );

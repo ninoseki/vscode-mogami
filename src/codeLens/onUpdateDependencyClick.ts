@@ -20,7 +20,7 @@ export class OnUpdateDependencyClick {
   }
 
   async execute(codeLens: SuggestionCodeLens): Promise<void> {
-    if (!codeLens.replaceRange || !codeLens.deps.specifier) {
+    if (!codeLens.replaceRange || !codeLens.dependency.specifier) {
       return;
     }
 
@@ -28,7 +28,10 @@ export class OnUpdateDependencyClick {
     edit.replace(
       codeLens.documentUrl,
       codeLens.replaceRange,
-      formatWithExistingLeading(codeLens.deps.specifier, codeLens.pkg.version),
+      formatWithExistingLeading(
+        codeLens.dependency.specifier,
+        codeLens.pkg.version,
+      ),
     );
     await vscode.workspace.applyEdit(edit);
   }

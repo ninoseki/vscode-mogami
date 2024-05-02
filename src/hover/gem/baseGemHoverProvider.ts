@@ -2,11 +2,11 @@ import * as vscode from "vscode";
 
 import { API } from "@/api";
 import { AbstractHoverProvider } from "@/hover/abstractHoverProvider";
-import type { DependencyPosType } from "@/schemas";
+import type { DependencyType } from "@/schemas";
 
 export class BaseGemHoverProvider extends AbstractHoverProvider {
   private regExp: RegExp;
-  private parse: (line: string) => DependencyPosType | undefined;
+  private parse: (line: string) => DependencyType | undefined;
 
   constructor({
     regExp,
@@ -14,7 +14,7 @@ export class BaseGemHoverProvider extends AbstractHoverProvider {
     documentSelector,
   }: {
     regExp: RegExp;
-    parse: (line: string) => DependencyPosType | undefined;
+    parse: (line: string) => DependencyType | undefined;
     documentSelector: vscode.DocumentSelector;
   }) {
     super(documentSelector);
@@ -30,13 +30,12 @@ export class BaseGemHoverProvider extends AbstractHoverProvider {
     const range = document.getWordRangeAtPosition(position, this.regExp);
     const line = document.lineAt(position.line).text.trim();
 
-    const depsPos = this.parse(line);
-    if (!depsPos) {
+    const dependency = this.parse(line);
+    if (!dependency) {
       return;
     }
 
-    const result = await API.safeGetGem(depsPos.name);
-    return result
+    return (await API.safeGetGem(dependency.name))
       .map((pkg) => {
         const message = `${pkg.summary}\n\nLatest version: ${pkg.version}\n\n${pkg.url}`;
         return new vscode.Hover(message, range);
