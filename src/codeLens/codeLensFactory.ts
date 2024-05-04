@@ -1,7 +1,7 @@
 import { zipWith } from "fp-ts/lib/Array";
+import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
-import { err, ok } from "neverthrow";
 import * as vscode from "vscode";
 
 import { DependencyType, PackageType } from "@/schemas";
@@ -23,11 +23,11 @@ export function createCodeLens({
   dependency: DependencyType;
   position: vscode.Position;
   satisfies: (version: string, specifier?: string) => boolean;
-}) {
+}): E.Either<Error, SuggestionCodeLens> {
   const docLine = document.lineAt(position.line);
   const range = document.getWordRangeAtPosition(position);
   if (!range) {
-    return err("range not found");
+    return E.left(new Error("range not found"));
   }
 
   const replaceRange: vscode.Range | undefined = (() => {
@@ -60,7 +60,7 @@ export function createCodeLens({
   const title = `${direction}latest: ${pkg.version}`;
   const command = isSatisfied ? "" : OnUpdateDependencyClickCommand;
   codeLens.setCommand(title, command, [codeLens]);
-  return ok(codeLens);
+  return E.right(codeLens);
 }
 
 export async function createCodeLenses({
@@ -84,19 +84,21 @@ export async function createCodeLenses({
     return { dependencyPosition, result };
   })
     .map((item) => {
+      if (E.isLeft(item.result)) {
+        return undefined;
+      }
       const { dependency, position } = item.dependencyPosition;
-      return item.result.andThen((pkg) => {
-        return createCodeLens({
+      const pkg = item.result.right;
+      return pipe(
+        createCodeLens({
           document,
           pkg,
           dependency,
           position,
           satisfies,
-        });
-      });
-    })
-    .map((result) => {
-      return result.unwrapOr(undefined);
+        }),
+        E.getOrElseW(() => undefined),
+      );
     })
     .filter((i): i is Exclude<typeof i, undefined> => i !== undefined);
 }
