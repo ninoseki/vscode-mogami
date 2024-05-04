@@ -1,16 +1,25 @@
 import { Requirement } from "@renovatebot/ruby-semver/dist/ruby/requirement";
 import { Version } from "@renovatebot/ruby-semver/dist/ruby/version";
-import { err, fromThrowable, ok } from "neverthrow";
+import * as E from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
 
 export function satisfies(version: string, specifier?: string): boolean {
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  return fromThrowable(Requirement.create)(specifier)
-    .andThen((req) => {
+  const safeRequirementCreate = (
+    specifier?: string,
+  ): E.Either<unknown, Requirement> =>
+    E.tryCatch<unknown, Requirement>(
+      () => Requirement.create(specifier),
+      (e: unknown) => e,
+    );
+  return pipe(
+    safeRequirementCreate(specifier),
+    E.flatMap((req) => {
       const v = Version.create(version);
       if (!v) {
-        return err("Failed to parse the version");
+        return E.left(new Error("Failed to parse the version"));
       }
-      return ok(req.isSatisfiedBy(v));
-    })
-    .unwrapOr(false);
+      return E.right(req.isSatisfiedBy(v));
+    }),
+    E.getOrElseW(() => false),
+  );
 }

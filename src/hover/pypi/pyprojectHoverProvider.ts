@@ -1,3 +1,5 @@
+import * as E from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
 import * as vscode from "vscode";
 
 import { API } from "@/api";
@@ -29,11 +31,15 @@ export class PyProjectHoverProvider extends AbstractHoverProvider {
       return;
     }
 
-    return (await API.safeGetPypiPackage(dependency.name))
-      .map((pkg) => {
+    const task = API.safeGetPypiPackage(dependency.name);
+    const result = await task();
+    return pipe(
+      result,
+      E.map((pkg) => {
         const message = `${pkg.summary}\n\nLatest version: ${pkg.version}\n\n${pkg.url}`;
         return new vscode.Hover(message, range);
-      })
-      .unwrapOr(undefined);
+      }),
+      E.getOrElseW(() => undefined),
+    );
   }
 }

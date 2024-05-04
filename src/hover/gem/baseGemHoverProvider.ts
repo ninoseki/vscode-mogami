@@ -1,3 +1,5 @@
+import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
 import * as vscode from "vscode";
 
 import { API } from "@/api";
@@ -35,11 +37,15 @@ export class BaseGemHoverProvider extends AbstractHoverProvider {
       return;
     }
 
-    return (await API.safeGetGem(dependency.name))
-      .map((pkg) => {
+    const task = API.safeGetGem(dependency.name);
+    const result = await task();
+    return pipe(
+      result,
+      E.map((pkg) => {
         const message = `${pkg.summary}\n\nLatest version: ${pkg.version}\n\n${pkg.url}`;
         return new vscode.Hover(message, range);
-      })
-      .unwrapOr(undefined);
+      }),
+      E.getOrElseW(() => undefined),
+    );
   }
 }

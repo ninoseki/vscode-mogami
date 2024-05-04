@@ -1,5 +1,5 @@
-import { ResultAsync } from "neverthrow";
-import pLimit from "p-limit";
+import { tryCatch } from "fp-ts/TaskEither";
+import pmap from "p-map";
 
 import { PackageType } from "@/schemas";
 
@@ -12,11 +12,11 @@ export async function getPackages({
   concurrency?: number;
   fn: (name: string) => Promise<PackageType>;
 }) {
-  const limit = pLimit(concurrency);
-  const input = names.map((name) =>
-    limit(() => {
-      return ResultAsync.fromPromise(fn(name), (e: unknown) => e);
-    }),
+  const tasks = names.map((name) =>
+    tryCatch(
+      () => fn(name),
+      (e: unknown) => e,
+    ),
   );
-  return await Promise.all(input);
+  return await pmap(tasks, (t) => t(), { concurrency });
 }

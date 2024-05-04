@@ -1,7 +1,7 @@
 import axios from "axios";
 import { setupCache } from "axios-cache-interceptor";
 import camelcaseKeys from "camelcase-keys";
-import { ResultAsync } from "neverthrow";
+import { tryCatch } from "fp-ts/lib/TaskEither";
 
 import type { PackageType } from "@/schemas";
 import { GemSchema, PypiPackageSchema } from "@/schemas";
@@ -32,8 +32,8 @@ export const API = {
   },
 
   safeGetPypiPackage(name: string) {
-    return ResultAsync.fromPromise(
-      this.getPypiPackage(name),
+    return tryCatch(
+      () => this.getPypiPackage(name),
       (e: unknown) => e,
     );
   },
@@ -52,6 +52,9 @@ export const API = {
   },
 
   safeGetGem(name: string) {
-    return ResultAsync.fromPromise(this.getGem(name), (e: unknown) => e);
+    return tryCatch(
+      () => this.getGem(name),
+      (e: unknown) => e,
+    );
   },
 };
