@@ -12,9 +12,18 @@ export const PypiInfoSchema = z.object({
 
 export const PypiPackageSchema = z.object({
   info: PypiInfoSchema,
+  releases: z.record(z.string(), z.any()),
 });
 
 export type PypiPackageType = z.infer<typeof PypiPackageSchema>;
+
+export const GemVersionSchema = z.object({
+  number: z.string(),
+});
+
+export const GemVersionsSchema = z.array(GemVersionSchema);
+
+export type GemVersionsType = z.infer<typeof GemVersionsSchema>;
 
 export const GemSchema = z.object({
   version: z.string(),
@@ -32,7 +41,8 @@ export type GemPackageType = z.infer<typeof GemPackageSchema>;
 
 export const PackageSchema = z.object({
   name: z.string(),
-  version: z.string(),
+  version: z.string().describe("The latest version of the package"),
+  versions: z.array(z.string()),
   summary: z.string(),
   url: z.string().optional(),
 });
