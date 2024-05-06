@@ -3,8 +3,8 @@ import { setupCache } from "axios-cache-interceptor";
 import camelcaseKeys from "camelcase-keys";
 import { tryCatch } from "fp-ts/lib/TaskEither";
 
-import type { PackageType } from "@/schemas";
-import { GemSchema, PypiPackageSchema } from "@/schemas";
+import type { GemVersionsType, PackageType } from "@/schemas";
+import { GemSchema, GemVersionsSchema, PypiPackageSchema } from "@/schemas";
 
 const client = axios.create();
 
@@ -13,9 +13,14 @@ setupCache(client);
 export const API = {
   async getPypiPackage(this: void, name: string): Promise<PackageType> {
     const res = await client.get(`https://pypi.org/pypi/${name}/json`);
-    const parsed = PypiPackageSchema.parse(
-      camelcaseKeys(res.data, { deep: true }),
-    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { releases, info } = res.data;
+    const parsed = PypiPackageSchema.parse({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      info: camelcaseKeys(info, { deep: true }),
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      releases,
+    });
     const url = [
       parsed.info.homePage,
       parsed.info.projectUrl,
@@ -27,6 +32,7 @@ export const API = {
       name: parsed.info.name,
       version: parsed.info.version,
       summary: parsed.info.summary,
+      versions: Object.keys(parsed.releases),
       url,
     };
   },
@@ -36,6 +42,13 @@ export const API = {
       () => this.getPypiPackage(name),
       (e: unknown) => e,
     );
+  },
+
+  async getGemVersions(this: void, name: string): Promise<GemVersionsType> {
+    const res = await client.get(
+      `https://rubygems.org/api/v1/versions/${name}.json`,
+    );
+    return GemVersionsSchema.parse(res.data);
   },
 
   async getGem(this: void, name: string): Promise<PackageType> {
@@ -48,6 +61,7 @@ export const API = {
       version: parsed.version,
       summary: parsed.info,
       url: parsed.homepageUri,
+      versions: [],
     };
   },
 

@@ -1,3 +1,4 @@
+import * as E from "fp-ts/lib/Either";
 import * as vscode from "vscode";
 
 import { formatWithExistingLeading } from "@/versioning/utils";
@@ -20,18 +21,21 @@ export class OnUpdateDependencyClick {
   }
 
   async execute(codeLens: SuggestionCodeLens): Promise<void> {
-    if (!codeLens.replaceRange || !codeLens.dependency.specifier) {
+    if (
+      !codeLens.replaceRange ||
+      !codeLens.dependency.specifier ||
+      E.isLeft(codeLens.pkg)
+    ) {
       return;
     }
+
+    const pkg = codeLens.pkg.right;
 
     const edit = new vscode.WorkspaceEdit();
     edit.replace(
       codeLens.documentUrl,
       codeLens.replaceRange,
-      formatWithExistingLeading(
-        codeLens.dependency.specifier,
-        codeLens.pkg.version,
-      ),
+      formatWithExistingLeading(codeLens.dependency.specifier, pkg.version),
     );
     await vscode.workspace.applyEdit(edit);
   }
