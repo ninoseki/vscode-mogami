@@ -2,6 +2,8 @@
 
 A VS Code extension for checking the latest version of each dependency.
 
+![img](https://raw.githubusercontent.com/ninoseki/vscode-mogami/main/screenshots/1.png)
+
 ## Supported Formats
 
 ### Python
