@@ -1,7 +1,6 @@
 import axios from "axios";
 import { setupCache } from "axios-cache-interceptor";
 import camelcaseKeys from "camelcase-keys";
-import { tryCatch } from "fp-ts/lib/TaskEither";
 
 import type { GemVersionsType, PackageType } from "@/schemas";
 import { GemSchema, GemVersionsSchema, PypiPackageSchema } from "@/schemas";
@@ -37,13 +36,6 @@ export const API = {
     };
   },
 
-  safeGetPypiPackage(name: string) {
-    return tryCatch(
-      () => this.getPypiPackage(name),
-      (e: unknown) => e,
-    );
-  },
-
   async getGemVersions(this: void, name: string): Promise<GemVersionsType> {
     const res = await client.get(
       `https://rubygems.org/api/v1/versions/${name}.json`,
@@ -63,12 +55,5 @@ export const API = {
       url: parsed.homepageUri,
       versions: [],
     };
-  },
-
-  safeGetGem(name: string) {
-    return tryCatch(
-      () => this.getGem(name),
-      (e: unknown) => e,
-    );
   },
 };

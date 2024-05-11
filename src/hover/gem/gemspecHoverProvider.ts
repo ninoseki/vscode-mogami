@@ -1,16 +1,26 @@
+import * as vscode from "vscode";
+
 import { gemspecRegExp, parse } from "@/format/gemspec";
+import { getPackage } from "@/package/gem";
 
-import { BaseGemHoverProvider } from "./baseGemHoverProvider";
+import { AbstractHoverProvider } from "../abstractHoverProvider";
 
-export class GemspecHoverProvider extends BaseGemHoverProvider {
+export class GemspecHoverProvider extends AbstractHoverProvider {
   constructor() {
-    super({
-      documentSelector: {
+    super(
+      {
         pattern: "**/*.gemspec",
         scheme: "file",
       },
-      regExp: gemspecRegExp,
-      parse: parse,
-    });
+      { getPackage },
+    );
+    this.parseLine = parse;
+  }
+
+  public parseDocumentPosition(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+  ) {
+    return document.getWordRangeAtPosition(position, gemspecRegExp);
   }
 }

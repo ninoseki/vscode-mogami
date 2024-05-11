@@ -1,45 +1,32 @@
-import * as E from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/function";
 import * as vscode from "vscode";
 
 import { API } from "@/api";
 import { buildDepsRegExp, parse } from "@/format/poetry";
+import { ParseFnType } from "@/types";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
 
 export class PyProjectHoverProvider extends AbstractHoverProvider {
-  constructor() {
-    const patterns = ["**/pyproject.toml"];
+  parseLine?: ParseFnType;
 
+  constructor() {
     super(
-      patterns.map((pattern) => {
-        return { pattern, scheme: "file" };
-      }),
+      { pattern: "**/pyproject.toml", scheme: "file" },
+      { getPackage: API.getPypiPackage },
     );
+    this.parseLine = undefined;
   }
 
-  public async provideHover(
+  public parseDocumentPosition(
     document: vscode.TextDocument,
     position: vscode.Position,
   ) {
     const depsRegExp = buildDepsRegExp(document.getText());
-    const range = document.getWordRangeAtPosition(position, depsRegExp);
-    const line = document.lineAt(position.line).text.trim();
+    const parseLine = (line: string) => {
+      return parse(line, depsRegExp);
+    };
+    this.parseLine = parseLine;
 
-    const dependency = parse(line, depsRegExp);
-    if (!dependency) {
-      return;
-    }
-
-    const task = API.safeGetPypiPackage(dependency.name);
-    const result = await task();
-    return pipe(
-      result,
-      E.map((pkg) => {
-        const message = `${pkg.summary}\n\nLatest version: ${pkg.version}\n\n${pkg.url}`;
-        return new vscode.Hover(message, range);
-      }),
-      E.getOrElseW(() => undefined),
-    );
+    return document.getWordRangeAtPosition(position, depsRegExp);
   }
 }

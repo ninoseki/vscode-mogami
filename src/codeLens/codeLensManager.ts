@@ -1,28 +1,34 @@
 import * as vscode from "vscode";
 
+import { ConcurrencyKey, EnableCodeLensKey, ExtID } from "@/constants";
 import { ExtensionComponent } from "@/extensionComponent";
 
-import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
-import { GemfileCodelensProvider } from "./gem/gemfileCodeLensProvider";
-import { GemspecCodelensProvider } from "./gem/gemspecCodeLensProvider";
+import { GemfileCodeLensProvider } from "./gem/gemfileCodeLensProvider";
+import { GemspecCodeLensProvider } from "./gem/gemspecCodeLensProvider";
 import { OnUpdateDependencyClick } from "./onUpdateDependencyClick";
 import { PyProjectCodeLensProvider } from "./pypi/pyprojectCodeLensProvider";
 import { RequirementsCodeLensProvider } from "./pypi/requirementsCodeLensProvider";
 
 export class CodeLensManager implements ExtensionComponent {
-  private codeLensProviders: AbstractCodeLensProvider[] = [];
-
-  constructor() {
-    this.codeLensProviders = [
-      new RequirementsCodeLensProvider(),
-      new PyProjectCodeLensProvider(),
-      new GemfileCodelensProvider(),
-      new GemspecCodelensProvider(),
-    ];
-  }
-
   public activate(context: vscode.ExtensionContext) {
-    this.codeLensProviders.forEach((provider) => provider.activate(context));
+    const enableCodeLens = vscode.workspace
+      .getConfiguration(ExtID)
+      .get(EnableCodeLensKey, true);
+    const concurrency = vscode.workspace
+      .getConfiguration(ExtID)
+      .get(ConcurrencyKey, 5);
+
+    if (!enableCodeLens) {
+      return;
+    }
+
+    const codeLensProviders = [
+      new PyProjectCodeLensProvider(concurrency),
+      new RequirementsCodeLensProvider(concurrency),
+      new GemfileCodeLensProvider(concurrency),
+      new GemspecCodeLensProvider(concurrency),
+    ];
+    codeLensProviders.forEach((provider) => provider.activate(context));
     new OnUpdateDependencyClick();
   }
 }

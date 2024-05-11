@@ -13,10 +13,10 @@ export class HoverManager implements ExtensionComponent {
 
   constructor() {
     this.hoverProviders = [
-      new RequirementsHoverProvider(),
       new PyProjectHoverProvider(),
-      new GemfileHoverProvider(),
+      new RequirementsHoverProvider(),
       new GemspecHoverProvider(),
+      new GemfileHoverProvider(),
     ];
   }
 

@@ -6,11 +6,10 @@ import * as O from "fp-ts/Option";
 import semver from "semver";
 import * as vscode from "vscode";
 
-import { DependencyType, PackageType } from "@/schemas";
+import { OnUpdateDependencyClickCommand } from "@/constants";
+import { DependencyPositionType, DependencyType, PackageType } from "@/schemas";
 import { eq, maxSatisfying } from "@/versioning/utils";
 
-import { createDependencyPositions } from "./dependencyPositionFactory";
-import { OnUpdateDependencyClickCommand } from "./onUpdateDependencyClick";
 import { getPackages } from "./packageFactory";
 import { SuggestionCodeLens } from "./suggesntinCodeLens";
 
@@ -124,20 +123,18 @@ function createCodeLens({
 export async function createCodeLenses({
   document,
   satisfies,
-  parse,
   getPackage,
+  dependencyPositions,
+  concurrency,
 }: {
   document: vscode.TextDocument;
+  concurrency?: number;
+  dependencyPositions: DependencyPositionType[];
   satisfies: (version: string, specifier?: string) => boolean;
-  parse: (line: string) => DependencyType | undefined;
   getPackage: (name: string) => Promise<PackageType>;
 }): Promise<SuggestionCodeLens[]> {
-  const dependencyPositions = createDependencyPositions({
-    document,
-    parse: parse,
-  });
   const names = dependencyPositions.map((x) => x.dependency.name);
-  const results = await getPackages({ names, fn: getPackage });
+  const results = await getPackages({ names, getPackage, concurrency });
   return zipWith(dependencyPositions, results, (dependencyPosition, pkg) => {
     return { dependencyPosition, pkg };
   })

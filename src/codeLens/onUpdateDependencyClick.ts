@@ -1,12 +1,10 @@
 import * as E from "fp-ts/lib/Either";
 import * as vscode from "vscode";
 
+import { OnUpdateDependencyClickCommand } from "@/constants";
 import { formatWithExistingLeading } from "@/versioning/utils";
 
 import { SuggestionCodeLens } from "./suggesntinCodeLens";
-
-export const OnUpdateDependencyClickCommand =
-  "mogami.suggestions.updateDependencyClick";
 
 export class OnUpdateDependencyClick {
   disposable: vscode.Disposable;

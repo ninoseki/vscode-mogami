@@ -1,17 +1,29 @@
+import * as vscode from "vscode";
+
 import { parse } from "@/format/gemspec";
+import { getPackage } from "@/package/gem";
+import { DependencyPositionType } from "@/schemas";
+import { satisfies } from "@/versioning/gem";
 
-import { BaseGemCodeLensProvider } from "./baseGemCodeLensProvider";
+import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
+import { createDependencyPositions } from "../dependencyPositionFactory";
 
-export class GemspecCodelensProvider extends BaseGemCodeLensProvider {
-  constructor() {
+export class GemspecCodeLensProvider extends AbstractCodeLensProvider {
+  constructor(concurrency: number) {
     super(
       {
         pattern: "**/*.gemspec",
         scheme: "file",
       },
       {
-        parse,
+        satisfies,
+        getPackage,
+        concurrency,
       },
     );
+  }
+
+  parseDocuments(document: vscode.TextDocument): DependencyPositionType[] {
+    return createDependencyPositions(document, { parse });
   }
 }
