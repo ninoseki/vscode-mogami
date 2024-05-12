@@ -32,6 +32,33 @@
     "workspaceContains:Gemfile"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "vscode-mogami.icons.showingProgress",
+        "title": "Analyzing dependencies...",
+        "enablement": "false",
+        "icon": "images/toggle-active-progress.svg"
+      },
+      {
+        "command": "vscode-mogami.icons.toggle",
+        "title": "Hide/show Mogami's code lenses",
+        "icon": "images/toggle-inactive.svg"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "vscode-mogami.icons.showingProgress",
+          "when": "vscode-mogami.providerBusy && vscode-mogami.providerActive && !textCompareEditorVisible",
+          "group": "navigation"
+        },
+        {
+          "command": "vscode-mogami.icons.toggle",
+          "when": "!vscode-mogami.providerBusy && vscode-mogami.providerActive && !textCompareEditorVisible",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "properties": {
         "vscode-mogami.enableCodeLens": {

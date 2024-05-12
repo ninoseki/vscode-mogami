@@ -1,13 +1,13 @@
 import axios from "axios";
-import { setupCache } from "axios-cache-interceptor";
+import { buildMemoryStorage, setupCache } from "axios-cache-interceptor";
 import camelcaseKeys from "camelcase-keys";
 
 import type { GemVersionsType, PackageType } from "@/schemas";
 import { GemSchema, GemVersionsSchema, PypiPackageSchema } from "@/schemas";
 
 const client = axios.create();
-
-setupCache(client);
+const storage = buildMemoryStorage();
+setupCache(client, { storage });
 
 export const API = {
   async getPypiPackage(this: void, name: string): Promise<PackageType> {
