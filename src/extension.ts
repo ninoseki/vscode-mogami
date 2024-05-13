@@ -5,9 +5,9 @@ import { HoverManager } from "@/hover/hoverManager";
 
 import { OnClearCache } from "./events/onCacheClear";
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   const codeLensManager = new CodeLensManager();
-  codeLensManager.activate(context);
+  await codeLensManager.activate(context);
 
   const hoverLensManager = new HoverManager();
   hoverLensManager.activate(context);

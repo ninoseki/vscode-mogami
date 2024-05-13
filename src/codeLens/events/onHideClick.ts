@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 
 import { OnHideClickCommand } from "@/constants";
-import { CodeLensState } from "@/contextState";
 
 import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
+import { CodeLensState } from "../codeLensState";
 
 export class OnHideClick {
   disposable: vscode.Disposable;

@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 
-import { CodeLensState } from "@/contextState";
 import { parse } from "@/format/gemspec";
 import { DependencyPositionType, PackageClientType } from "@/schemas";
 import { satisfies } from "@/versioning/gem";
 
 import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
+import { CodeLensState } from "../codeLensState";
 import { createDependencyPositions } from "../dependencyPositionFactory";
 
 export class GemspecCodeLensProvider extends AbstractCodeLensProvider {

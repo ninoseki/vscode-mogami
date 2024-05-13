@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { OnUpdateDependencyClickCommand } from "@/constants";
 import { formatWithExistingLeading } from "@/versioning/utils";
 
-import { SuggestionCodeLens } from "../suggesntinCodeLens";
+import { SuggestionCodeLens } from "../suggestionCodeLens";
 
 export class OnUpdateDependencyClick {
   disposable: vscode.Disposable;

@@ -16,7 +16,7 @@ import {
 import { eq, maxSatisfying } from "@/versioning/utils";
 
 import { getPackages } from "./packageFactory";
-import { SuggestionCodeLens } from "./suggesntinCodeLens";
+import { SuggestionCodeLens } from "./suggestionCodeLens";
 
 export interface PackageSuggestion {
   title: string;

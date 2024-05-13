@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-import { CodeLensState } from "@/contextState";
+import { CodeLensState } from "../codeLensState";
 
 export class OnActiveTextEditorChange {
   disposable: vscode.Disposable;

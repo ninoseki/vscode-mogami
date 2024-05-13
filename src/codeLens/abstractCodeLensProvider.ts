@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 
-import { CodeLensState } from "@/contextState";
 import { ExtensionComponent } from "@/extensionComponent";
 import {
   DependencyPositionType,
@@ -9,6 +8,7 @@ import {
 } from "@/schemas";
 
 import { createCodeLenses } from "./codeLensFactory";
+import { CodeLensState } from "./codeLensState";
 
 export abstract class AbstractCodeLensProvider
   implements vscode.CodeLensProvider, ExtensionComponent
@@ -50,6 +50,10 @@ export abstract class AbstractCodeLensProvider
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
     });
+  }
+
+  isActive(): boolean {
+    return this.state.providerActive.value === this.name;
   }
 
   reloadCodeLenses() {
