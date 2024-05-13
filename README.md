@@ -16,6 +16,13 @@ A VS Code extension for checking the latest version of each dependency.
 - `Gemfile`
 - `*.gemspec`
 
+## Configuration
+
+| Key                            | Default | Desc.                                                              |
+| ------------------------------ | ------- | ------------------------------------------------------------------ |
+| `vscode-mogami.enableCodeLens` | `true`  | Whether to enable CodeLens or not.                                 |
+| `vscode-mogami.concurrency`    | 5       | Concurrency (a number of concurrent requests) to get package data. |
+
 ## Alternatives
 
 - [vscode-versionlens](https://gitlab.com/versionlens/vscode-versionlens)
