@@ -5,7 +5,7 @@ import { tryCatch } from "fp-ts/lib/TaskEither";
 import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
-import { GetPackageFnType, ParseFnType } from "@/types";
+import { PackageClientType, ParseFnType } from "@/schemas";
 
 export abstract class AbstractHoverProvider
   implements vscode.HoverProvider, ExtensionComponent
@@ -16,17 +16,15 @@ export abstract class AbstractHoverProvider
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
-  public getPackage: GetPackageFnType;
-
-  public parseLine?: ParseFnType;
+  client: PackageClientType;
+  parseLine?: ParseFnType;
 
   constructor(
     private documentSelector: vscode.DocumentSelector,
-    { getPackage }: { getPackage: GetPackageFnType },
+    { client }: { client: PackageClientType },
   ) {
     this.documentSelector = documentSelector;
-
-    this.getPackage = getPackage;
+    this.client = client;
 
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
@@ -42,10 +40,11 @@ export abstract class AbstractHoverProvider
     document: vscode.TextDocument,
     position: vscode.Position,
   ): Promise<vscode.Hover | undefined> {
-    assert(this.parseLine);
-
     const range = this.parseDocumentPosition(document, position);
     const line = document.lineAt(position.line).text.trim();
+
+    // NOTE: this.parseLine may be set after analyzing document...
+    assert(this.parseLine);
 
     const dependency = this.parseLine(line);
     if (!dependency) {
@@ -54,7 +53,7 @@ export abstract class AbstractHoverProvider
 
     const safeGetPackage = (name: string) => {
       return tryCatch(
-        () => this.getPackage(name),
+        () => this.client.get(name),
         (e: unknown) => e,
       );
     };

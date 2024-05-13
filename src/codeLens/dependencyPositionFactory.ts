@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 
-import { DependencyPositionType } from "@/schemas";
-import { ParseFnType } from "@/types";
+import { DependencyPositionType, ParseFnType } from "@/schemas";
 
 export function createDependencyPositions(
   document: vscode.TextDocument,

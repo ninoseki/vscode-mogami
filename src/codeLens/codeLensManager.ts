@@ -3,17 +3,26 @@ import * as vscode from "vscode";
 import { ConcurrencyKey, EnableCodeLensKey, ExtID } from "@/constants";
 import { CodeLensState } from "@/contextState";
 import { ExtensionComponent } from "@/extensionComponent";
+import { GemClient } from "@/package/gem";
+import { PyPIClient } from "@/package/pypi";
 
+import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
+import { OnActiveTextEditorChange } from "./events/onActiveTextEditorChange";
+import { OnHideClick } from "./events/onHideClick";
+import { OnShowClick } from "./events/onShowClick";
+import { OnUpdateDependencyClick } from "./events/onUpdateDependencyClick";
 import { GemfileCodeLensProvider } from "./gem/gemfileCodeLensProvider";
 import { GemspecCodeLensProvider } from "./gem/gemspecCodeLensProvider";
-import { OnActiveTextEditorChange } from "./onActiveTextEditorChange";
-import { OnHideClick } from "./onHideClick";
-import { OnShowClick } from "./onShowClick";
-import { OnUpdateDependencyClick } from "./onUpdateDependencyClick";
 import { PyProjectCodeLensProvider } from "./pypi/pyprojectCodeLensProvider";
 import { RequirementsCodeLensProvider } from "./pypi/requirementsCodeLensProvider";
 
 export class CodeLensManager implements ExtensionComponent {
+  codeLensProviders: AbstractCodeLensProvider[];
+
+  constructor() {
+    this.codeLensProviders = [];
+  }
+
   public activate(context: vscode.ExtensionContext) {
     const enableCodeLens = vscode.workspace
       .getConfiguration(ExtID)
@@ -28,19 +37,26 @@ export class CodeLensManager implements ExtensionComponent {
 
     const state = new CodeLensState();
 
-    const codeLensProviders = [
-      new PyProjectCodeLensProvider(state, concurrency),
-      new RequirementsCodeLensProvider(state, concurrency),
-      new GemfileCodeLensProvider(state, concurrency),
-      new GemspecCodeLensProvider(state, concurrency),
+    const gemClient = new GemClient();
+    const pypiClient = new PyPIClient();
+
+    this.codeLensProviders = [
+      new PyProjectCodeLensProvider({ state, concurrency, client: pypiClient }),
+      new RequirementsCodeLensProvider({
+        state,
+        concurrency,
+        client: pypiClient,
+      }),
+      new GemfileCodeLensProvider({ state, concurrency, client: gemClient }),
+      new GemspecCodeLensProvider({ state, concurrency, client: gemClient }),
     ];
 
-    codeLensProviders.forEach((provider) => {
+    this.codeLensProviders.forEach((provider) => {
       provider.activate(context);
     });
 
-    new OnShowClick(codeLensProviders, state);
-    new OnHideClick(codeLensProviders, state);
+    new OnShowClick(this.codeLensProviders, state);
+    new OnHideClick(this.codeLensProviders, state);
     new OnActiveTextEditorChange(state);
     new OnUpdateDependencyClick();
   }

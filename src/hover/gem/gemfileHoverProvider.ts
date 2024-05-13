@@ -1,18 +1,18 @@
 import * as vscode from "vscode";
 
 import { gemfileRegExp, parse } from "@/format/gemfile";
-import { getPackage } from "@/package/gem";
+import { PackageClientType } from "@/schemas";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
 
 export class GemfileHoverProvider extends AbstractHoverProvider {
-  constructor() {
+  constructor(client: PackageClientType) {
     super(
       {
         pattern: "**/Gemfile",
         scheme: "file",
       },
-      { getPackage },
+      { client },
     );
     this.parseLine = parse;
   }

@@ -1,16 +1,23 @@
 import * as vscode from "vscode";
 
-import { API } from "@/api";
 import { CodeLensState } from "@/contextState";
 import { buildDepsRegExp, parse as _parse } from "@/format/poetry";
-import { DependencyPositionType } from "@/schemas";
+import { DependencyPositionType, PackageClientType } from "@/schemas";
 import { satisfies } from "@/versioning/poetry";
 
 import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
 import { createDependencyPositions } from "../dependencyPositionFactory";
 
 export class PyProjectCodeLensProvider extends AbstractCodeLensProvider {
-  constructor(state: CodeLensState, concurrency: number) {
+  constructor({
+    state,
+    concurrency,
+    client,
+  }: {
+    state: CodeLensState;
+    concurrency: number;
+    client: PackageClientType;
+  }) {
     super(
       {
         pattern: "**/pyproject.toml",
@@ -18,7 +25,7 @@ export class PyProjectCodeLensProvider extends AbstractCodeLensProvider {
       },
       {
         state,
-        getPackage: API.getPypiPackage,
+        client,
         satisfies,
         concurrency,
       },

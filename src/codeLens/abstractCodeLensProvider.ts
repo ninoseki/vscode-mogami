@@ -2,8 +2,11 @@ import * as vscode from "vscode";
 
 import { CodeLensState } from "@/contextState";
 import { ExtensionComponent } from "@/extensionComponent";
-import { DependencyPositionType } from "@/schemas";
-import { GetPackageFnType, SatisfiesFnType } from "@/types";
+import {
+  DependencyPositionType,
+  PackageClientType,
+  SatisfiesFnType,
+} from "@/schemas";
 
 import { createCodeLenses } from "./codeLensFactory";
 
@@ -16,10 +19,10 @@ export abstract class AbstractCodeLensProvider
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
-  getPackage: GetPackageFnType;
   satisfies: SatisfiesFnType;
   concurrency: number;
   state: CodeLensState;
+  client: PackageClientType;
 
   name?: string;
 
@@ -27,22 +30,22 @@ export abstract class AbstractCodeLensProvider
     private documentSelector: vscode.DocumentSelector,
     {
       state,
-      getPackage,
+      client,
       satisfies,
       concurrency = 5,
     }: {
       state: CodeLensState;
       concurrency?: number;
-      getPackage: GetPackageFnType;
+      client: PackageClientType;
       satisfies: SatisfiesFnType;
     },
   ) {
     this.documentSelector = documentSelector;
 
-    this.getPackage = getPackage;
-    this.satisfies = satisfies;
+    this.client = client;
     this.concurrency = concurrency;
     this.state = state;
+    this.satisfies = satisfies;
 
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
@@ -67,7 +70,7 @@ export abstract class AbstractCodeLensProvider
       document,
       dependencyPositions,
       satisfies: this.satisfies,
-      getPackage: this.getPackage,
+      client: this.client,
       concurrency: this.concurrency,
     });
 

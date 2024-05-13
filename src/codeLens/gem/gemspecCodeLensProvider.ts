@@ -2,15 +2,22 @@ import * as vscode from "vscode";
 
 import { CodeLensState } from "@/contextState";
 import { parse } from "@/format/gemspec";
-import { getPackage } from "@/package/gem";
-import { DependencyPositionType } from "@/schemas";
+import { DependencyPositionType, PackageClientType } from "@/schemas";
 import { satisfies } from "@/versioning/gem";
 
 import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
 import { createDependencyPositions } from "../dependencyPositionFactory";
 
 export class GemspecCodeLensProvider extends AbstractCodeLensProvider {
-  constructor(state: CodeLensState, concurrency: number) {
+  constructor({
+    state,
+    concurrency,
+    client,
+  }: {
+    state: CodeLensState;
+    concurrency: number;
+    client: PackageClientType;
+  }) {
     super(
       {
         pattern: "**/*.gemspec",
@@ -19,8 +26,8 @@ export class GemspecCodeLensProvider extends AbstractCodeLensProvider {
       {
         state,
         satisfies,
-        getPackage,
         concurrency,
+        client,
       },
     );
     this.name = "GemspecCodeLensProvider";

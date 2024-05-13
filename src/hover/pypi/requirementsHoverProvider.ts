@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
 
-import { API } from "@/api";
 import { parse, pkgValRegExp } from "@/format/pip";
+import { PackageClientType } from "@/schemas";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
 
 export class RequirementsHoverProvider extends AbstractHoverProvider {
-  constructor() {
+  constructor(client: PackageClientType) {
     const patterns = [
       "**/*-requirements.txt",
       "**/*.requirements.txt",
@@ -18,7 +18,7 @@ export class RequirementsHoverProvider extends AbstractHoverProvider {
       return { pattern, scheme: "file" };
     });
 
-    super(selector, { getPackage: API.getPypiPackage });
+    super(selector, { client });
 
     this.parseLine = parse;
   }

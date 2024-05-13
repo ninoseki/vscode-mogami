@@ -2,15 +2,22 @@ import * as vscode from "vscode";
 
 import { CodeLensState } from "@/contextState";
 import { parse } from "@/format/gemfile";
-import { getPackage } from "@/package/gem";
-import { DependencyPositionType } from "@/schemas";
+import { DependencyPositionType, PackageClientType } from "@/schemas";
 import { satisfies } from "@/versioning/gem";
 
 import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
 import { createDependencyPositions } from "../dependencyPositionFactory";
 
 export class GemfileCodeLensProvider extends AbstractCodeLensProvider {
-  constructor(state: CodeLensState, concurrency: number) {
+  constructor({
+    state,
+    concurrency,
+    client,
+  }: {
+    state: CodeLensState;
+    concurrency: number;
+    client: PackageClientType;
+  }) {
     super(
       {
         pattern: "**/Gemfile",
@@ -19,7 +26,7 @@ export class GemfileCodeLensProvider extends AbstractCodeLensProvider {
       {
         state,
         satisfies,
-        getPackage,
+        client,
         concurrency,
       },
     );

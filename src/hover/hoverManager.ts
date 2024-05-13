@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
+import { GemClient } from "@/package/gem";
+import { PyPIClient } from "@/package/pypi";
 
 import { AbstractHoverProvider } from "./abstractHoverProvider";
 import { GemfileHoverProvider } from "./gem/gemfileHoverProvider";
@@ -9,18 +11,23 @@ import { PyProjectHoverProvider } from "./pypi/pyprojectHoverProvider";
 import { RequirementsHoverProvider } from "./pypi/requirementsHoverProvider";
 
 export class HoverManager implements ExtensionComponent {
-  private hoverProviders: AbstractHoverProvider[] = [];
+  hoverProviders: AbstractHoverProvider[];
 
   constructor() {
-    this.hoverProviders = [
-      new PyProjectHoverProvider(),
-      new RequirementsHoverProvider(),
-      new GemspecHoverProvider(),
-      new GemfileHoverProvider(),
-    ];
+    this.hoverProviders = [];
   }
 
   public activate(context: vscode.ExtensionContext) {
+    const gemClient = new GemClient();
+    const pypiClient = new PyPIClient();
+
+    this.hoverProviders = [
+      new PyProjectHoverProvider(pypiClient),
+      new RequirementsHoverProvider(pypiClient),
+      new GemspecHoverProvider(gemClient),
+      new GemfileHoverProvider(gemClient),
+    ];
+
     this.hoverProviders.forEach((provider) => provider.activate(context));
   }
 }

@@ -34,20 +34,28 @@
   "contributes": {
     "commands": [
       {
+        "command": "vscode-mogami.clearCache",
+        "title": "Clear cache",
+        "category": "Mogami"
+      },
+      {
         "command": "vscode-mogami.icons.showingProgress",
         "title": "Analyzing dependencies...",
         "enablement": "false",
-        "icon": "images/toggle-active-progress.svg"
+        "icon": "images/toggle-active-progress.svg",
+        "category": "Mogami"
       },
       {
         "command": "vscode-mogami.icons.hide",
-        "title": "Hide code lenses",
-        "icon": "images/toggle-active.svg"
+        "title": "Hide CodeLens",
+        "icon": "images/toggle-active.svg",
+        "category": "Mogami"
       },
       {
         "command": "vscode-mogami.icons.show",
-        "title": "Show code lenses",
-        "icon": "images/toggle-inactive.svg"
+        "title": "Show CodeLens",
+        "icon": "images/toggle-inactive.svg",
+        "category": "Mogami"
       }
     ],
     "menus": {

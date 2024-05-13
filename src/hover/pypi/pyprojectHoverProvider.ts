@@ -1,19 +1,13 @@
 import * as vscode from "vscode";
 
-import { API } from "@/api";
 import { buildDepsRegExp, parse } from "@/format/poetry";
-import { ParseFnType } from "@/types";
+import { PackageClientType } from "@/schemas";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
 
 export class PyProjectHoverProvider extends AbstractHoverProvider {
-  parseLine?: ParseFnType;
-
-  constructor() {
-    super(
-      { pattern: "**/pyproject.toml", scheme: "file" },
-      { getPackage: API.getPypiPackage },
-    );
+  constructor(client: PackageClientType) {
+    super({ pattern: "**/pyproject.toml", scheme: "file" }, { client });
     this.parseLine = undefined;
   }
 

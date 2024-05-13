@@ -1,18 +1,18 @@
 import * as vscode from "vscode";
 
 import { gemspecRegExp, parse } from "@/format/gemspec";
-import { getPackage } from "@/package/gem";
+import { PackageClientType } from "@/schemas";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
 
 export class GemspecHoverProvider extends AbstractHoverProvider {
-  constructor() {
+  constructor(client: PackageClientType) {
     super(
       {
         pattern: "**/*.gemspec",
         scheme: "file",
       },
-      { getPackage },
+      { client },
     );
     this.parseLine = parse;
   }

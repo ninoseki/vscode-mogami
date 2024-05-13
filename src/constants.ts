@@ -2,6 +2,9 @@ export const ExtID = "vscode-mogami";
 export const EnableCodeLensKey = "enableCodeLens";
 export const ConcurrencyKey = "concurrency";
 
+export const OnClearCacheKey = "clearCache";
+export const OnClearCacheCommand = `${ExtID}.${OnClearCacheKey}`;
+
 export const OnUpdateDependencyClickKey = "suggestions.updateDependencyClick";
 export const OnUpdateDependencyClickCommand = `${ExtID}.${OnUpdateDependencyClickKey}`;
 
