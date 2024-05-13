@@ -4,8 +4,12 @@ export const ConcurrencyKey = "concurrency";
 
 export const OnUpdateDependencyClickKey = "suggestions.updateDependencyClick";
 export const OnUpdateDependencyClickCommand = `${ExtID}.${OnUpdateDependencyClickKey}`;
-export const OnToggleClickKey = `icons.toggle`;
-export const OnToggleClickCommand = `${ExtID}.${OnToggleClickKey}`;
+
+export const OnHideClickKey = `icons.hide`;
+export const OnHideClickCommand = `${ExtID}.${OnHideClickKey}`;
+
+export const OnShowClickKey = `icons.show`;
+export const OnShowClickCommand = `${ExtID}.${OnShowClickKey}`;
 
 export const ProviderActiveStateKey = `${ExtID}.providerActive`;
 export const ProviderBusyStateKey = `${ExtID}.providerBusy`;

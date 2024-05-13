@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <mask id="mask">
+    <rect width="16" height="16" stroke="white" fill="white" fill-opacity=".2" />
+    <text stroke="none" fill="white" x="3" y="12.5" font-family="Verdana" font-size="14px">
+      M
+    </text>
+  </mask>
+  <rect width="16" height="16" fill="#438FDC" mask="url(#mask)" />
+</svg>

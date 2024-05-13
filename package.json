@@ -40,8 +40,13 @@
         "icon": "images/toggle-active-progress.svg"
       },
       {
-        "command": "vscode-mogami.icons.toggle",
-        "title": "Hide/show Mogami's code lenses",
+        "command": "vscode-mogami.icons.hide",
+        "title": "Hide code lenses",
+        "icon": "images/toggle-active.svg"
+      },
+      {
+        "command": "vscode-mogami.icons.show",
+        "title": "Show code lenses",
         "icon": "images/toggle-inactive.svg"
       }
     ],
@@ -53,8 +58,13 @@
           "group": "navigation"
         },
         {
-          "command": "vscode-mogami.icons.toggle",
-          "when": "!vscode-mogami.providerBusy && vscode-mogami.providerActive && !textCompareEditorVisible",
+          "command": "vscode-mogami.icons.hide",
+          "when": "!vscode-mogami.providerBusy && vscode-mogami.show && !textCompareEditorVisible",
+          "group": "navigation"
+        },
+        {
+          "command": "vscode-mogami.icons.show",
+          "when": "!vscode-mogami.providerBusy && !vscode-mogami.show && !textCompareEditorVisible",
           "group": "navigation"
         }
       ]

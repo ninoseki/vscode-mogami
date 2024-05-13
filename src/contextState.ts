@@ -36,16 +36,20 @@ export class CodeLensState {
     this.providerBusy = new ContextState(ProviderBusyStateKey, false);
   }
 
-  async toggleShow() {
-    await this.show.change(!this.show.value);
+  async disableShow() {
+    await this.show.change(false);
   }
 
-  async clearProviderBusy() {
-    await this.providerBusy.change(false);
+  async enableShow() {
+    await this.show.change(true);
   }
 
   async setProviderBusy() {
     await this.providerBusy.change(true);
+  }
+
+  async clearProviderBusy() {
+    await this.providerBusy.change(false);
   }
 
   async setProviderActive(v?: string) {

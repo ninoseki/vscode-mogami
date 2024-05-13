@@ -7,7 +7,8 @@ import { ExtensionComponent } from "@/extensionComponent";
 import { GemfileCodeLensProvider } from "./gem/gemfileCodeLensProvider";
 import { GemspecCodeLensProvider } from "./gem/gemspecCodeLensProvider";
 import { OnActiveTextEditorChange } from "./onActiveTextEditorChange";
-import { OnToggleClick } from "./onToggleClick";
+import { OnHideClick } from "./onHideClick";
+import { OnShowClick } from "./onShowClick";
 import { OnUpdateDependencyClick } from "./onUpdateDependencyClick";
 import { PyProjectCodeLensProvider } from "./pypi/pyprojectCodeLensProvider";
 import { RequirementsCodeLensProvider } from "./pypi/requirementsCodeLensProvider";
@@ -38,7 +39,8 @@ export class CodeLensManager implements ExtensionComponent {
       provider.activate(context);
     });
 
-    new OnToggleClick(codeLensProviders, state);
+    new OnShowClick(codeLensProviders, state);
+    new OnHideClick(codeLensProviders, state);
     new OnActiveTextEditorChange(state);
     new OnUpdateDependencyClick();
   }

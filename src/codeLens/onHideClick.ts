@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 
-import { OnToggleClickCommand } from "@/constants";
+import { OnHideClickCommand } from "@/constants";
 import { CodeLensState } from "@/contextState";
 
 import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
 
-export class OnToggleClick {
+export class OnHideClick {
   disposable: vscode.Disposable;
   codeLensProviders: AbstractCodeLensProvider[];
   state: CodeLensState;
@@ -17,7 +17,7 @@ export class OnToggleClick {
     this.state = state;
     this.codeLensProviders = codeLensProviders;
     this.disposable = vscode.commands.registerCommand(
-      OnToggleClickCommand,
+      OnHideClickCommand,
       // eslint-disable-next-line @typescript-eslint/unbound-method
       this.execute,
       this,
@@ -25,7 +25,7 @@ export class OnToggleClick {
   }
 
   async execute() {
-    await this.state.toggleShow();
+    await this.state.disableShow();
 
     this.codeLensProviders
       .filter((provider) => provider.name === this.state.providerActive.value)
