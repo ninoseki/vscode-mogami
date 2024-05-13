@@ -28,7 +28,10 @@ export class OnClearCache {
   execute(): void {
     this.codeLensProviders.forEach((provider) => {
       provider.client.clearCache();
-      provider.reloadCodeLenses();
+
+      if (provider.isActive()) {
+        provider.reloadCodeLenses();
+      }
     });
 
     this.hoverProviders.forEach((provider) => provider.client.clearCache());

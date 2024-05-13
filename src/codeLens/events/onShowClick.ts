@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 
 import { OnShowClickCommand } from "@/constants";
-import { CodeLensState } from "@/contextState";
 
 import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
+import { CodeLensState } from "../codeLensState";
 
 export class OnShowClick {
   disposable: vscode.Disposable;
@@ -29,7 +29,7 @@ export class OnShowClick {
     await this.state.enableShow();
 
     this.codeLensProviders
-      .filter((provider) => provider.name === this.state.providerActive.value)
+      .filter((provider) => provider.isActive())
       .forEach((provider) => {
         provider.reloadCodeLenses();
       });

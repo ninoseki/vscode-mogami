@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 
-import { CodeLensState } from "@/contextState";
 import { parse } from "@/format/pip";
 import { DependencyPositionType, PackageClientType } from "@/schemas";
 import { satisfies } from "@/versioning/poetry";
 
 import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
+import { CodeLensState } from "../codeLensState";
 import { createDependencyPositions } from "../dependencyPositionFactory";
 
 export class RequirementsCodeLensProvider extends AbstractCodeLensProvider {

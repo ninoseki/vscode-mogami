@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
 
 import { ConcurrencyKey, EnableCodeLensKey, ExtID } from "@/constants";
-import { CodeLensState } from "@/contextState";
 import { ExtensionComponent } from "@/extensionComponent";
 import { GemClient } from "@/package/gem";
 import { PyPIClient } from "@/package/pypi";
 
 import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
+import { CodeLensState } from "./codeLensState";
 import { OnActiveTextEditorChange } from "./events/onActiveTextEditorChange";
 import { OnHideClick } from "./events/onHideClick";
 import { OnShowClick } from "./events/onShowClick";
@@ -23,7 +23,7 @@ export class CodeLensManager implements ExtensionComponent {
     this.codeLensProviders = [];
   }
 
-  public activate(context: vscode.ExtensionContext) {
+  public async activate(context: vscode.ExtensionContext) {
     const enableCodeLens = vscode.workspace
       .getConfiguration(ExtID)
       .get(EnableCodeLensKey, true);
@@ -36,6 +36,7 @@ export class CodeLensManager implements ExtensionComponent {
     }
 
     const state = new CodeLensState();
+    await state.applyDefaults();
 
     const gemClient = new GemClient();
     const pypiClient = new PyPIClient();
