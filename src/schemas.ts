@@ -74,3 +74,11 @@ export interface CodeLensType {
   pkg: PackageType;
   deps: DependencyType;
 }
+
+export type ParseFnType = (line: string) => DependencyType | undefined;
+export type SatisfiesFnType = (version: string, specifier?: string) => boolean;
+
+export interface PackageClientType {
+  get: (name: string) => Promise<PackageType>;
+  clearCache: () => void;
+}

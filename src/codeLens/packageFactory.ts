@@ -1,20 +1,20 @@
 import { tryCatch } from "fp-ts/TaskEither";
 import pmap from "p-map";
 
-import { PackageType } from "@/schemas";
+import { PackageClientType } from "@/schemas";
 
 export async function getPackages({
   names,
   concurrency = 5,
-  fn,
+  client,
 }: {
   names: string[];
   concurrency?: number;
-  fn: (name: string) => Promise<PackageType>;
+  client: PackageClientType;
 }) {
   const tasks = names.map((name) =>
     tryCatch(
-      () => fn(name),
+      () => client.get(name),
       (e: unknown) => e,
     ),
   );

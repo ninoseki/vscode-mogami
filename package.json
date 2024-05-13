@@ -29,17 +29,74 @@
     "workspaceContains:*-requirements.txt",
     "workspaceContains:*.requirements.txt",
     "workspaceContains:*.gemspec",
-    "workspaceContains:Gemfile.lock",
     "workspaceContains:Gemfile"
   ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-mogami.clearCache",
+        "title": "Clear cache",
+        "category": "Mogami"
+      },
+      {
+        "command": "vscode-mogami.icons.showingProgress",
+        "title": "Analyzing dependencies...",
+        "enablement": "false",
+        "icon": "images/toggle-active-progress.svg",
+        "category": "Mogami"
+      },
+      {
+        "command": "vscode-mogami.icons.hide",
+        "title": "Hide CodeLens",
+        "icon": "images/toggle-active.svg",
+        "category": "Mogami"
+      },
+      {
+        "command": "vscode-mogami.icons.show",
+        "title": "Show CodeLens",
+        "icon": "images/toggle-inactive.svg",
+        "category": "Mogami"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "vscode-mogami.icons.showingProgress",
+          "when": "vscode-mogami.providerBusy && vscode-mogami.providerActive && !textCompareEditorVisible",
+          "group": "navigation"
+        },
+        {
+          "command": "vscode-mogami.icons.hide",
+          "when": "!vscode-mogami.providerBusy && vscode-mogami.show && !textCompareEditorVisible",
+          "group": "navigation"
+        },
+        {
+          "command": "vscode-mogami.icons.show",
+          "when": "!vscode-mogami.providerBusy && !vscode-mogami.show && !textCompareEditorVisible",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "properties": {
+        "vscode-mogami.enableCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to enable CodeLens or not."
+        },
+        "vscode-mogami.concurrency": {
+          "type": "integer",
+          "default": 5,
+          "description": "Concurrency (a number of concurrent requests) to get package data."
+        }
+      }
+    }
+  },
   "main": "./dist/extension.js",
   "icon": "./images/icon.png",
   "files": [
     "dist"
   ],
-  "contributes": {
-    "commands": []
-  },
   "scripts": {
     "build": "tsup",
     "coverage": "jest --coverage && cat ./coverage/lcov.info",
@@ -61,7 +118,7 @@
   "devDependencies": {
     "@types/iarna__toml": "^2.0.5",
     "@types/jest": "^29.5.12",
-    "@types/node": "20.12.8",
+    "@types/node": "20.12.11",
     "@types/vscode": "^1.80.0",
     "@typescript-eslint/eslint-plugin": "^7.8.0",
     "@typescript-eslint/parser": "^7.8.0",
@@ -88,8 +145,8 @@
     "camelcase-keys": "^9.1.3",
     "fp-ts": "^2.16.5",
     "p-map": "^7.0.2",
-    "semver": "^7.6.0",
+    "semver": "^7.6.2",
     "snyk-poetry-lockfile-parser": "^1.4.2",
-    "zod": "^3.23.6"
+    "zod": "^3.23.8"
   }
 }

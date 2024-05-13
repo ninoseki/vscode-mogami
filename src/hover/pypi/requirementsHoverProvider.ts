@@ -1,14 +1,12 @@
-import * as E from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/function";
 import * as vscode from "vscode";
 
-import { API } from "@/api";
 import { parse, pkgValRegExp } from "@/format/pip";
+import { PackageClientType } from "@/schemas";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
 
 export class RequirementsHoverProvider extends AbstractHoverProvider {
-  constructor() {
+  constructor(client: PackageClientType) {
     const patterns = [
       "**/*-requirements.txt",
       "**/*.requirements.txt",
@@ -16,35 +14,19 @@ export class RequirementsHoverProvider extends AbstractHoverProvider {
       "**/requirements.txt",
       "**/requirements/*.txt",
     ];
+    const selector = patterns.map((pattern) => {
+      return { pattern, scheme: "file" };
+    });
 
-    super(
-      patterns.map((pattern) => {
-        return { pattern, scheme: "file" };
-      }),
-    );
+    super(selector, { client });
+
+    this.parseLine = parse;
   }
 
-  public async provideHover(
+  public parseDocumentPosition(
     document: vscode.TextDocument,
     position: vscode.Position,
   ) {
-    const range = document.getWordRangeAtPosition(position, pkgValRegExp);
-    const line = document.lineAt(position.line).text.trim();
-
-    const dependency = parse(line);
-    if (!dependency) {
-      return;
-    }
-
-    const task = API.safeGetPypiPackage(dependency.name);
-    const result = await task();
-    return pipe(
-      result,
-      E.map((pkg) => {
-        const message = `${pkg.summary}\n\nLatest version: ${pkg.version}\n\n${pkg.url}`;
-        return new vscode.Hover(message, range);
-      }),
-      E.getOrElseW(() => undefined),
-    );
+    return document.getWordRangeAtPosition(position, pkgValRegExp);
   }
 }

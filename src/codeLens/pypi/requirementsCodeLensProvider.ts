@@ -1,14 +1,23 @@
 import * as vscode from "vscode";
 
-import { API } from "@/api";
+import { CodeLensState } from "@/contextState";
 import { parse } from "@/format/pip";
+import { DependencyPositionType, PackageClientType } from "@/schemas";
 import { satisfies } from "@/versioning/poetry";
 
 import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
-import { createCodeLenses } from "../codeLensFactory";
+import { createDependencyPositions } from "../dependencyPositionFactory";
 
 export class RequirementsCodeLensProvider extends AbstractCodeLensProvider {
-  constructor() {
+  constructor({
+    state,
+    concurrency,
+    client,
+  }: {
+    state: CodeLensState;
+    concurrency: number;
+    client: PackageClientType;
+  }) {
     super(
       [
         "**/*-requirements.txt",
@@ -19,15 +28,17 @@ export class RequirementsCodeLensProvider extends AbstractCodeLensProvider {
       ].map((pattern) => {
         return { pattern, scheme: "file" };
       }),
+      {
+        state,
+        client,
+        satisfies,
+        concurrency,
+      },
     );
+    this.name = "RequirementsCodeLensProvider";
   }
 
-  public async provideCodeLenses(document: vscode.TextDocument) {
-    return await createCodeLenses({
-      document,
-      parse,
-      getPackage: API.getPypiPackage,
-      satisfies,
-    });
+  parseDocuments(document: vscode.TextDocument): DependencyPositionType[] {
+    return createDependencyPositions(document, { parse });
   }
 }

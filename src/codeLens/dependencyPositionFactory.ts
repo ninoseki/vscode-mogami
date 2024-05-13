@@ -1,14 +1,11 @@
 import * as vscode from "vscode";
 
-import { DependencyPositionType, DependencyType } from "@/schemas";
+import { DependencyPositionType, ParseFnType } from "@/schemas";
 
-export function createDependencyPositions({
-  document,
-  parse,
-}: {
-  document: vscode.TextDocument;
-  parse: (line: string) => DependencyType | undefined;
-}): DependencyPositionType[] {
+export function createDependencyPositions(
+  document: vscode.TextDocument,
+  { parse }: { parse: ParseFnType },
+): DependencyPositionType[] {
   return Array.from(Array(document.lineCount).keys())
     .map((line): DependencyPositionType | undefined => {
       const docLine = document.lineAt(line);

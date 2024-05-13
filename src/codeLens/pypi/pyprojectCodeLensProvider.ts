@@ -1,30 +1,42 @@
 import * as vscode from "vscode";
 
-import { API } from "@/api";
+import { CodeLensState } from "@/contextState";
 import { buildDepsRegExp, parse as _parse } from "@/format/poetry";
+import { DependencyPositionType, PackageClientType } from "@/schemas";
 import { satisfies } from "@/versioning/poetry";
 
 import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
-import { createCodeLenses } from "../codeLensFactory";
+import { createDependencyPositions } from "../dependencyPositionFactory";
 
 export class PyProjectCodeLensProvider extends AbstractCodeLensProvider {
-  constructor() {
-    super({
-      pattern: "**/pyproject.toml",
-      scheme: "file",
-    });
+  constructor({
+    state,
+    concurrency,
+    client,
+  }: {
+    state: CodeLensState;
+    concurrency: number;
+    client: PackageClientType;
+  }) {
+    super(
+      {
+        pattern: "**/pyproject.toml",
+        scheme: "file",
+      },
+      {
+        state,
+        client,
+        satisfies,
+        concurrency,
+      },
+    );
+    this.name = "PyProjectCodeLensProvider";
   }
-
-  public async provideCodeLenses(document: vscode.TextDocument) {
+  parseDocuments(document: vscode.TextDocument): DependencyPositionType[] {
     const depsRegExp = buildDepsRegExp(document.getText());
     const parse = (line: string) => {
       return _parse(line, depsRegExp);
     };
-    return await createCodeLenses({
-      document,
-      parse,
-      getPackage: API.getPypiPackage,
-      satisfies,
-    });
+    return createDependencyPositions(document, { parse });
   }
 }
