@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/ninoseki/vscode-mogami.git"
   },
-  "version": "0.0.15",
+  "version": "0.0.17",
   "author": "Manabu Niseki",
   "publisher": "ninoseki",
   "engines": {
@@ -67,12 +67,12 @@
         },
         {
           "command": "vscode-mogami.icons.hide",
-          "when": "vscode-mogami.providerBusy === false && vscode-mogami.show === true && !textCompareEditorVisible",
+          "when": "vscode-mogami.providerBusy === false && vscode-mogami.providerActive && vscode-mogami.show === true && !textCompareEditorVisible",
           "group": "navigation"
         },
         {
           "command": "vscode-mogami.icons.show",
-          "when": "vscode-mogami.providerBusy === false && vscode-mogami.show === false && !textCompareEditorVisible",
+          "when": "vscode-mogami.providerBusy === false && vscode-mogami.providerActive && vscode-mogami.show === false && !textCompareEditorVisible",
           "group": "navigation"
         }
       ]
