@@ -6,6 +6,14 @@ describe("parse", () => {
   it.each([
     ['  gem "pry", "~> 0.12"', { name: "pry", specifier: "~> 0.12" }],
     [
+      '  gem "anyway_config", "0.0.0"',
+      { name: "anyway_config", specifier: "0.0.0" },
+    ],
+    [
+      '  gem "grape-entity", "0.0.0"',
+      { name: "grape-entity", specifier: "0.0.0" },
+    ],
+    [
       `  gem "coveralls", "~> 0.8", require: false`,
       { name: "coveralls", specifier: "~> 0.8" },
     ],
