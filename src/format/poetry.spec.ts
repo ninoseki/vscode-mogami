@@ -6,6 +6,7 @@ const regExp = buildDepsRegExp(`
 [tool.poetry.dependencies]
 python = "^3.10"
 foo = "1.0.0"
+foo-bar = "1.0.0"
 `);
 
 describe("parse", () => {
@@ -13,6 +14,7 @@ describe("parse", () => {
     ['foo = "1.0.0"', { name: "foo", specifier: "1.0.0" }],
     ['foo = ">=1.0,<2.0"', { name: "foo", specifier: ">=1.0,<2.0" }],
     ['foo = "^1.0"', { name: "foo", specifier: "^1.0" }],
+    ['foo-bar = "^1.0"', { name: "foo-bar", specifier: "^1.0" }],
     [
       'foo = { extras = ["standard"], version = "^0.29.0" }',
       { name: "foo", specifier: "^0.29.0" },
