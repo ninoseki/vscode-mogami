@@ -1,7 +1,7 @@
 import { type DependencyType } from "@/schemas";
 
 export const gemfileRegExp =
-  /\bgem\s+("|')(?<name>([a-zA-Z0-9-]+))(("|'),\s("|')(?<specifier>(.+))("|'))?/;
+  /\bgem\s+("|')(?<name>([\w-]+))(("|'),\s("|')(?<specifier>(.+))("|'))?/;
 
 export function parse(line: string): DependencyType | undefined {
   const matches = gemfileRegExp.exec(line);
