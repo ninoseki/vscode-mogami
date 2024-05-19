@@ -5,7 +5,8 @@ import semver from "semver";
 import { PackageType } from "@/schemas";
 
 // Forked from https://gitlab.com/versionlens/vscode-versionlens/
-export const extractSymbolFromVersionRegex = /^([^0-9]*)?.*$/;
+// eslint-disable-next-line regexp/no-super-linear-backtracking
+export const extractSymbolFromVersionRegex = /^(\D*).*$/;
 
 export const semverLeadingChars = ["^", "~", "<", "<=", ">", ">=", "~>", "=="];
 
