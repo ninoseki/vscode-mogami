@@ -1,18 +1,20 @@
 {
+    "plugins": [
+        "@typescript-eslint",
+        "jest",
+        "neverthrow",
+        "prettier",
+        "regexp",
+        "simple-import-sort"
+    ],
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
         "plugin:@typescript-eslint/recommended",
         "plugin:jest/recommended",
+        "plugin:regexp/recommended",
         "prettier"
-    ],
-    "plugins": [
-        "@typescript-eslint",
-        "jest",
-        "neverthrow",
-        "prettier",
-        "simple-import-sort"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
