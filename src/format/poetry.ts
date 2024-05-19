@@ -25,10 +25,12 @@ const specifierRegExp = new RegExp(specifierPattern);
 const versionRegExp = new RegExp(VERSION_PATTERN);
 
 export function buildDepsRegExp(text: string) {
-  const names = getDependenciesFrom(text, true).map((d) => d.name);
-  return new RegExp(
-    "^(?<name>" + names.reverse().join("|") + `)\\W(?<rest>.+)?$`,
-  );
+  const names = getDependenciesFrom(text, true)
+    .map((d) => d.name)
+    // should be sorted in descending alphabetical order
+    .sort()
+    .reverse();
+  return new RegExp("^(?<name>" + names.join("|") + `)\\W(?<rest>.+)?$`);
 }
 
 export function parse(
