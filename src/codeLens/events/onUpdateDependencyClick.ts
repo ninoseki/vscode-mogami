@@ -28,7 +28,6 @@ export class OnUpdateDependencyClick {
     }
 
     const pkg = codeLens.pkg.right;
-
     const edit = new vscode.WorkspaceEdit();
     edit.replace(
       codeLens.documentUrl,

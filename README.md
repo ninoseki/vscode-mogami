@@ -9,7 +9,7 @@ A VS Code extension for checking the latest version of each dependency.
 ### Python
 
 - `requirements.txt`
-- `pyproject.toml` (Poetry and Flit)
+- `pyproject.toml` (Poetry and PEP621)
 
 ### Ruby
 
