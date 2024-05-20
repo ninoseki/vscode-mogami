@@ -99,7 +99,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "coverage": "jest --coverage && cat ./coverage/lcov.info",
+    "coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage && cat ./coverage/lcov.info",
     "lint": "eslint src --ext ts --fix",
     "format": "prettier --write src",
     "pack": "vsce package",
