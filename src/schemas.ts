@@ -77,7 +77,7 @@ export const PoetryProjectSchema = z.object({
 });
 
 export const PyProjectProjectSchema = z.object({
-  dependencies: z.array(z.string()),
+  dependencies: z.array(z.string()).nullish(),
   optionalDependencies: z.record(z.string(), z.array(z.string())).nullish(),
 });
 

@@ -11,7 +11,7 @@ export function getDependenciesFrom(text: string): string[] {
     camelcaseKeys(tomlParsed, { deep: true }),
   );
 
-  const dependencyNames = parsed.project.dependencies
+  const dependencyNames = (parsed.project.dependencies || [])
     .map((dependency) => {
       const pipParsed = pipParse(dependency);
       return pipParsed?.name;
