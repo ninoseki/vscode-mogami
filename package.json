@@ -99,13 +99,13 @@
   ],
   "scripts": {
     "build": "tsup",
-    "coverage": "jest --coverage && cat ./coverage/lcov.info",
+    "coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage && cat ./coverage/lcov.info",
     "lint": "eslint src --ext ts --fix",
     "format": "prettier --write src",
     "pack": "vsce package",
     "prepare": "husky",
     "publish": "vsce publish",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "vscode:prepublish": "npm run build -- --minify",
     "watch": "npm run build -- --sourcemap"
   },
@@ -135,6 +135,7 @@
     "lint-staged": "^15.2.2",
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5"
   },

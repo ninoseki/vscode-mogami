@@ -9,7 +9,26 @@ A VS Code extension for checking the latest version of each dependency.
 ### Python
 
 - `requirements.txt`
-- `pyproject.toml` (Poetry and Flit)
+- `pyproject.toml` (Poetry and PEP621)
+
+#### Notes
+
+PEP621's `dependencies` and `optional-dependencies` should be separated by line breaks.
+
+**Good**
+
+```toml
+dependencies = [
+  "httpx",
+  "django>2.1"
+]
+```
+
+**Bad**
+
+```toml
+dependencies = ["httpx", "django>2.1"]
+```
 
 ### Ruby
 

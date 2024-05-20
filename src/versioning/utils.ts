@@ -8,7 +8,17 @@ import { PackageType } from "@/schemas";
 // eslint-disable-next-line regexp/no-super-linear-backtracking
 export const extractSymbolFromVersionRegex = /^(\D*).*$/;
 
-export const semverLeadingChars = ["^", "~", "<", "<=", ">", ">=", "~>", "=="];
+export const semverLeadingChars = [
+  "^",
+  "~",
+  "<",
+  "<=",
+  ">",
+  ">=",
+  "~>",
+  "==",
+  "~=",
+];
 
 export function formatWithExistingLeading(
   existingVersion: string,
