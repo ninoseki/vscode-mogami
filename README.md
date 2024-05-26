@@ -40,6 +40,10 @@ dependencies = ["httpx", "django>2.1"]
 - `Gemfile`
 - `*.gemspec`
 
+#### Private Repository
+
+- `Gemfile`: `source` is supported.
+
 ## Configuration
 
 | Key                            | Default | Desc.                                                              |
