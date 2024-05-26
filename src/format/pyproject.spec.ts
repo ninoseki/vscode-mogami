@@ -1,4 +1,4 @@
-import { createPythonProject } from "./pyproject";
+import { createProject } from "./pyproject";
 
 const text = `[project]
 name = "foo"
@@ -10,7 +10,7 @@ dependencies = [
 
 describe("createPythonProject", () => {
   test("should return a project", () => {
-    const project = createPythonProject(text);
+    const project = createProject(text);
     expect(project.dependencies).toEqual([
       "httptools",
       "certifi",

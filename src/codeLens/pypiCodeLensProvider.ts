@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 
-import { createPythonProject } from "@/format/pypi";
 import { PyPIClient } from "@/package/pypi";
+import { createProject } from "@/project/pypi";
 import { DependencyPositionType, PackageClientType } from "@/schemas";
 import { satisfies } from "@/versioning/poetry";
 
@@ -43,7 +43,7 @@ export class PyPICodeLensProvider extends AbstractCodeLensProvider {
   }
 
   parseDocuments(document: vscode.TextDocument): DependencyPositionType[] {
-    const project = createPythonProject(document);
+    const project = createProject(document);
     this.client = project.getClient();
     const parse = project.getParseFn();
     return createDependencyPositions(document, { parse });

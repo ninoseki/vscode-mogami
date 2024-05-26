@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 
-import { createPythonProject } from "@/format/pypi";
 import { PyPIClient } from "@/package/pypi";
+import { createProject } from "@/project/pypi";
 import { PackageClientType } from "@/schemas";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
@@ -18,7 +18,7 @@ export class PyProjectHoverProvider extends AbstractHoverProvider {
     document: vscode.TextDocument,
     position: vscode.Position,
   ) {
-    const project = createPythonProject(document);
+    const project = createProject(document);
     this.client = project.getClient();
     this.parseLine = project.getParseFn();
     return document.getWordRangeAtPosition(position, project.getRegExp());

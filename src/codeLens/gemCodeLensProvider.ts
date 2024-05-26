@@ -1,14 +1,17 @@
 import * as vscode from "vscode";
 
-import { parse } from "@/format/gemfile";
+import { GemClient } from "@/package/gem";
+import { createProject } from "@/project/gem";
 import { DependencyPositionType, PackageClientType } from "@/schemas";
 import { satisfies } from "@/versioning/gem";
 
-import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
-import { CodeLensState } from "../codeLensState";
-import { createDependencyPositions } from "../dependencyPositionFactory";
+import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
+import { CodeLensState } from "./codeLensState";
+import { createDependencyPositions } from "./dependencyPositionFactory";
 
 export class GemfileCodeLensProvider extends AbstractCodeLensProvider {
+  declare client: GemClient;
+
   constructor({
     state,
     concurrency,
@@ -19,10 +22,9 @@ export class GemfileCodeLensProvider extends AbstractCodeLensProvider {
     client: PackageClientType;
   }) {
     super(
-      {
-        pattern: "**/Gemfile",
-        scheme: "file",
-      },
+      ["**/Gemfile", "**/*.gemspec"].map((pattern) => {
+        return { pattern, scheme: "file" };
+      }),
       {
         state,
         satisfies,
@@ -30,10 +32,13 @@ export class GemfileCodeLensProvider extends AbstractCodeLensProvider {
         concurrency,
       },
     );
-    this.name = "GemfileCodeLensProvider";
+    this.name = "GemCodeLensProvider";
   }
 
   parseDocuments(document: vscode.TextDocument): DependencyPositionType[] {
+    const project = createProject(document);
+    this.client = project.getClient();
+    const parse = project.getParseFn();
     return createDependencyPositions(document, { parse });
   }
 }

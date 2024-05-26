@@ -1,9 +1,9 @@
 import TOML from "@iarna/toml";
 import { getDependenciesFrom } from "snyk-poetry-lockfile-parser/dist/manifest-parser";
 
-import { PoetryProjectSchema, type PythonProjectType } from "@/schemas";
+import { PoetryProjectSchema, type ProjectType } from "@/schemas";
 
-export function createPythonProject(text: string): PythonProjectType {
+export function createProject(text: string): ProjectType {
   // TODO: replace it with Zod
   const dependencies = getDependenciesFrom(text, true).map((d) => d.name);
 

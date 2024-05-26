@@ -98,13 +98,22 @@ export const PyProjectSchema = z.object({
   project: PyProjectProjectSchema,
 });
 
-export const PythonProjectSchema = z.object({
+export const ProjectFormatSchema = z.enum([
+  "poetry",
+  "pyproject",
+  "requirements",
+  "gemspec",
+  "gemfile",
+]);
+export type ProjectFormatType = z.infer<typeof ProjectFormatSchema>;
+
+export const ProjectSchema = z.object({
   dependencies: z.array(z.string()),
   source: z.string().optional(),
-  format: z.enum(["poetry", "pyproject", "requirements"]),
+  format: ProjectFormatSchema,
 });
 
-export type PythonProjectType = z.infer<typeof PythonProjectSchema>;
+export type ProjectType = z.infer<typeof ProjectSchema>;
 
 export interface DependencyPositionType {
   position: vscode.Position;
