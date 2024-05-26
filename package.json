@@ -120,6 +120,7 @@
     "@types/jest": "^29.5.12",
     "@types/node": "20.12.12",
     "@types/semver": "^7.5.8",
+    "@types/url-join": "^4.0.3",
     "@types/vscode": "^1.80.0",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
     "@typescript-eslint/parser": "^7.9.0",
@@ -150,6 +151,7 @@
     "p-map": "^7.0.2",
     "semver": "^7.6.2",
     "snyk-poetry-lockfile-parser": "^1.4.2",
+    "url-join": "^5.0.0",
     "zod": "^3.23.8"
   }
 }

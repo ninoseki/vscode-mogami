@@ -1,24 +1,20 @@
-import { DependencyType } from "@/schemas";
+import { createPythonProject } from "./pyproject";
 
-import { parse } from "./poetry";
-import { buildDepsRegExp } from "./pyproject";
-
-const regExp = buildDepsRegExp(`
-[project]
+const text = `[project]
+name = "foo"
 dependencies = [
-  "foo>=0.0",
-  "foo-bar>=0.0"
-]
-`);
+  "httptools>=0.6.1",
+  "certifi>=2022.9.24",
+  "itsdangerous~=2.1.2",
+]`;
 
-describe("parse", () => {
-  test.each([
-    ['"foo==1.0.0",', { name: "foo", specifier: "==1.0.0" }],
-    ['"foo>=1.0,<2.0"', { name: "foo", specifier: ">=1.0,<2.0" }],
-  ])("parse(%s) === %s", (line: string, expected: DependencyType) => {
-    const deps = parse(line, regExp);
-    expect(deps).not.toBeUndefined();
-    expect(deps?.name).toBe(expected?.name);
-    expect(deps?.specifier).toBe(expected?.specifier);
+describe("createPythonProject", () => {
+  test("should return a project", () => {
+    const project = createPythonProject(text);
+    expect(project.dependencies).toEqual([
+      "httptools",
+      "certifi",
+      "itsdangerous",
+    ]);
   });
 });

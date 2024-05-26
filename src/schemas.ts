@@ -15,6 +15,13 @@ export const PypiPackageSchema = z.object({
   releases: z.record(z.string(), z.any()),
 });
 
+export const PypiSimpleSchema = z.object({
+  name: z.string(),
+  versions: z.array(z.string()),
+});
+
+export type PypiSimpleType = z.infer<typeof PypiSimpleSchema>;
+
 export type PypiPackageType = z.infer<typeof PypiPackageSchema>;
 
 export const GemVersionSchema = z.object({
@@ -43,7 +50,7 @@ export const PackageSchema = z.object({
   name: z.string(),
   version: z.string().describe("The latest version of the package"),
   versions: z.array(z.string()),
-  summary: z.string(),
+  summary: z.string().optional(),
   url: z.string().optional(),
 });
 
@@ -63,9 +70,15 @@ export const PositionSchema = z.object({
 
 export type PositionType = z.infer<typeof PositionSchema>;
 
+export const PoetryProjectPoetrySourceSchema = z.object({
+  name: z.string(),
+  url: z.string(),
+});
+
 export const PoetryProjectPoetrySchema = z.object({
   name: z.string(),
   version: z.string(),
+  source: z.array(PoetryProjectPoetrySourceSchema).optional(),
 });
 
 export const PoetryProjectToolSchema = z.object({
@@ -84,6 +97,14 @@ export const PyProjectProjectSchema = z.object({
 export const PyProjectSchema = z.object({
   project: PyProjectProjectSchema,
 });
+
+export const PythonProjectSchema = z.object({
+  dependencies: z.array(z.string()),
+  source: z.string().optional(),
+  format: z.enum(["poetry", "pyproject", "requirements"]),
+});
+
+export type PythonProjectType = z.infer<typeof PythonProjectSchema>;
 
 export interface DependencyPositionType {
   position: vscode.Position;

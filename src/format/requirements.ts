@@ -1,7 +1,7 @@
 // Forked from https://github.com/renovatebot/renovate
 import { RANGE_PATTERN } from "@renovatebot/pep440";
 
-import type { DependencyType } from "@/schemas";
+import type { DependencyType, PythonProjectType } from "@/schemas";
 
 const packagePattern = "[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]";
 const extrasPattern = "(?:\\s*\\[[^\\]]+\\])?";
@@ -33,4 +33,33 @@ export function parse(line: string): DependencyType | undefined {
 
   const [, name, , specifier] = matches;
   return { name, specifier: specifier.trim() };
+}
+
+export function getDependenciesFrom(text: string): string[] {
+  return text
+    .split("\n")
+    .map((line) => parse(line))
+    .filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
+    .map((deps) => deps.name);
+}
+
+export function getIndexUrl(text: string): string | undefined {
+  const parseIndexUrl = (line: string) => {
+    if (line.trim().startsWith("--index-url")) {
+      const splitted = line.split("--index-url");
+      return splitted[splitted.length - 1].trim();
+    }
+  };
+
+  return text
+    .split("\n")
+    .map((line) => parseIndexUrl(line))
+    .filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
+    .find((url) => url !== undefined);
+}
+
+export function createPythonProject(text: string): PythonProjectType {
+  const dependencies = getDependenciesFrom(text);
+  const source = getIndexUrl(text);
+  return { dependencies, source, format: "requirements" };
 }

@@ -1,14 +1,17 @@
 import * as vscode from "vscode";
 
-import { parse } from "@/format/pip";
+import { createPythonProject } from "@/format/pypi";
+import { PyPIClient } from "@/package/pypi";
 import { DependencyPositionType, PackageClientType } from "@/schemas";
 import { satisfies } from "@/versioning/poetry";
 
-import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
-import { CodeLensState } from "../codeLensState";
-import { createDependencyPositions } from "../dependencyPositionFactory";
+import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
+import { CodeLensState } from "./codeLensState";
+import { createDependencyPositions } from "./dependencyPositionFactory";
 
-export class RequirementsCodeLensProvider extends AbstractCodeLensProvider {
+export class PyPICodeLensProvider extends AbstractCodeLensProvider {
+  declare client: PyPIClient;
+
   constructor({
     state,
     concurrency,
@@ -20,6 +23,7 @@ export class RequirementsCodeLensProvider extends AbstractCodeLensProvider {
   }) {
     super(
       [
+        "**/pyproject.toml",
         "**/*-requirements.txt",
         "**/*.requirements.txt",
         "**/requirements-*.txt",
@@ -35,10 +39,13 @@ export class RequirementsCodeLensProvider extends AbstractCodeLensProvider {
         concurrency,
       },
     );
-    this.name = "RequirementsCodeLensProvider";
+    this.name = "PyPICodeLensProvider";
   }
 
   parseDocuments(document: vscode.TextDocument): DependencyPositionType[] {
+    const project = createPythonProject(document);
+    this.client = project.getClient();
+    const parse = project.getParseFn();
     return createDependencyPositions(document, { parse });
   }
 }

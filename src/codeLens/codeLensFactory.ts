@@ -151,7 +151,8 @@ export async function createCodeLenses({
         suggestions.push(createErrorSuggestion(item.pkg.left));
       } else {
         const pkg = item.pkg.right;
-        const isLatest = eq(pkg.version, dependency.specifier);
+        const isLatest =
+          eq(pkg.version, dependency.specifier) || !dependency.specifier;
         const isFixedVersion = semver.valid(dependency.specifier);
         const isRangeVersion = semver.validRange(pkg.version);
         const satisfiesVersion = maxSatisfying({
