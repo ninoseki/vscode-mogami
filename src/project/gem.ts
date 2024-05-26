@@ -2,10 +2,28 @@ import * as E from "fp-ts/lib/Either";
 import * as vscode from "vscode";
 
 import { GemClient } from "@/package/gem";
-import { ParseFnType, ProjectFormatType, ProjectType } from "@/schemas";
+import {
+  DependencyType,
+  ParseFnType,
+  ProjectFormatType,
+  ProjectType,
+} from "@/schemas";
 
 import * as gemfile from "../format/gemfile";
 import * as gemspec from "../format/gemspec";
+
+export function parse(line: string, regex: RegExp): DependencyType | undefined {
+  const matches = regex.exec(line);
+  if (!matches) {
+    return undefined;
+  }
+  const name = matches.groups?.name;
+  if (!name) {
+    return undefined;
+  }
+  const specifier = matches.groups?.specifier;
+  return { name, specifier };
+}
 
 class GemProject {
   dependencies: string[];
@@ -22,13 +40,19 @@ class GemProject {
     return new GemClient(this.source);
   }
 
-  getParseFn(): ParseFnType {
+  getRegex(): RegExp {
     switch (this.format) {
       case "gemfile":
-        return gemfile.parse;
+        return gemfile.regex;
       default:
-        return gemspec.parse;
+        return gemspec.regex;
     }
+  }
+
+  getParseFn(): ParseFnType {
+    return (line: string) => {
+      return parse(line, this.getRegex());
+    };
   }
 }
 

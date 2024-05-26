@@ -2,8 +2,6 @@ import * as vscode from "vscode";
 
 import { ConcurrencyKey, EnableCodeLensKey, ExtID } from "@/constants";
 import { ExtensionComponent } from "@/extensionComponent";
-import { GemClient } from "@/package/gem";
-import { PyPIClient } from "@/package/pypi";
 
 import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
 import { CodeLensState } from "./codeLensState";
@@ -36,12 +34,9 @@ export class CodeLensManager implements ExtensionComponent {
     const state = new CodeLensState();
     await state.applyDefaults();
 
-    const gemClient = new GemClient();
-    const pypiClient = new PyPIClient();
-
     this.codeLensProviders = [
-      new PyPICodeLensProvider({ state, concurrency, client: pypiClient }),
-      new GemfileCodeLensProvider({ state, concurrency, client: gemClient }),
+      new PyPICodeLensProvider({ state, concurrency }),
+      new GemfileCodeLensProvider({ state, concurrency }),
     ];
 
     this.codeLensProviders.forEach((provider) => {

@@ -32,10 +32,10 @@ const specifierPartPattern = `\\s*${RANGE_PATTERN.replace(
   "?:",
 )}`;
 const specifierPattern = `${specifierPartPattern}(?:\\s*,${specifierPartPattern})*`;
-const specifierRegExp = new RegExp(specifierPattern);
-const versionRegExp = new RegExp(VERSION_PATTERN);
+const specifierRegex = new RegExp(specifierPattern);
+const versionRegex = new RegExp(VERSION_PATTERN);
 
-export function buildRegExp(dependencies: string[], format: string): RegExp {
+export function buildRegex(dependencies: string[], format: string): RegExp {
   const sorted = dependencies.sort().reverse();
   switch (format) {
     case "poetry":
@@ -47,11 +47,8 @@ export function buildRegExp(dependencies: string[], format: string): RegExp {
   }
 }
 
-export function parse(
-  line: string,
-  regExp: RegExp,
-): DependencyType | undefined {
-  const matches = regExp.exec(line);
+export function parse(line: string, regex: RegExp): DependencyType | undefined {
+  const matches = regex.exec(line);
   if (!matches) {
     return undefined;
   }
@@ -64,7 +61,7 @@ export function parse(
     return pipe(
       O.fromNullable(matches.groups?.rest),
       O.flatMap((s: string) => {
-        const matches = specifierRegExp.exec(s) || versionRegExp.exec(s);
+        const matches = specifierRegex.exec(s) || versionRegex.exec(s);
         if (matches) {
           return O.some(matches[0].trim());
         }
@@ -92,13 +89,13 @@ class PythonProject {
     return new PyPIClient(this.source);
   }
 
-  getRegExp(): RegExp {
-    return buildRegExp(this.dependencies, this.format);
+  getRegex(): RegExp {
+    return buildRegex(this.dependencies, this.format);
   }
 
   getParseFn(): ParseFnType {
     return (line: string) => {
-      return parse(line, this.getRegExp());
+      return parse(line, this.getRegex());
     };
   }
 }

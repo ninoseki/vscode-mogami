@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 import { PyPIClient } from "@/package/pypi";
 import { createProject } from "@/project/pypi";
-import { DependencyPositionType, PackageClientType } from "@/schemas";
+import { DependencyPositionType } from "@/schemas";
 import { satisfies } from "@/versioning/poetry";
 
 import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
@@ -15,11 +15,9 @@ export class PyPICodeLensProvider extends AbstractCodeLensProvider {
   constructor({
     state,
     concurrency,
-    client,
   }: {
     state: CodeLensState;
     concurrency: number;
-    client: PackageClientType;
   }) {
     super(
       [
@@ -34,7 +32,6 @@ export class PyPICodeLensProvider extends AbstractCodeLensProvider {
       }),
       {
         state,
-        client,
         satisfies,
         concurrency,
       },
