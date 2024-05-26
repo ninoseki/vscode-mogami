@@ -14,18 +14,18 @@ const specifierPartPattern = `\\s*${rangePattern.replace(
 const specifierPattern = `${specifierPartPattern}(?:\\s*,${specifierPartPattern})*`;
 const dependencyPattern = `(${packagePattern})(${extrasPattern})(${specifierPattern})`;
 
-export const pkgValRegExp = RegExp(`^${dependencyPattern}$`);
-const packageRegExp = /^[a-z0-9][\w.-]*[a-z0-9]$/i;
+export const pkgValRegex = RegExp(`^${dependencyPattern}$`);
+const packageRegex = /^[a-z0-9][\w.-]*[a-z0-9]$/i;
 
 export function parse(line: string): DependencyType | undefined {
   const [_line] = line.split("#").map((part) => part.trim());
   const [lineNoEnvMarkers] = _line.split(";").map((part) => part.trim());
   const lineNoHashes = lineNoEnvMarkers.split(" \\")[0];
-  const matches = pkgValRegExp.exec(lineNoHashes);
+  const matches = pkgValRegex.exec(lineNoHashes);
 
   if (!matches) {
     // line may be a dependency name only (e.g. "requests")
-    if (packageRegExp.test(lineNoEnvMarkers)) {
+    if (packageRegex.test(lineNoEnvMarkers)) {
       return { name: lineNoHashes };
     }
     return undefined;

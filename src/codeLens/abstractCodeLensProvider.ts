@@ -22,7 +22,7 @@ export abstract class AbstractCodeLensProvider
   satisfies: SatisfiesFnType;
   concurrency: number;
   state: CodeLensState;
-  client: PackageClientType;
+  abstract client: PackageClientType;
 
   name?: string;
 
@@ -30,19 +30,16 @@ export abstract class AbstractCodeLensProvider
     private documentSelector: vscode.DocumentSelector,
     {
       state,
-      client,
       satisfies,
       concurrency = 5,
     }: {
       state: CodeLensState;
       concurrency?: number;
-      client: PackageClientType;
       satisfies: SatisfiesFnType;
     },
   ) {
     this.documentSelector = documentSelector;
 
-    this.client = client;
     this.concurrency = concurrency;
     this.state = state;
     this.satisfies = satisfies;

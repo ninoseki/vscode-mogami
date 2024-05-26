@@ -16,15 +16,11 @@ export abstract class AbstractHoverProvider
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
-  client: PackageClientType;
-  parseLine?: ParseFnType;
+  abstract client: PackageClientType;
+  parse?: ParseFnType;
 
-  constructor(
-    private documentSelector: vscode.DocumentSelector,
-    { client }: { client: PackageClientType },
-  ) {
+  constructor(private documentSelector: vscode.DocumentSelector) {
     this.documentSelector = documentSelector;
-    this.client = client;
 
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
@@ -44,9 +40,9 @@ export abstract class AbstractHoverProvider
     const line = document.lineAt(position.line).text.trim();
 
     // NOTE: this.parseLine may be set after analyzing document...
-    assert(this.parseLine);
+    assert(this.parse);
 
-    const dependency = this.parseLine(line);
+    const dependency = this.parse(line);
     if (!dependency) {
       return;
     }
