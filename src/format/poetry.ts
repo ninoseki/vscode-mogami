@@ -1,64 +1,16 @@
-import { VERSION_PATTERN } from "@renovatebot/pep440/lib/version";
-import { pipe } from "fp-ts/lib/function";
-import * as O from "fp-ts/Option";
+import TOML from "@iarna/toml";
 import { getDependenciesFrom } from "snyk-poetry-lockfile-parser/dist/manifest-parser";
 
-import type { DependencyType } from "@/schemas";
+import { PoetryProjectSchema, type PythonProjectType } from "@/schemas";
 
-const RANGE_PATTERN = [
-  "(?<operator>(===|~=|==|!=|<=|>=|<|>|\\^))",
-  "\\s*",
-  "(",
-  /*  */ "(?<version>(?:" + VERSION_PATTERN.replace(/\?<\w+>/g, "?:") + "))",
-  /*  */ "(?<prefix>\\.\\*)?",
-  /*  */ "|",
-  /*  */ "(?<legacy>[^,;\\s)]+)",
-  ")",
-].join("");
+export function createPythonProject(text: string): PythonProjectType {
+  // TODO: replace it with Zod
+  const dependencies = getDependenciesFrom(text, true).map((d) => d.name);
 
-const specifierPartPattern = `\\s*${RANGE_PATTERN.replace(
-  RegExp(/\?<\w+>/g),
-  "?:",
-)}`;
-const specifierPattern = `${specifierPartPattern}(?:\\s*,${specifierPartPattern})*`;
-const specifierRegExp = new RegExp(specifierPattern);
-const versionRegExp = new RegExp(VERSION_PATTERN);
+  const parsed = PoetryProjectSchema.parse(TOML.parse(text));
+  const source = (parsed.tool.poetry?.source || [])
+    .map((source) => source.url)
+    .find((url) => url);
 
-export function buildDepsRegExp(text: string) {
-  const names = getDependenciesFrom(text, true)
-    .map((d) => d.name)
-    // should be sorted in descending alphabetical order
-    .sort()
-    .reverse();
-  return new RegExp("^(?<name>" + names.join("|") + `)\\W(?<rest>.+)?$`);
-}
-
-export function parse(
-  line: string,
-  depsRegExp: RegExp,
-): DependencyType | undefined {
-  const matches = depsRegExp.exec(line);
-  if (!matches) {
-    return undefined;
-  }
-  const name = matches.groups?.name;
-  if (!name) {
-    return undefined;
-  }
-
-  const specifier = (() => {
-    return pipe(
-      O.fromNullable(matches.groups?.rest),
-      O.flatMap((s: string) => {
-        const matches = specifierRegExp.exec(s) || versionRegExp.exec(s);
-        if (matches) {
-          return O.some(matches[0]);
-        }
-        return O.none;
-      }),
-      O.getOrElseW(() => undefined),
-    );
-  })();
-
-  return { name, specifier };
+  return { dependencies, source, format: "poetry" };
 }

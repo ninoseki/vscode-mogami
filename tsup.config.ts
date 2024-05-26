@@ -18,6 +18,7 @@ export default defineConfig({
     "p-map",
     "semver",
     "snyk-poetry-lockfile-parser",
+    "url-join",
     "zod",
   ],
 });

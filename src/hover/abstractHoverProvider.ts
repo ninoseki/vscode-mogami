@@ -63,7 +63,12 @@ export abstract class AbstractHoverProvider
     return pipe(
       result,
       E.map((pkg) => {
-        const message = `${pkg.summary}\n\nLatest version: ${pkg.version}\n\n${pkg.url}`;
+        const sections = [
+          pkg.summary,
+          `Latest version:${pkg.version}`,
+          pkg.url,
+        ].filter((i): i is Exclude<typeof i, undefined> => i !== undefined);
+        const message = sections.join("\n\n");
         return new vscode.Hover(message, range);
       }),
       E.getOrElseW(() => undefined),

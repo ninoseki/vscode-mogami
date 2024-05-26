@@ -1,11 +1,14 @@
 import * as vscode from "vscode";
 
-import { parse, pkgValRegExp } from "@/format/pip";
+import { createPythonProject } from "@/format/pypi";
+import { PyPIClient } from "@/package/pypi";
 import { PackageClientType } from "@/schemas";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
 
 export class RequirementsHoverProvider extends AbstractHoverProvider {
+  declare client: PyPIClient;
+
   constructor(client: PackageClientType) {
     const patterns = [
       "**/*-requirements.txt",
@@ -17,16 +20,17 @@ export class RequirementsHoverProvider extends AbstractHoverProvider {
     const selector = patterns.map((pattern) => {
       return { pattern, scheme: "file" };
     });
-
     super(selector, { client });
-
-    this.parseLine = parse;
+    this.parseLine = undefined;
   }
 
   public parseDocumentPosition(
     document: vscode.TextDocument,
     position: vscode.Position,
   ) {
-    return document.getWordRangeAtPosition(position, pkgValRegExp);
+    const project = createPythonProject(document);
+    this.client = project.getClient();
+    this.parseLine = project.getParseFn();
+    return document.getWordRangeAtPosition(position, project.getRegExp());
   }
 }

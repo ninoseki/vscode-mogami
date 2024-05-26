@@ -1,11 +1,14 @@
 import * as vscode from "vscode";
 
-import { buildDepsRegExp, parse } from "@/format/poetry";
+import { createPythonProject } from "@/format/pypi";
+import { PyPIClient } from "@/package/pypi";
 import { PackageClientType } from "@/schemas";
 
 import { AbstractHoverProvider } from "../abstractHoverProvider";
 
 export class PyProjectHoverProvider extends AbstractHoverProvider {
+  declare client: PyPIClient;
+
   constructor(client: PackageClientType) {
     super({ pattern: "**/pyproject.toml", scheme: "file" }, { client });
     this.parseLine = undefined;
@@ -15,12 +18,9 @@ export class PyProjectHoverProvider extends AbstractHoverProvider {
     document: vscode.TextDocument,
     position: vscode.Position,
   ) {
-    const depsRegExp = buildDepsRegExp(document.getText());
-    const parseLine = (line: string) => {
-      return parse(line, depsRegExp);
-    };
-    this.parseLine = parseLine;
-
-    return document.getWordRangeAtPosition(position, depsRegExp);
+    const project = createPythonProject(document);
+    this.client = project.getClient();
+    this.parseLine = project.getParseFn();
+    return document.getWordRangeAtPosition(position, project.getRegExp());
   }
 }

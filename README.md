@@ -9,11 +9,16 @@ A VS Code extension for checking the latest version of each dependency.
 ### Python
 
 - `requirements.txt`
-- `pyproject.toml` (Poetry and PEP621)
+- `pyproject.toml`: [Poetry](https://python-poetry.org/) and pip's [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
 
-#### Notes
+#### Private Repository
 
-PEP621's `dependencies` and `optional-dependencies` should be separated by line breaks.
+- `requirements.txt`: `--index-url` is supported.
+- `pyrpoject..toml`: Poetry's `tool.poetry.source` is supported.
+
+#### Known Limitations
+
+pip's `pyproject.toml` should have line-break-separated `dependencies` and `optional-dependencies`.
 
 **Good**
 

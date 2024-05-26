@@ -1,9 +1,9 @@
 import TOML from "@iarna/toml";
 import camelcaseKeys from "camelcase-keys";
 
-import { PyProjectSchema } from "@/schemas";
+import { PyProjectSchema, PythonProjectType } from "@/schemas";
 
-import { parse as pipParse } from "./pip";
+import { parse as pipParse } from "./requirements";
 
 export function getDependenciesFrom(text: string): string[] {
   const tomlParsed = TOML.parse(text);
@@ -31,10 +31,7 @@ export function getDependenciesFrom(text: string): string[] {
   return dependencyNames.concat(optionalDependencyNames);
 }
 
-export function buildDepsRegExp(text: string) {
-  const names = getDependenciesFrom(text)
-    // should be sorted in descending alphabetical order
-    .sort()
-    .reverse();
-  return new RegExp("(?<name>" + names.join("|") + `)(?<rest>.+)?`);
+export function createPythonProject(text: string): PythonProjectType {
+  const dependencies = getDependenciesFrom(text);
+  return { dependencies, format: "pyproject" };
 }

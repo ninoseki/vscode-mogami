@@ -13,8 +13,7 @@ import { OnShowClick } from "./events/onShowClick";
 import { OnUpdateDependencyClick } from "./events/onUpdateDependencyClick";
 import { GemfileCodeLensProvider } from "./gem/gemfileCodeLensProvider";
 import { GemspecCodeLensProvider } from "./gem/gemspecCodeLensProvider";
-import { PyProjectCodeLensProvider } from "./pypi/pyprojectCodeLensProvider";
-import { RequirementsCodeLensProvider } from "./pypi/requirementsCodeLensProvider";
+import { PyPICodeLensProvider } from "./pypiCodeLensProvider";
 
 export class CodeLensManager implements ExtensionComponent {
   codeLensProviders: AbstractCodeLensProvider[];
@@ -42,12 +41,7 @@ export class CodeLensManager implements ExtensionComponent {
     const pypiClient = new PyPIClient();
 
     this.codeLensProviders = [
-      new PyProjectCodeLensProvider({ state, concurrency, client: pypiClient }),
-      new RequirementsCodeLensProvider({
-        state,
-        concurrency,
-        client: pypiClient,
-      }),
+      new PyPICodeLensProvider({ state, concurrency, client: pypiClient }),
       new GemfileCodeLensProvider({ state, concurrency, client: gemClient }),
       new GemspecCodeLensProvider({ state, concurrency, client: gemClient }),
     ];
