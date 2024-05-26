@@ -5,11 +5,16 @@ import * as O from "fp-ts/Option";
 import * as vscode from "vscode";
 
 import { PyPIClient } from "@/package/pypi";
-import { DependencyType, ParseFnType, PythonProjectType } from "@/schemas";
+import {
+  DependencyType,
+  ParseFnType,
+  ProjectFormatType,
+  ProjectType,
+} from "@/schemas";
 
-import { createPythonProject as poetryCreatePythonProject } from "./poetry";
-import { createPythonProject as pyprojectCreatePythonProject } from "./pyproject";
-import { createPythonProject as requirementsCreatePythonProject } from "./requirements";
+import * as poetry from "../format/poetry";
+import * as pyproject from "../format/pyproject";
+import * as requirements from "../format/requirements";
 
 const RANGE_PATTERN = [
   "(?<operator>(===|~=|==|!=|<=|>=|<|>|\\^))",
@@ -75,9 +80,9 @@ export function parse(
 class PythonProject {
   dependencies: string[];
   source?: string;
-  format: string;
+  format: ProjectFormatType;
 
-  constructor({ dependencies, source, format }: PythonProjectType) {
+  constructor({ dependencies, source, format }: ProjectType) {
     this.dependencies = dependencies;
     this.source = source;
     this.format = format;
@@ -98,13 +103,11 @@ class PythonProject {
   }
 }
 
-export function createPythonProject(
-  document: vscode.TextDocument,
-): PythonProject {
+export function createProject(document: vscode.TextDocument): PythonProject {
   const text = document.getText();
 
   if (document.fileName.endsWith("/pyproject.toml")) {
-    const functions = [poetryCreatePythonProject, pyprojectCreatePythonProject];
+    const functions = [poetry.createProject, pyproject.createProject];
     for (const f of functions) {
       const result = E.tryCatch(
         () => f(text),
@@ -116,7 +119,7 @@ export function createPythonProject(
     }
   } else {
     const result = E.tryCatch(
-      () => requirementsCreatePythonProject(text),
+      () => requirements.createProject(text),
       (e: unknown) => e,
     );
     if (E.isRight(result)) {

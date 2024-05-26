@@ -11,8 +11,7 @@ import { OnActiveTextEditorChange } from "./events/onActiveTextEditorChange";
 import { OnHideClick } from "./events/onHideClick";
 import { OnShowClick } from "./events/onShowClick";
 import { OnUpdateDependencyClick } from "./events/onUpdateDependencyClick";
-import { GemfileCodeLensProvider } from "./gem/gemfileCodeLensProvider";
-import { GemspecCodeLensProvider } from "./gem/gemspecCodeLensProvider";
+import { GemfileCodeLensProvider } from "./gemCodeLensProvider";
 import { PyPICodeLensProvider } from "./pypiCodeLensProvider";
 
 export class CodeLensManager implements ExtensionComponent {
@@ -43,7 +42,6 @@ export class CodeLensManager implements ExtensionComponent {
     this.codeLensProviders = [
       new PyPICodeLensProvider({ state, concurrency, client: pypiClient }),
       new GemfileCodeLensProvider({ state, concurrency, client: gemClient }),
-      new GemspecCodeLensProvider({ state, concurrency, client: gemClient }),
     ];
 
     this.codeLensProviders.forEach((provider) => {

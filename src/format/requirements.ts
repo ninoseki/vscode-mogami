@@ -1,7 +1,7 @@
 // Forked from https://github.com/renovatebot/renovate
 import { RANGE_PATTERN } from "@renovatebot/pep440";
 
-import type { DependencyType, PythonProjectType } from "@/schemas";
+import type { DependencyType, ProjectType } from "@/schemas";
 
 const packagePattern = "[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]";
 const extrasPattern = "(?:\\s*\\[[^\\]]+\\])?";
@@ -58,7 +58,7 @@ export function getIndexUrl(text: string): string | undefined {
     .find((url) => url !== undefined);
 }
 
-export function createPythonProject(text: string): PythonProjectType {
+export function createProject(text: string): ProjectType {
   const dependencies = getDependenciesFrom(text);
   const source = getIndexUrl(text);
   return { dependencies, source, format: "requirements" };

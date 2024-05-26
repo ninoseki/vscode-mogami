@@ -1,7 +1,7 @@
 import TOML from "@iarna/toml";
 import camelcaseKeys from "camelcase-keys";
 
-import { PyProjectSchema, PythonProjectType } from "@/schemas";
+import { ProjectType, PyProjectSchema } from "@/schemas";
 
 import { parse as pipParse } from "./requirements";
 
@@ -31,7 +31,7 @@ export function getDependenciesFrom(text: string): string[] {
   return dependencyNames.concat(optionalDependencyNames);
 }
 
-export function createPythonProject(text: string): PythonProjectType {
+export function createProject(text: string): ProjectType {
   const dependencies = getDependenciesFrom(text);
   return { dependencies, format: "pyproject" };
 }

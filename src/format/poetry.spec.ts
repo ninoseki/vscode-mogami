@@ -1,4 +1,4 @@
-import { createPythonProject } from "./poetry";
+import { createProject } from "./poetry";
 
 const text = `[tool.poetry]
 name = "sqlmodel-filters"
@@ -24,7 +24,7 @@ ruff = "^0.4"`;
 
 describe("createPythonProject", () => {
   test("should return a project", () => {
-    const project = createPythonProject(text);
+    const project = createProject(text);
     expect(project.source).toBe("http://example.com/simple");
     expect(project.dependencies).toEqual([
       "luqum",
