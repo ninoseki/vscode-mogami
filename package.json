@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/ninoseki/vscode-mogami.git"
   },
-  "version": "0.0.20",
+  "version": "0.0.21",
   "author": "Manabu Niseki",
   "publisher": "ninoseki",
   "engines": {
