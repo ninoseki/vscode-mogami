@@ -116,6 +116,7 @@
     ]
   },
   "devDependencies": {
+    "@types/html-to-text": "^9.0.4",
     "@types/iarna__toml": "^2.0.5",
     "@types/jest": "^29.5.12",
     "@types/node": "20.12.12",
@@ -149,7 +150,9 @@
     "axios-cache-interceptor": "^1.5.3",
     "camelcase-keys": "^9.1.3",
     "fp-ts": "^2.16.6",
+    "html-to-text": "^9.0.5",
     "p-map": "^7.0.2",
+    "radash": "^12.1.0",
     "semver": "^7.6.2",
     "snyk-poetry-lockfile-parser": "^1.4.2",
     "url-join": "^5.0.0",
