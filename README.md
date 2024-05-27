@@ -14,7 +14,7 @@ A VS Code extension for checking the latest version of each dependency.
 #### Private Repository
 
 - `requirements.txt`: `--index-url` is supported.
-- `pyrpoject..toml`: Poetry's `tool.poetry.source` is supported.
+- `pyproject.toml`: Poetry's `tool.poetry.source` is supported.
 
 #### Known Limitations
 
