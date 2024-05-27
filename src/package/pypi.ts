@@ -1,9 +1,12 @@
 import { AxiosResponse } from "axios";
 import camelcaseKeys from "camelcase-keys";
 import * as E from "fp-ts/lib/Either";
+import { convert } from "html-to-text";
+import { unique } from "radash";
+import semver from "semver";
 import urlJoin from "url-join";
 
-import { PackageType, PypiPackageSchema, PypiSimpleSchema } from "@/schemas";
+import { PackageType, PypiPackageSchema } from "@/schemas";
 
 import { AbstractPackageClient } from "./abstractClient";
 
@@ -40,15 +43,46 @@ export function parse(res: AxiosResponse): E.Either<unknown, PackageType> {
 
 export function parseSimple(
   res: AxiosResponse,
+  name: string,
 ): E.Either<unknown, PackageType> {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const text = convert(res.data as string);
+
+  const underScoreName = name.replace(/-/g, "_");
+  // TODO: not 100% sure whether this trick has 100% coverage
+  const regex = new RegExp(
+    `^${underScoreName}-(?<version>[^-]+)(\\.tar\\.gz$|-py)`,
+  );
+
+  const getVersion = (line: string): string | undefined => {
+    const matches = regex.exec(line);
+    if (!matches) {
+      return undefined;
+    }
+    const version = matches.groups?.version;
+    if (!version) {
+      return undefined;
+    }
+    return version;
+  };
+
   return E.tryCatch(
     () => {
-      const parsed = PypiSimpleSchema.parse(res.data);
-      return {
-        name: parsed.name,
-        version: parsed.versions[parsed.versions.length - 1],
-        versions: parsed.versions,
-      };
+      const versions: string[] = text
+        .split("\n")
+        .map((line) => line.trim())
+        .map((line) => getVersion(line))
+        .filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
+        .filter((version) => semver.valid(version) !== null);
+
+      const uniqueVersions = unique(versions);
+      const version = uniqueVersions[uniqueVersions.length - 1];
+
+      if (!version) {
+        throw new Error("Failed to parse simple API response");
+      }
+
+      return { versions: uniqueVersions, name, version };
     },
     (e: unknown) => e,
   );
@@ -69,18 +103,14 @@ export class PyPIClient extends AbstractPackageClient {
     const jsonUrl = isSimple
       ? urlJoin(this.source.toString(), name, "/")
       : urlJoin(this.source.toString(), name, "json");
-    const headers = isSimple
-      ? { accept: "application/vnd.pypi.simple.v1+json" }
-      : {};
 
-    const res = await this.client.get(jsonUrl, { headers });
-
+    const res = await this.client.get(jsonUrl);
     const result = parse(res);
     if (E.isRight(result)) {
       return result.right;
     }
 
-    const resultSimple = parseSimple(res);
+    const resultSimple = parseSimple(res, name);
     if (E.isRight(resultSimple)) {
       return resultSimple.right;
     }

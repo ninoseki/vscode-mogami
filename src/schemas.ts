@@ -15,13 +15,6 @@ export const PypiPackageSchema = z.object({
   releases: z.record(z.string(), z.any()),
 });
 
-export const PypiSimpleSchema = z.object({
-  name: z.string(),
-  versions: z.array(z.string()),
-});
-
-export type PypiSimpleType = z.infer<typeof PypiSimpleSchema>;
-
 export type PypiPackageType = z.infer<typeof PypiPackageSchema>;
 
 export const GemVersionSchema = z.object({
