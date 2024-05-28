@@ -2,8 +2,10 @@ import { VERSION_PATTERN } from "@renovatebot/pep440/lib/version";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
+import * as path from "path";
 import * as vscode from "vscode";
 
+import { Logger } from "@/logger";
 import { PyPIClient } from "@/package/pypi";
 import {
   DependencyType,
@@ -35,7 +37,10 @@ const specifierPattern = `${specifierPartPattern}(?:\\s*,${specifierPartPattern}
 const specifierRegex = new RegExp(specifierPattern);
 const versionRegex = new RegExp(VERSION_PATTERN);
 
-export function buildRegex(dependencies: string[], format: string): RegExp {
+export function buildRegex(
+  dependencies: string[],
+  format: ProjectFormatType,
+): RegExp {
   const sorted = dependencies.sort().reverse();
   switch (format) {
     case "poetry":
@@ -102,8 +107,9 @@ class PythonProject {
 
 export function createProject(document: vscode.TextDocument): PythonProject {
   const text = document.getText();
+  const basename = path.basename(document.fileName);
 
-  if (document.fileName.endsWith("/pyproject.toml")) {
+  if (basename === "pyproject.toml") {
     const functions = [poetry.createProject, pyproject.createProject];
     for (const f of functions) {
       const result = E.tryCatch(
@@ -112,6 +118,8 @@ export function createProject(document: vscode.TextDocument): PythonProject {
       );
       if (E.isRight(result)) {
         return new PythonProject(result.right);
+      } else {
+        Logger.error(result.left);
       }
     }
   } else {
@@ -121,6 +129,8 @@ export function createProject(document: vscode.TextDocument): PythonProject {
     );
     if (E.isRight(result)) {
       return new PythonProject(result.right);
+    } else {
+      Logger.error(result.left);
     }
   }
 
