@@ -1,0 +1,23 @@
+name: 🐞 Bug report
+description: Report an issue
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+      placeholder: Bug description
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Please provide steps to reproduce the bug including a manifest file (e.g. requirements.txt, pyproject.toml, etc.). Don't just post a screenshot.
+      placeholder: Reproduction
+    validations:
+      required: true
