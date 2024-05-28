@@ -9,7 +9,7 @@ body:
   - type: textarea
     id: feature-description
     attributes:
-      label: Clear and concise description of the problem
+      label: Clear and concise description of the feature request
     validations:
       required: true
   - type: textarea
