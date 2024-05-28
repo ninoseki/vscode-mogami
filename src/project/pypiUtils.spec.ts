@@ -1,6 +1,6 @@
-import { DependencyType } from "@/schemas";
+import { DependencyType, ProjectFormatType } from "@/schemas";
 
-import { buildRegex, parse } from "./pypi";
+import { buildRegex, parse } from "./pypiUtils";
 
 const dependencies = ["foo", "foo-bar"];
 
@@ -37,11 +37,14 @@ describe("parse", () => {
       "requirements",
       { name: "foo", specifier: "== 1.0.0" },
     ],
-  ])("parse(%s) === %s", (line: string, format, expected: DependencyType) => {
-    const regex = buildRegex(dependencies, format);
-    const deps = parse(line, regex);
-    expect(deps).not.toBeUndefined();
-    expect(deps?.name).toBe(expected?.name);
-    expect(deps?.specifier).toBe(expected?.specifier);
-  });
+  ])(
+    "parse(%s) === %s",
+    (line: string, format: ProjectFormatType, expected: DependencyType) => {
+      const regex = buildRegex(dependencies, format);
+      const deps = parse(line, regex);
+      expect(deps).not.toBeUndefined();
+      expect(deps?.name).toBe(expected?.name);
+      expect(deps?.specifier).toBe(expected?.specifier);
+    },
+  );
 });

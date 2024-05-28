@@ -1,9 +1,10 @@
-import { VERSION_PATTERN } from "@renovatebot/pep440/lib/version";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
+import * as path from "path";
 import * as vscode from "vscode";
 
+import { Logger } from "@/logger";
 import { PyPIClient } from "@/package/pypi";
 import {
   DependencyType,
@@ -15,37 +16,7 @@ import {
 import * as poetry from "../format/poetry";
 import * as pyproject from "../format/pyproject";
 import * as requirements from "../format/requirements";
-
-const RANGE_PATTERN = [
-  "(?<operator>(===|~=|==|!=|<=|>=|<|>|\\^))",
-  "\\s*",
-  "(",
-  /*  */ "(?<version>(?:" + VERSION_PATTERN.replace(/\?<\w+>/g, "?:") + "))",
-  /*  */ "(?<prefix>\\.\\*)?",
-  /*  */ "|",
-  /*  */ "(?<legacy>[^,;\\s)]+)",
-  ")",
-].join("");
-
-const specifierPartPattern = `\\s*${RANGE_PATTERN.replace(
-  RegExp(/\?<\w+>/g),
-  "?:",
-)}`;
-const specifierPattern = `${specifierPartPattern}(?:\\s*,${specifierPartPattern})*`;
-const specifierRegex = new RegExp(specifierPattern);
-const versionRegex = new RegExp(VERSION_PATTERN);
-
-export function buildRegex(dependencies: string[], format: string): RegExp {
-  const sorted = dependencies.sort().reverse();
-  switch (format) {
-    case "poetry":
-      return new RegExp("^(?<name>" + sorted.join("|") + `)\\W(?<rest>.+)?$`);
-    case "pyproject":
-      return new RegExp("(?<name>" + sorted.join("|") + `)(?<rest>.+)?`);
-    default:
-      return new RegExp("^(?<name>" + sorted.join("|") + `)(?<rest>.+)?$`);
-  }
-}
+import { buildRegex, specifierRegex, versionRegex } from "./pypiUtils";
 
 export function parse(line: string, regex: RegExp): DependencyType | undefined {
   const matches = regex.exec(line);
@@ -102,25 +73,67 @@ class PythonProject {
 
 export function createProject(document: vscode.TextDocument): PythonProject {
   const text = document.getText();
+  const basename = path.basename(document.fileName);
 
-  if (document.fileName.endsWith("/pyproject.toml")) {
-    const functions = [poetry.createProject, pyproject.createProject];
-    for (const f of functions) {
-      const result = E.tryCatch(
-        () => f(text),
-        (e: unknown) => e,
-      );
-      if (E.isRight(result)) {
-        return new PythonProject(result.right);
-      }
+  if (basename === "pyproject.toml") {
+    // Poetry
+    const poetryResult = E.tryCatch(
+      () => {
+        const project = poetry.createProject(text);
+        Logger.info(
+          `Poetry detected: ${project.dependencies.length} dependencies found`,
+        );
+        if (project.dependencies.length === 0) {
+          throw new Error("No dependency found in Poetry manifest");
+        }
+        return project;
+      },
+      (e: unknown) => e,
+    );
+    if (E.isRight(poetryResult)) {
+      return new PythonProject(poetryResult.right);
+    } else {
+      Logger.error(poetryResult.left);
+    }
+
+    // pyproject.toml
+    const pyprojectResult = E.tryCatch(
+      () => {
+        const project = pyproject.createProject(text);
+        Logger.info(
+          `pyproject.toml detected: ${project.dependencies.length} dependencies found`,
+        );
+        if (project.dependencies.length === 0) {
+          throw new Error("No dependency found in pyproject.toml manifest");
+        }
+        return project;
+      },
+      (e: unknown) => e,
+    );
+    if (E.isRight(pyprojectResult)) {
+      return new PythonProject(pyprojectResult.right);
+    } else {
+      Logger.error(pyprojectResult.left);
     }
   } else {
+    // requirements.txt
     const result = E.tryCatch(
-      () => requirements.createProject(text),
+      () => {
+        const project = requirements.createProject(text);
+        Logger.info(
+          `requirements.txt detected: ${project.dependencies.length} dependencies found`,
+        );
+        if (project.dependencies.length === 0) {
+          throw new Error("No dependency found in requirements.txt manifest");
+        }
+        return project;
+      },
       (e: unknown) => e,
     );
     if (E.isRight(result)) {
       return new PythonProject(result.right);
+    } else {
+      Logger.error(result.left);
     }
   }
 

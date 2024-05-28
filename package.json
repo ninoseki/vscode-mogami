@@ -156,6 +156,7 @@
     "semver": "^7.6.2",
     "snyk-poetry-lockfile-parser": "^1.4.2",
     "url-join": "^5.0.0",
+    "winston-transport-vscode": "^0.1.0",
     "zod": "^3.23.8"
   }
 }

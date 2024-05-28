@@ -21,6 +21,7 @@ export default defineConfig({
     "semver",
     "snyk-poetry-lockfile-parser",
     "url-join",
+    "winston-transport-vscode",
     "zod",
   ],
 });
