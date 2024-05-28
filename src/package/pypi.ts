@@ -75,14 +75,13 @@ export function parseSimple(
         .filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
         .filter((version) => semver.valid(version) !== null);
 
-      const uniqueVersions = unique(versions);
-      const version = uniqueVersions[uniqueVersions.length - 1];
-
+      const uniqueSortedVersions = unique(versions).sort(semver.compare);
+      const version = uniqueSortedVersions[uniqueSortedVersions.length - 1];
       if (!version) {
         throw new Error("Failed to parse simple API response");
       }
 
-      return { versions: uniqueVersions, name, version };
+      return { versions: uniqueSortedVersions, name, version };
     },
     (e: unknown) => e,
   );
