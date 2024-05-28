@@ -1,7 +1,6 @@
 // Forked from https://github.com/renovatebot/renovate
 import { RANGE_PATTERN } from "@renovatebot/pep440";
 
-import { Logger } from "@/logger";
 import type { DependencyType, ProjectType } from "@/schemas";
 
 const packagePattern = "[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]";
@@ -62,13 +61,5 @@ export function getIndexUrl(text: string): string | undefined {
 export function createProject(text: string): ProjectType {
   const dependencies = getDependenciesFrom(text);
   const source = getIndexUrl(text);
-
-  Logger.info(
-    `requirements.txt detected: ${dependencies.length} dependencies found`,
-  );
-  if (dependencies.length === 0) {
-    throw new Error("No dependency found in requirements.txt manifest");
-  }
-
   return { dependencies, source, format: "requirements" };
 }

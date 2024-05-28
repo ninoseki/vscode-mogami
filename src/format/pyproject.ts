@@ -1,7 +1,6 @@
 import TOML from "@iarna/toml";
 import camelcaseKeys from "camelcase-keys";
 
-import { Logger } from "@/logger";
 import { ProjectType, PyProjectSchema } from "@/schemas";
 
 import { parse as pipParse } from "./requirements";
@@ -34,13 +33,5 @@ export function getDependenciesFrom(text: string): string[] {
 
 export function createProject(text: string): ProjectType {
   const dependencies = getDependenciesFrom(text);
-
-  Logger.info(
-    `pyproject.toml detected: ${dependencies.length} dependencies found`,
-  );
-  if (dependencies.length === 0) {
-    throw new Error("No dependency found in pyproject.toml manifest");
-  }
-
   return { dependencies, format: "pyproject" };
 }
