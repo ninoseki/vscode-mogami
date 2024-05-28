@@ -70,8 +70,8 @@ export const PoetryProjectPoetrySourceSchema = z.object({
 
 export const PoetryProjectPoetrySchema = z.object({
   name: z.string(),
-  version: z.string(),
-  source: z.array(PoetryProjectPoetrySourceSchema).optional(),
+  version: z.string().nullish(),
+  source: z.array(PoetryProjectPoetrySourceSchema).nullish(),
 });
 
 export const PoetryProjectToolSchema = z.object({
