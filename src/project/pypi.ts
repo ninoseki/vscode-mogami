@@ -28,7 +28,7 @@ export function parse(line: string, regex: RegExp): DependencyType | undefined {
     return undefined;
   }
 
-  const specifier = (() => {
+  const specifier = ((): string | undefined => {
     return pipe(
       O.fromNullable(matches.groups?.rest),
       O.flatMap((s: string) => {
@@ -80,12 +80,14 @@ export function createProject(document: vscode.TextDocument): PythonProject {
     const poetryResult = E.tryCatch(
       () => {
         const project = poetry.createProject(text);
-        Logger.info(
-          `Poetry detected: ${project.dependencies.length} dependencies found`,
-        );
         if (project.dependencies.length === 0) {
           throw new Error("No dependency found in Poetry manifest");
+        } else {
+          Logger.info(
+            `Poetry detected: ${project.dependencies.length} dependencies found`,
+          );
         }
+
         return project;
       },
       (e: unknown) => e,
@@ -100,11 +102,12 @@ export function createProject(document: vscode.TextDocument): PythonProject {
     const pyprojectResult = E.tryCatch(
       () => {
         const project = pyproject.createProject(text);
-        Logger.info(
-          `pyproject.toml detected: ${project.dependencies.length} dependencies found`,
-        );
         if (project.dependencies.length === 0) {
           throw new Error("No dependency found in pyproject.toml manifest");
+        } else {
+          Logger.info(
+            `pyproject.toml detected: ${project.dependencies.length} dependencies found`,
+          );
         }
         return project;
       },
@@ -120,11 +123,12 @@ export function createProject(document: vscode.TextDocument): PythonProject {
     const result = E.tryCatch(
       () => {
         const project = requirements.createProject(text);
-        Logger.info(
-          `requirements.txt detected: ${project.dependencies.length} dependencies found`,
-        );
         if (project.dependencies.length === 0) {
           throw new Error("No dependency found in requirements.txt manifest");
+        } else {
+          Logger.info(
+            `requirements.txt detected: ${project.dependencies.length} dependencies found`,
+          );
         }
         return project;
       },
