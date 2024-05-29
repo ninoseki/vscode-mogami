@@ -73,9 +73,15 @@ export function parseSimple(
         .map((line) => line.trim())
         .map((line) => getVersion(line))
         .filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
-        .filter((version) => semver.valid(version) !== null);
+        // coerce in the filter to support version like 0.6
+        .filter((version) => semver.valid(semver.coerce(version)) !== null);
 
-      const uniqueSortedVersions = unique(versions).sort(semver.compare);
+      const coerceCompare = (a: string, b: string) => {
+        const a2 = semver.coerce(a) || a;
+        const b2 = semver.coerce(b) || b;
+        return semver.compare(a2, b2);
+      };
+      const uniqueSortedVersions = unique(versions).sort(coerceCompare);
       const version = uniqueSortedVersions[uniqueSortedVersions.length - 1];
       if (!version) {
         throw new Error("Failed to parse simple API response");
