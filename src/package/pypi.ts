@@ -51,7 +51,7 @@ export function parseSimple(
   const underScoreName = name.replace(/-/g, "_");
   // TODO: not 100% sure whether this trick has 100% coverage
   const regex = new RegExp(
-    `^${underScoreName}-(?<version>[^-]+)(\\.tar\\.gz$|-py)`,
+    `^(${underScoreName}|${name})-(?<version>[^-]+)(\\.tar\\.gz$|-py)`,
   );
 
   const getVersion = (line: string): string | undefined => {
