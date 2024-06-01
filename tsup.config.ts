@@ -19,7 +19,6 @@ export default defineConfig({
     "p-map",
     "radash",
     "semver",
-    "snyk-poetry-lockfile-parser",
     "url-join",
     "winston-transport-vscode",
     "zod",
