@@ -93,6 +93,11 @@
           "type": "boolean",
           "default": true,
           "description": "Whether to use a private package source (repository) if it's set or not."
+        },
+        "vscode-mogami.showPrerelease": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to show a prerelease version or not."
         }
       }
     }

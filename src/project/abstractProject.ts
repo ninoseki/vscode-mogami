@@ -1,4 +1,3 @@
-import { getUsePrivateSource } from "@/configuration";
 import {
   PackageClientType,
   ParseFnType,
@@ -10,13 +9,11 @@ export abstract class AbstractProject {
   dependencies: string[];
   source?: string;
   format: ProjectFormatType;
-  usePrivateSource: boolean;
 
   constructor({ dependencies, source, format }: ProjectType) {
     this.dependencies = dependencies;
     this.source = source;
     this.format = format;
-    this.usePrivateSource = getUsePrivateSource();
   }
 
   abstract getClient(): PackageClientType;

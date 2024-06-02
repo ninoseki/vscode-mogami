@@ -40,19 +40,37 @@ export function formatWithExistingLeading(
   return `${leading}${newVersion}`;
 }
 
+export function coerceUnlessValid(version: string) {
+  const parsed = semver.parse(version);
+  if (parsed) {
+    return parsed;
+  }
+
+  return semver.coerce(version);
+}
+
 export function eq(v1: string, v2?: string): boolean {
   if (!v2) {
     return false;
   }
 
-  const cv1 = semver.coerce(v1);
-  const cv2 = semver.coerce(v2);
+  const cv1 = coerceUnlessValid(v1);
+  const cv2 = coerceUnlessValid(v2);
 
   if (!cv1 || !cv2) {
     return false;
   }
 
   return semver.eq(cv1, cv2);
+}
+
+export function compare(a: string, b: string) {
+  const v1 = coerceUnlessValid(a);
+  const v2 = coerceUnlessValid(b);
+  if (!v1 || !v2) {
+    return a.localeCompare(b);
+  }
+  return v1.compare(v2);
 }
 
 export function maxSatisfying({
@@ -65,13 +83,20 @@ export function maxSatisfying({
   satisfies: (version: string, specifier?: string) => boolean;
 }): string | undefined {
   return pkg.versions
-    .sort((a, b) => {
-      const v1 = semver.coerce(a);
-      const v2 = semver.coerce(b);
-      if (!v1 || !v2) {
-        return b.localeCompare(a);
-      }
-      return v2.compare(v1);
-    })
+    .sort(compare)
+    .reverse()
     .find((v) => satisfies(v, specifier));
+}
+
+export function prereleaseLessMap(v: string) {
+  // return null if the version is a prerelease version
+  if (semver.prerelease(v, { loose: true }) !== null) {
+    return null;
+  }
+  // return null if the version has any non-digit characters
+  // (to reject a version like Django's 5.1a1)
+  if (!/^\d[.\d]+$/.test(v)) {
+    return null;
+  }
+  return v;
 }

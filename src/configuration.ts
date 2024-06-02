@@ -4,6 +4,7 @@ import {
   ConcurrencyKey,
   EnableCodeLensKey,
   ExtID,
+  showPrerelease,
   usePrivateSourceKey,
 } from "@/constants";
 
@@ -19,4 +20,8 @@ export function getUsePrivateSource() {
   return vscode.workspace
     .getConfiguration(ExtID)
     .get(usePrivateSourceKey, true);
+}
+
+export function getShowPrerelease() {
+  return vscode.workspace.getConfiguration(ExtID).get(showPrerelease, false);
 }

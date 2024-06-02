@@ -77,9 +77,7 @@ export function parse(line: string, regex: RegExp): DependencyType | undefined {
 
 class PythonProject extends AbstractProject {
   getClient(): PyPIClient {
-    const client = new PyPIClient(this.source);
-    client.usePrivateSource = this.usePrivateSource;
-    return client;
+    return new PyPIClient(this.source);
   }
 
   getRegex(): RegExp {

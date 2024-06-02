@@ -23,9 +23,7 @@ export function parse(line: string, regex: RegExp): DependencyType | undefined {
 
 class GemProject extends AbstractProject {
   getClient(): GemClient {
-    const client = new GemClient(this.source);
-    client.usePrivateSource = this.usePrivateSource;
-    return client;
+    return new GemClient(this.source);
   }
 
   getRegex(): RegExp {
