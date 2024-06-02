@@ -61,7 +61,7 @@ export abstract class AbstractHoverProvider
       E.map((pkg) => {
         const sections = [
           pkg.summary,
-          `Latest version:${pkg.version}`,
+          `Latest version: ${pkg.version}`,
           pkg.url,
         ].filter((i): i is Exclude<typeof i, undefined> => i !== undefined);
         const message = sections.join("\n\n");
