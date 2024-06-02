@@ -13,11 +13,8 @@ import { AbstractPackageClient } from "./abstractClient";
 const DEFAULT_SOURCE = "https://rubygems.org";
 
 export class GemClient extends AbstractPackageClient {
-  private source: URL;
-
-  constructor(source?: string) {
-    super();
-    this.source = new URL(source || DEFAULT_SOURCE);
+  constructor(privateSource?: string) {
+    super(DEFAULT_SOURCE, privateSource);
   }
 
   async get(name: string): Promise<PackageType> {
@@ -30,15 +27,17 @@ export class GemClient extends AbstractPackageClient {
   }
 
   async getGemVersions(name: string): Promise<GemVersionsType> {
+    const source = this.getSource();
     const res = await this.client.get(
-      urlJoin(this.source.toString(), "/api/v1/versions/", `${name}.json`),
+      urlJoin(source.toString(), "/api/v1/versions/", `${name}.json`),
     );
     return GemVersionsSchema.parse(res.data);
   }
 
   async getGem(name: string): Promise<PackageType> {
+    const source = this.getSource();
     const res = await this.client.get(
-      urlJoin(this.source.toString(), "/api/v1/gems/", `${name}.json`),
+      urlJoin(source.toString(), "/api/v1/gems/", `${name}.json`),
     );
     const parsed = GemSchema.parse(camelcaseKeys(res.data, { deep: true }));
     return {

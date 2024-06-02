@@ -29,9 +29,7 @@ export class PyPIHoverProvider extends AbstractHoverProvider {
     position: vscode.Position,
   ) {
     const project = createProject(document);
-    if (project.source) {
-      this.client = project.getClient();
-    }
+    this.client = project.getClient();
     this.parse = project.getParseFn();
     return document.getWordRangeAtPosition(position, project.getRegex());
   }

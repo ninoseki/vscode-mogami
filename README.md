@@ -11,7 +11,7 @@ A VS Code extension for checking the latest version of each dependency.
 - `requirements.txt`
 - `pyproject.toml`: [Poetry](https://python-poetry.org/) and pip's [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
 
-#### Private Repository
+#### Private Source
 
 - `requirements.txt`: `--index-url` is supported.
 - `pyproject.toml`: Poetry's `tool.poetry.source` is supported.
@@ -40,16 +40,17 @@ dependencies = ["httpx", "django>2.1"]
 - `Gemfile`
 - `*.gemspec`
 
-#### Private Repository
+#### Private Source
 
 - `Gemfile`: `source` is supported.
 
 ## Configuration
 
-| Key                            | Default | Desc.                                                              |
-| ------------------------------ | ------- | ------------------------------------------------------------------ |
-| `vscode-mogami.enableCodeLens` | `true`  | Whether to enable CodeLens or not.                                 |
-| `vscode-mogami.concurrency`    | 5       | Concurrency (a number of concurrent requests) to get package data. |
+| Key                              | Default | Desc.                                                              |
+| -------------------------------- | ------- | ------------------------------------------------------------------ |
+| `vscode-mogami.enableCodeLens`   | `true`  | Whether to enable CodeLens or not.                                 |
+| `vscode-mogami.concurrency`      | 5       | Concurrency (a number of concurrent requests) to get package data. |
+| `vscode-mogami.usePrivateSource` | `true`  | Whether to use a private source (repository) if it's set or not.   |
 
 ## Alternatives
 

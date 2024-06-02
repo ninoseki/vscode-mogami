@@ -88,6 +88,11 @@
           "type": "integer",
           "default": 5,
           "description": "Concurrency (a number of concurrent requests) to get package data."
+        },
+        "vscode-mogami.usePrivateSource": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to use a private package source (repository) if it's set or not."
         }
       }
     }

@@ -96,18 +96,16 @@ export function parseSimple(
 const DEFAULT_SOURCE = "https://pypi.org/pypi/";
 
 export class PyPIClient extends AbstractPackageClient {
-  private source: URL;
-
-  constructor(source?: string) {
-    super();
-    this.source = new URL(source || DEFAULT_SOURCE);
+  constructor(privateSource?: string) {
+    super(DEFAULT_SOURCE, privateSource);
   }
 
   async get(name: string): Promise<PackageType> {
-    const isSimple = this.source.pathname.includes("/simple");
+    const source = this.getSource();
+    const isSimple = source.pathname.includes("/simple");
     const jsonUrl = isSimple
-      ? urlJoin(this.source.toString(), name, "/")
-      : urlJoin(this.source.toString(), name, "json");
+      ? urlJoin(source.toString(), name, "/")
+      : urlJoin(source.toString(), name, "json");
 
     const res = await this.client.get(jsonUrl);
     const result = parse(res);

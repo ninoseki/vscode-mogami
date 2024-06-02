@@ -15,7 +15,6 @@ export class HoverManager implements ExtensionComponent {
 
   public activate(context: vscode.ExtensionContext) {
     this.hoverProviders = [new PyPIHoverProvider(), new GemfileProvider()];
-
     this.hoverProviders.forEach((provider) => provider.activate(context));
   }
 }

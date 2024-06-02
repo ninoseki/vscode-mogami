@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-import { ConcurrencyKey, EnableCodeLensKey, ExtID } from "@/constants";
+import { getEnableCodeLens } from "@/configuration";
 import { ExtensionComponent } from "@/extensionComponent";
 
 import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
@@ -20,12 +20,7 @@ export class CodeLensManager implements ExtensionComponent {
   }
 
   public async activate(context: vscode.ExtensionContext) {
-    const enableCodeLens = vscode.workspace
-      .getConfiguration(ExtID)
-      .get(EnableCodeLensKey, true);
-    const concurrency = vscode.workspace
-      .getConfiguration(ExtID)
-      .get(ConcurrencyKey, 5);
+    const enableCodeLens = getEnableCodeLens();
 
     if (!enableCodeLens) {
       return;
@@ -35,8 +30,8 @@ export class CodeLensManager implements ExtensionComponent {
     await state.applyDefaults();
 
     this.codeLensProviders = [
-      new PyPICodeLensProvider({ state, concurrency }),
-      new GemfileCodeLensProvider({ state, concurrency }),
+      new PyPICodeLensProvider({ state }),
+      new GemfileCodeLensProvider({ state }),
     ];
 
     this.codeLensProviders.forEach((provider) => {
