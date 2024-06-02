@@ -1,3 +1,6 @@
+import * as E from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
+import { tryCatch } from "fp-ts/lib/TaskEither";
 import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
@@ -66,18 +69,27 @@ export abstract class AbstractCodeLensProvider
     await this.state.setProviderActive(this.name);
     await this.state.setProviderBusy();
 
-    const dependencyPositions = this.parseDocuments(document);
-    const codeLenses = await createCodeLenses({
-      document,
-      dependencyPositions,
-      satisfies: this.satisfies,
-      client: this.client,
-      concurrency: this.concurrency,
-    });
+    const task = tryCatch(
+      () => {
+        const dependencyPositions = this.parseDocuments(document);
+        return createCodeLenses({
+          document,
+          dependencyPositions,
+          satisfies: this.satisfies,
+          client: this.client,
+          concurrency: this.concurrency,
+        });
+      },
+      (e: unknown) => e,
+    );
+    const result = await task();
 
     await this.state.clearProviderBusy();
 
-    return codeLenses;
+    return pipe(
+      result,
+      E.getOrElseW(() => []),
+    );
   }
 
   public abstract parseDocuments(
