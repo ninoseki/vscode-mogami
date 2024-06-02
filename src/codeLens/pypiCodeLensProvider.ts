@@ -37,12 +37,14 @@ export class PyPICodeLensProvider extends AbstractCodeLensProvider {
       },
     );
     this.name = "PyPICodeLensProvider";
+    this.client = new PyPIClient();
   }
 
   parseDocuments(document: vscode.TextDocument): DependencyPositionType[] {
     const project = createProject(document);
-    this.client = project.getClient();
-    const parse = project.getParseFn();
-    return createDependencyPositions(document, { parse });
+    if (project.source) {
+      this.client = project.getClient();
+    }
+    return createDependencyPositions(document, { parse: project.getParseFn() });
   }
 }

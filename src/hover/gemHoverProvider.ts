@@ -14,6 +14,7 @@ export class GemfileProvider extends AbstractHoverProvider {
         return { pattern, scheme: "file" };
       }),
     );
+    this.client = new GemClient();
   }
 
   public parseDocumentPosition(
@@ -21,11 +22,10 @@ export class GemfileProvider extends AbstractHoverProvider {
     position: vscode.Position,
   ) {
     const project = createProject(document);
-
-    this.client = project.getClient();
+    if (project.source) {
+      this.client = project.getClient();
+    }
     this.parse = project.getParseFn();
-    const regex = project.getRegex();
-
-    return document.getWordRangeAtPosition(position, regex);
+    return document.getWordRangeAtPosition(position, project.getRegex());
   }
 }

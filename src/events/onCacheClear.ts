@@ -28,7 +28,6 @@ export class OnClearCache {
   execute(): void {
     this.codeLensProviders.forEach((provider) => {
       provider.client.clearCache();
-
       if (provider.isActive()) {
         provider.reloadCodeLenses();
       }
