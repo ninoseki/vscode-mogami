@@ -12,13 +12,7 @@ import { createDependencyPositions } from "./dependencyPositionFactory";
 export class GemfileCodeLensProvider extends AbstractCodeLensProvider {
   declare client: GemClient;
 
-  constructor({
-    state,
-    concurrency,
-  }: {
-    state: CodeLensState;
-    concurrency: number;
-  }) {
+  constructor({ state }: { state: CodeLensState }) {
     super(
       ["**/Gemfile", "**/*.gemspec"].map((pattern) => {
         return { pattern, scheme: "file" };
@@ -26,7 +20,6 @@ export class GemfileCodeLensProvider extends AbstractCodeLensProvider {
       {
         state,
         satisfies,
-        concurrency,
       },
     );
     this.name = "GemCodeLensProvider";
@@ -35,9 +28,7 @@ export class GemfileCodeLensProvider extends AbstractCodeLensProvider {
 
   parseDocuments(document: vscode.TextDocument): DependencyPositionType[] {
     const project = createProject(document);
-    if (project.source) {
-      this.client = project.getClient();
-    }
+    this.client = project.getClient();
     return createDependencyPositions(document, { parse: project.getParseFn() });
   }
 }

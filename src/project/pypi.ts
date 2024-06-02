@@ -7,16 +7,12 @@ import * as vscode from "vscode";
 
 import { Logger } from "@/logger";
 import { PyPIClient } from "@/package/pypi";
-import {
-  DependencyType,
-  ParseFnType,
-  ProjectFormatType,
-  ProjectType,
-} from "@/schemas";
+import { DependencyType, ParseFnType, ProjectFormatType } from "@/schemas";
 
 import * as poetry from "../format/poetry";
 import * as pyproject from "../format/pyproject";
 import * as requirements from "../format/requirements";
+import { AbstractProject } from "./abstractProject";
 
 const RANGE_PATTERN = [
   "(?<operator>(===|~=|==|!=|<=|>=|<|>|\\^))",
@@ -79,19 +75,11 @@ export function parse(line: string, regex: RegExp): DependencyType | undefined {
   return { name, specifier };
 }
 
-class PythonProject {
-  dependencies: string[];
-  source?: string;
-  format: ProjectFormatType;
-
-  constructor({ dependencies, source, format }: ProjectType) {
-    this.dependencies = dependencies;
-    this.source = source;
-    this.format = format;
-  }
-
+class PythonProject extends AbstractProject {
   getClient(): PyPIClient {
-    return new PyPIClient(this.source);
+    const client = new PyPIClient(this.source);
+    client.usePrivateSource = this.usePrivateSource;
+    return client;
   }
 
   getRegex(): RegExp {

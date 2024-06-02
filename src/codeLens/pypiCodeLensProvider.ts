@@ -12,13 +12,7 @@ import { createDependencyPositions } from "./dependencyPositionFactory";
 export class PyPICodeLensProvider extends AbstractCodeLensProvider {
   declare client: PyPIClient;
 
-  constructor({
-    state,
-    concurrency,
-  }: {
-    state: CodeLensState;
-    concurrency: number;
-  }) {
+  constructor({ state }: { state: CodeLensState }) {
     super(
       [
         "**/pyproject.toml",
@@ -33,7 +27,6 @@ export class PyPICodeLensProvider extends AbstractCodeLensProvider {
       {
         state,
         satisfies,
-        concurrency,
       },
     );
     this.name = "PyPICodeLensProvider";
@@ -42,9 +35,7 @@ export class PyPICodeLensProvider extends AbstractCodeLensProvider {
 
   parseDocuments(document: vscode.TextDocument): DependencyPositionType[] {
     const project = createProject(document);
-    if (project.source) {
-      this.client = project.getClient();
-    }
+    this.client = project.getClient();
     return createDependencyPositions(document, { parse: project.getParseFn() });
   }
 }
