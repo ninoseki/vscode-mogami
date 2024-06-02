@@ -40,7 +40,7 @@ export class CodeLensManager implements ExtensionComponent {
 
     new OnShowClick(this.codeLensProviders, state);
     new OnHideClick(this.codeLensProviders, state);
-    new OnActiveTextEditorChange(state);
+    new OnActiveTextEditorChange(this.codeLensProviders, state);
     new OnUpdateDependencyClick();
   }
 }

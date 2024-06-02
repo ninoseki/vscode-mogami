@@ -130,16 +130,14 @@ export async function createCodeLenses({
   satisfies,
   client,
   dependencyPositions,
-  concurrency,
 }: {
   document: vscode.TextDocument;
-  concurrency?: number;
   dependencyPositions: DependencyPositionType[];
   satisfies: (version: string, specifier?: string) => boolean;
   client: PackageClientType;
 }): Promise<SuggestionCodeLens[]> {
   const names = dependencyPositions.map((x) => x.dependency.name);
-  const results = await getPackages({ names, client, concurrency });
+  const results = await getPackages({ names, client });
   return zipWith(dependencyPositions, results, (dependencyPosition, pkg) => {
     return { dependencyPosition, pkg };
   })

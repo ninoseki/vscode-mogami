@@ -3,7 +3,6 @@ import { pipe } from "fp-ts/lib/function";
 import { tryCatch } from "fp-ts/lib/TaskEither";
 import * as vscode from "vscode";
 
-import { getConcurrency } from "@/configuration";
 import { ExtensionComponent } from "@/extensionComponent";
 import {
   DependencyPositionType,
@@ -23,8 +22,8 @@ export abstract class AbstractCodeLensProvider
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
-  satisfies: SatisfiesFnType;
-  state: CodeLensState;
+  private satisfies: SatisfiesFnType;
+  private state: CodeLensState;
   abstract client: PackageClientType;
 
   name?: string;
@@ -36,7 +35,6 @@ export abstract class AbstractCodeLensProvider
       satisfies,
     }: {
       state: CodeLensState;
-      concurrency?: number;
       satisfies: SatisfiesFnType;
     },
   ) {
@@ -63,7 +61,6 @@ export abstract class AbstractCodeLensProvider
     if (!this.state.show.value) {
       return [];
     }
-    const concurrency = getConcurrency();
 
     await this.state.setProviderActive(this.name);
     await this.state.setProviderBusy();
@@ -76,7 +73,6 @@ export abstract class AbstractCodeLensProvider
           dependencyPositions,
           satisfies: this.satisfies,
           client: this.client,
-          concurrency,
         });
       },
       (e: unknown) => e,
