@@ -51,6 +51,7 @@ dependencies = ["httpx", "django>2.1"]
 | `vscode-mogami.enableCodeLens`   | `true`  | Whether to enable CodeLens or not.                                 |
 | `vscode-mogami.concurrency`      | 5       | Concurrency (a number of concurrent requests) to get package data. |
 | `vscode-mogami.usePrivateSource` | `true`  | Whether to use a private source (repository) if it's set or not.   |
+| `vscode-mogami.showPrerelease`   | `false` | Whether to show a prerelease version or not.                       |
 
 ## Alternatives
 

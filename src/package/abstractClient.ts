@@ -5,39 +5,57 @@ import {
   setupCache,
 } from "axios-cache-interceptor";
 
+import { getShowPrerelease, getUsePrivateSource } from "@/configuration";
 import { PackageClientType, PackageType } from "@/schemas";
+import { compare, prereleaseLessMap } from "@/versioning/utils";
 
 export abstract class AbstractPackageClient implements PackageClientType {
   client: AxiosInstance;
   storage: MemoryStorage;
 
-  protected _primarySource: URL;
-  protected _privateSource?: URL;
-  protected _usePrivateSource = false;
-
-  getSource(): URL {
-    if (this._usePrivateSource && this._privateSource) {
-      return this._privateSource;
-    }
-    return this._primarySource;
-  }
-
-  set usePrivateSource(usePrivateSource: boolean) {
-    this._usePrivateSource = usePrivateSource;
-  }
+  private usePrivateSource: boolean;
+  private showPrerelease: boolean;
+  private primarySource: URL;
+  private privateSource?: URL;
 
   constructor(primarySource: string, privateSource?: string) {
     this.client = axios.create();
     this.storage = buildMemoryStorage();
     setupCache(this.client, { storage: this.storage });
 
-    this._primarySource = new URL(primarySource);
+    this.primarySource = new URL(primarySource);
     if (privateSource) {
-      this._privateSource = new URL(privateSource);
+      this.privateSource = new URL(privateSource);
     }
+
+    this.usePrivateSource = getUsePrivateSource();
+    this.showPrerelease = getShowPrerelease();
+  }
+
+  get source(): URL {
+    if (this.usePrivateSource && this.privateSource) {
+      return this.privateSource;
+    }
+    return this.primarySource;
   }
 
   abstract get(name: string): Promise<PackageType>;
+
+  protected normalizePackage(pkg: PackageType) {
+    if (this.showPrerelease) {
+      // reset the version (= the latest version) with considering prerelease versions
+      const versions = pkg.versions.sort(compare);
+      pkg.version = versions[versions.length - 1];
+      return pkg;
+    }
+
+    // reject prerelease versions
+    const versions = pkg.versions
+      .map(prereleaseLessMap)
+      .filter((i): i is Exclude<typeof i, null> => i !== null);
+    pkg.versions = versions;
+    return pkg;
+  }
 
   clearCache() {
     this.storage.data = {};

@@ -7,6 +7,7 @@ import semver from "semver";
 import urlJoin from "url-join";
 
 import { PackageType, PypiPackageSchema } from "@/schemas";
+import { compare } from "@/versioning/utils";
 
 import { AbstractPackageClient } from "./abstractClient";
 
@@ -52,6 +53,7 @@ export function parseSimple(
   // TODO: not 100% sure whether this trick has 100% coverage
   const regex = new RegExp(
     `^(${underScoreName}|${name})-(?<version>[^-]+)(\\.tar\\.gz$|-py)`,
+    "i",
   );
 
   const getVersion = (line: string): string | undefined => {
@@ -76,12 +78,7 @@ export function parseSimple(
         // coerce in the filter to support version like 0.6
         .filter((version) => semver.valid(semver.coerce(version)) !== null);
 
-      const coerceCompare = (a: string, b: string) => {
-        const a2 = semver.coerce(a) || a;
-        const b2 = semver.coerce(b) || b;
-        return semver.compare(a2, b2);
-      };
-      const uniqueSortedVersions = unique(versions).sort(coerceCompare);
+      const uniqueSortedVersions = unique(versions).sort(compare);
       const version = uniqueSortedVersions[uniqueSortedVersions.length - 1];
       if (!version) {
         throw new Error("Failed to parse simple API response");
@@ -93,29 +90,26 @@ export function parseSimple(
   );
 }
 
-const DEFAULT_SOURCE = "https://pypi.org/pypi/";
-
 export class PyPIClient extends AbstractPackageClient {
   constructor(privateSource?: string) {
-    super(DEFAULT_SOURCE, privateSource);
+    super("https://pypi.org/pypi/", privateSource);
   }
 
   async get(name: string): Promise<PackageType> {
-    const source = this.getSource();
-    const isSimple = source.pathname.includes("/simple");
+    const isSimple = this.source.pathname.includes("/simple");
     const jsonUrl = isSimple
-      ? urlJoin(source.toString(), name, "/")
-      : urlJoin(source.toString(), name, "json");
+      ? urlJoin(this.source.toString(), name, "/")
+      : urlJoin(this.source.toString(), name, "json");
 
     const res = await this.client.get(jsonUrl);
     const result = parse(res);
     if (E.isRight(result)) {
-      return result.right;
+      return this.normalizePackage(result.right);
     }
 
     const resultSimple = parseSimple(res, name);
     if (E.isRight(resultSimple)) {
-      return resultSimple.right;
+      return this.normalizePackage(resultSimple.right);
     }
 
     throw new Error("Failed to parse PyPI API response");
