@@ -1,3 +1,4 @@
+import { VERSION_PATTERN } from "@renovatebot/pep440/lib/version";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
@@ -16,7 +17,40 @@ import {
 import * as poetry from "../format/poetry";
 import * as pyproject from "../format/pyproject";
 import * as requirements from "../format/requirements";
-import { buildRegex, specifierRegex, versionRegex } from "./pypiUtils";
+
+const RANGE_PATTERN = [
+  "(?<operator>(===|~=|==|!=|<=|>=|<|>|\\^))",
+  "\\s*",
+  "(",
+  /*  */ "(?<version>(?:" + VERSION_PATTERN.replace(/\?<\w+>/g, "?:") + "))",
+  /*  */ "(?<prefix>\\.\\*)?",
+  /*  */ "|",
+  /*  */ "(?<legacy>[^,;\\s)]+)",
+  ")",
+].join("");
+
+const specifierPartPattern = `\\s*${RANGE_PATTERN.replace(
+  RegExp(/\?<\w+>/g),
+  "?:",
+)}`;
+const specifierPattern = `${specifierPartPattern}(?:\\s*,${specifierPartPattern})*`;
+export const specifierRegex = new RegExp(specifierPattern);
+export const versionRegex = new RegExp(VERSION_PATTERN);
+
+export function buildRegex(
+  dependencies: string[],
+  format: ProjectFormatType,
+): RegExp {
+  const sorted = dependencies.sort().reverse();
+  switch (format) {
+    case "poetry":
+      return new RegExp("^(?<name>" + sorted.join("|") + `)\\W(?<rest>.+)?$`);
+    case "pyproject":
+      return new RegExp("(?<name>" + sorted.join("|") + `)(?<rest>.+)?`);
+    default:
+      return new RegExp("^(?<name>" + sorted.join("|") + `)(?<rest>.+)?$`);
+  }
+}
 
 export function parse(line: string, regex: RegExp): DependencyType | undefined {
   const matches = regex.exec(line);
