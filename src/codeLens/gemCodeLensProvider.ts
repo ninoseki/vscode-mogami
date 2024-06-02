@@ -30,12 +30,14 @@ export class GemfileCodeLensProvider extends AbstractCodeLensProvider {
       },
     );
     this.name = "GemCodeLensProvider";
+    this.client = new GemClient();
   }
 
   parseDocuments(document: vscode.TextDocument): DependencyPositionType[] {
     const project = createProject(document);
-    this.client = project.getClient();
-    const parse = project.getParseFn();
-    return createDependencyPositions(document, { parse });
+    if (project.source) {
+      this.client = project.getClient();
+    }
+    return createDependencyPositions(document, { parse: project.getParseFn() });
   }
 }

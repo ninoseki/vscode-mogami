@@ -21,6 +21,7 @@ export class PyPIHoverProvider extends AbstractHoverProvider {
         return { pattern, scheme: "file" };
       }),
     );
+    this.client = new PyPIClient();
   }
 
   public parseDocumentPosition(
@@ -28,11 +29,10 @@ export class PyPIHoverProvider extends AbstractHoverProvider {
     position: vscode.Position,
   ) {
     const project = createProject(document);
-
-    this.client = project.getClient();
+    if (project.source) {
+      this.client = project.getClient();
+    }
     this.parse = project.getParseFn();
-    const regex = project.getRegex();
-
-    return document.getWordRangeAtPosition(position, regex);
+    return document.getWordRangeAtPosition(position, project.getRegex());
   }
 }
