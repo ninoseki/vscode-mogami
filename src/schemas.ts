@@ -69,15 +69,15 @@ export const PoetryProjectPoetrySourceSchema = z.object({
 });
 
 export const PoetryProjectPoetryGroupDependenciesSchema = z.object({
-  dependencies: z.record(z.string(), z.string()).default({}),
+  dependencies: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const PoetryProjectPoetrySchema = z.object({
   name: z.string(),
   version: z.string().nullish(),
   source: z.array(PoetryProjectPoetrySourceSchema).nullish(),
-  dependencies: z.record(z.string(), z.string()).default({}),
-  "dev-dependencies": z.record(z.string(), z.string()).default({}),
+  dependencies: z.record(z.string(), z.unknown()).default({}),
+  "dev-dependencies": z.record(z.string(), z.unknown()).default({}),
   group: z
     .record(z.string(), PoetryProjectPoetryGroupDependenciesSchema)
     .default({}),
