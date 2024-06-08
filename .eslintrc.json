@@ -24,6 +24,7 @@
     "rules": {
         "neverthrow/must-use-result": "error",
         "simple-import-sort/exports": "warn",
-        "simple-import-sort/imports": "warn"
+        "simple-import-sort/imports": "warn",
+        "no-console": "warn"
     }
 }

@@ -1,3 +1,4 @@
+import compareVersions from "compare-versions";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import semver from "semver";
@@ -20,6 +21,8 @@ export const semverLeadingChars = [
   "~=",
 ];
 
+const leadingCharsRegex = /^[\^~><=]+/;
+
 export function formatWithExistingLeading(
   existingVersion: string,
   newVersion: string,
@@ -40,6 +43,10 @@ export function formatWithExistingLeading(
   return `${leading}${newVersion}`;
 }
 
+export function removeLeading(version: string) {
+  return version.trim().replace(leadingCharsRegex, "").trim();
+}
+
 export function coerceUnlessValid(version: string) {
   const parsed = semver.parse(version);
   if (parsed) {
@@ -54,6 +61,14 @@ export function eq(v1: string, v2?: string): boolean {
     return false;
   }
 
+  // remove leading charts (version specifier) & use compare-version for invalid semver version comparison
+  // (e.g. activemodel 7.1.3.4)
+  const rv1 = removeLeading(v1);
+  const rv2 = removeLeading(v2);
+  if (compareVersions.validate(rv1) && compareVersions.validate(rv2)) {
+    return compareVersions.compareVersions(rv1, rv2) === 0;
+  }
+
   const cv1 = coerceUnlessValid(v1);
   const cv2 = coerceUnlessValid(v2);
 
@@ -64,13 +79,20 @@ export function eq(v1: string, v2?: string): boolean {
   return semver.eq(cv1, cv2);
 }
 
-export function compare(a: string, b: string) {
-  const v1 = coerceUnlessValid(a);
-  const v2 = coerceUnlessValid(b);
-  if (!v1 || !v2) {
-    return a.localeCompare(b);
+export function compare(v1: string, v2: string): number {
+  // use compare-version for invalid semver version comparison
+  const rv1 = removeLeading(v1);
+  const rv2 = removeLeading(v2);
+  if (compareVersions.validate(rv1) && compareVersions.validate(rv2)) {
+    return compareVersions.compareVersions(rv1, rv2);
   }
-  return v1.compare(v2);
+
+  const cv1 = coerceUnlessValid(v1);
+  const cv2 = coerceUnlessValid(v2);
+  if (!cv1 || !cv2) {
+    return v1.localeCompare(v2);
+  }
+  return cv1.compare(cv2);
 }
 
 export function maxSatisfying({

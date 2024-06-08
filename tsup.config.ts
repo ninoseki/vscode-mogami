@@ -14,6 +14,7 @@ export default defineConfig({
     "axios-cache-interceptor",
     "axios",
     "camelcase-keys",
+    "compare-versions",
     "fp-ts",
     "html-to-text",
     "p-map",
