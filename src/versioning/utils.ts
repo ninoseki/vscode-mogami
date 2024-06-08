@@ -1,4 +1,4 @@
-import compareVersions from "compare-versions";
+import * as compareVersions from "compare-versions";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import semver from "semver";
@@ -61,12 +61,16 @@ export function eq(v1: string, v2?: string): boolean {
     return false;
   }
 
-  // remove leading charts (version specifier) & use compare-version for invalid semver version comparison
+  // remove leading charts (version specifier) & use compare-version for non-semver version comparison
   // (e.g. activemodel 7.1.3.4)
   const rv1 = removeLeading(v1);
   const rv2 = removeLeading(v2);
   if (compareVersions.validate(rv1) && compareVersions.validate(rv2)) {
     return compareVersions.compareVersions(rv1, rv2) === 0;
+  }
+
+  if (isPrerelease(v1) && isPrerelease(v2)) {
+    return v1 == v2;
   }
 
   const cv1 = coerceUnlessValid(v1);
@@ -80,11 +84,13 @@ export function eq(v1: string, v2?: string): boolean {
 }
 
 export function compare(v1: string, v2: string): number {
-  // use compare-version for invalid semver version comparison
-  const rv1 = removeLeading(v1);
-  const rv2 = removeLeading(v2);
-  if (compareVersions.validate(rv1) && compareVersions.validate(rv2)) {
-    return compareVersions.compareVersions(rv1, rv2);
+  // use compare-version for non-semver version comparison
+  if (compareVersions.validate(v1) && compareVersions.validate(v2)) {
+    return compareVersions.compareVersions(v1, v2);
+  }
+
+  if (isPrerelease(v1) && isPrerelease(v2)) {
+    return v1.localeCompare(v2);
   }
 
   const cv1 = coerceUnlessValid(v1);
