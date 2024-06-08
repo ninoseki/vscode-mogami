@@ -25,7 +25,6 @@ export class OnActiveTextEditorChange {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async execute(textEditor?: vscode.TextEditor): Promise<void> {
     if (!textEditor || textEditor.document.uri.scheme !== "file") {
-      console.log(textEditor);
       await this.state.providerActive.change(undefined);
       return;
     }
