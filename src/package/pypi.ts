@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
 import camelcaseKeys from "camelcase-keys";
 import * as E from "fp-ts/lib/Either";
-import { convert } from "html-to-text";
+import { parseHTML } from "linkedom";
 import { unique } from "radash";
 import semver from "semver";
 import urlJoin from "url-join";
@@ -46,9 +46,6 @@ export function parseSimple(
   res: AxiosResponse,
   name: string,
 ): E.Either<unknown, PackageType> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const text = convert(res.data as string);
-
   const underScoreName = name.replace(/-/g, "_");
   // TODO: not 100% sure whether this trick has 100% coverage
   const regex = new RegExp(
@@ -56,8 +53,8 @@ export function parseSimple(
     "i",
   );
 
-  const getVersion = (line: string): string | undefined => {
-    const matches = regex.exec(line);
+  const getVersion = (value: string): string | undefined => {
+    const matches = regex.exec(value);
     if (!matches) {
       return undefined;
     }
@@ -70,10 +67,16 @@ export function parseSimple(
 
   return E.tryCatch(
     () => {
-      const versions: string[] = text
-        .split("\n")
-        .map((line) => line.trim())
-        .map((line) => getVersion(line))
+      const { document } = parseHTML(res.data as string);
+      const elements = [...document.querySelectorAll("a")];
+
+      const values = elements
+        .map((element) => element.textContent)
+        .filter((i): i is Exclude<typeof i, null> => i !== null);
+
+      const versions: string[] = values
+        .map((value) => value.trim())
+        .map((value) => getVersion(value))
         .filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
         // coerce in the filter to support version like 0.6
         .filter((version) => semver.valid(semver.coerce(version)) !== null);
@@ -108,6 +111,7 @@ export class PyPIClient extends AbstractPackageClient {
     }
 
     const resultSimple = parseSimple(res, name);
+    console.log(resultSimple);
     if (E.isRight(resultSimple)) {
       return this.normalizePackage(resultSimple.right);
     }
