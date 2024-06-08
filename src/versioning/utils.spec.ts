@@ -1,4 +1,4 @@
-import { eq, formatWithExistingLeading } from "./utils";
+import { eq, formatWithExistingLeading, isPrerelease } from "./utils";
 
 describe("formatWithExistingLeading", () => {
   test.each([
@@ -27,4 +27,15 @@ describe("eq", () => {
       expect(eq(version, specifier)).toBe(expected);
     },
   );
+});
+
+describe("isPrerelease", () => {
+  test.each([
+    ["1.0.0", false],
+    ["1.0", false],
+    ["0.26.0b1", true],
+    ["4.13.0b2", true],
+  ])("isPrerelease(%s) === %s", (version: string, expected: boolean) => {
+    expect(isPrerelease(version)).toBe(expected);
+  });
 });
