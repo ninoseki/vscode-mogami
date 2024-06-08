@@ -88,15 +88,10 @@ export function maxSatisfying({
     .find((v) => satisfies(v, specifier));
 }
 
-export function prereleaseLessMap(v: string) {
+export function isPrerelease(v: string): boolean {
   // return null if the version is a prerelease version
   if (semver.prerelease(v, { loose: true }) !== null) {
-    return null;
+    return true;
   }
-  // return null if the version has any non-digit characters
-  // (to reject a version like Django's 5.1a1)
-  if (!/^\d[.\d]+$/.test(v)) {
-    return null;
-  }
-  return v;
+  return !/^\d[.\d]+$/.test(v);
 }

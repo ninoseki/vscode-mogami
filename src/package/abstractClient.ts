@@ -7,7 +7,7 @@ import {
 
 import { getShowPrerelease, getUsePrivateSource } from "@/configuration";
 import { PackageClientType, PackageType } from "@/schemas";
-import { compare, prereleaseLessMap } from "@/versioning/utils";
+import { compare, isPrerelease } from "@/versioning/utils";
 
 export abstract class AbstractPackageClient implements PackageClientType {
   client: AxiosInstance;
@@ -42,18 +42,20 @@ export abstract class AbstractPackageClient implements PackageClientType {
   abstract get(name: string): Promise<PackageType>;
 
   protected normalizePackage(pkg: PackageType) {
+    const sortedVersions = pkg.versions.sort(compare);
+
     if (this.showPrerelease) {
       // reset the version (= the latest version) with considering prerelease versions
-      const versions = pkg.versions.sort(compare);
-      pkg.version = versions[versions.length - 1];
+      pkg.version = sortedVersions[sortedVersions.length - 1];
       return pkg;
     }
 
-    // reject prerelease versions
-    const versions = pkg.versions
-      .map(prereleaseLessMap)
-      .filter((i): i is Exclude<typeof i, null> => i !== null);
-    pkg.versions = versions;
+    // prerelease version can be the latest version if PyPI simple API is used
+    if (isPrerelease(pkg.version)) {
+      const version = sortedVersions.reverse().find((v) => !isPrerelease(v));
+      pkg.version = version || pkg.version;
+    }
+
     return pkg;
   }
 
