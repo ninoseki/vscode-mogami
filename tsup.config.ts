@@ -16,7 +16,7 @@ export default defineConfig({
     "camelcase-keys",
     "compare-versions",
     "fp-ts",
-    "html-to-text",
+    "linkedom",
     "p-map",
     "radash",
     "semver",
