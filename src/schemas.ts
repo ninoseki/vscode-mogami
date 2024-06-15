@@ -39,6 +39,16 @@ export const GemPackageSchema = z.object({
 export type GemType = z.infer<typeof GemSchema>;
 export type GemPackageType = z.infer<typeof GemPackageSchema>;
 
+export const GitHubReleaseSchema = z.object({
+  tagName: z.string(),
+});
+
+export type GitHubReleaseType = z.infer<typeof GitHubReleaseSchema>;
+
+export const GitHubReleasesSchema = z.array(GitHubReleaseSchema);
+
+export type GitHubReleasesType = z.infer<typeof GitHubReleasesSchema>;
+
 export const PackageSchema = z.object({
   name: z.string(),
   version: z.string().describe("The latest version of the package"),
@@ -106,6 +116,7 @@ export const ProjectFormatSchema = z.enum([
   "requirements",
   "gemspec",
   "gemfile",
+  "actions",
 ]);
 export type ProjectFormatType = z.infer<typeof ProjectFormatSchema>;
 

@@ -123,3 +123,17 @@ export function isPrerelease(v: string): boolean {
   }
   return !/^\d[.\d]+$/.test(v);
 }
+
+export function satisfies(version: string, specifier?: string): boolean {
+  if (!specifier) {
+    return false;
+  }
+
+  const coercedVersion = pipe(
+    O.fromNullable(semver.coerce(version)),
+    O.map((v) => v.toString()),
+    O.getOrElse(() => version),
+  );
+
+  return semver.satisfies(coercedVersion, specifier);
+}

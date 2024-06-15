@@ -111,7 +111,6 @@ export class PyPIClient extends AbstractPackageClient {
     }
 
     const resultSimple = parseSimple(res, name);
-    console.log(resultSimple);
     if (E.isRight(resultSimple)) {
       return this.normalizePackage(resultSimple.right);
     }

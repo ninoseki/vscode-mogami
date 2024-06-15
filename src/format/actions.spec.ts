@@ -1,26 +1,20 @@
 import { DependencyType } from "@/schemas";
 
-import { regex } from "./gemfile";
+import { regex } from "./actions";
 import { nameSpecifierRegexParse } from "./utils";
 
 const parse = (line: string) => nameSpecifierRegexParse(line, regex);
 
 describe("parse", () => {
   it.each([
-    ['  gem "pry", "~> 0.12"', { name: "pry", specifier: "~> 0.12" }],
     [
-      '  gem "anyway_config", "0.0.0"',
-      { name: "anyway_config", specifier: "0.0.0" },
+      "uses: actions/checkout@v4",
+      { name: "actions/checkout", specifier: "v4" },
     ],
     [
-      '  gem "grape-entity", "0.0.0"',
-      { name: "grape-entity", specifier: "0.0.0" },
+      "uses: actions/setup-python@v5",
+      { name: "actions/setup-python", specifier: "v5" },
     ],
-    [
-      `  gem "coveralls", "~> 0.8", require: false`,
-      { name: "coveralls", specifier: "~> 0.8" },
-    ],
-    [`gem "rails"`, { name: "rails", specifier: undefined }],
   ])("parse(%s) === %s", (line: string, expected: DependencyType) => {
     const deps = parse(line);
     expect(deps).not.toBeUndefined();

@@ -3,6 +3,7 @@ export const EnableCodeLensKey = "enableCodeLens";
 export const ConcurrencyKey = "concurrency";
 export const usePrivateSourceKey = "usePrivateSource";
 export const showPrerelease = "showPrerelease";
+export const gitHubPersonalAccessToken = "gitHubPersonalAccessToken";
 
 export const OnClearCacheKey = "clearCache";
 export const OnClearCacheCommand = `${ExtID}.${OnClearCacheKey}`;

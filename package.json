@@ -98,6 +98,14 @@
           "type": "boolean",
           "default": false,
           "description": "Whether to show a prerelease version or not."
+        },
+        "vscode-mogami.gitHubPersonalAccessToken": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null,
+          "description": "GitHub PAT for interacting with GitHub REST API."
         }
       }
     }
