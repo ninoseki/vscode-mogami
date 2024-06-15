@@ -4,6 +4,7 @@ import { getEnableCodeLens } from "@/configuration";
 import { ExtensionComponent } from "@/extensionComponent";
 
 import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
+import { ActionsCodeLensProvider } from "./actionsCodeLensProvider";
 import { CodeLensState } from "./codeLensState";
 import { OnActiveTextEditorChange } from "./events/onActiveTextEditorChange";
 import { OnHideClick } from "./events/onHideClick";
@@ -32,6 +33,7 @@ export class CodeLensManager implements ExtensionComponent {
     this.codeLensProviders = [
       new PyPICodeLensProvider({ state }),
       new GemfileCodeLensProvider({ state }),
+      new ActionsCodeLensProvider({ state }),
     ];
 
     this.codeLensProviders.forEach((provider) => {

@@ -9,14 +9,14 @@ A VS Code extension for checking the latest version of each dependency.
 ### Python
 
 - `requirements.txt`
-- `pyproject.toml`: [Poetry](https://python-poetry.org/) and pip's [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
+- `pyproject.toml`:
 
-#### Private Source
+| Format                                                                                                                                                    | Private Source                              |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `requirements.txt`                                                                                                                                        | `--index-url` is supported                  |
+| `pyproject.toml` ([Poetry](https://python-poetry.org/) and pip's [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)) | Poetry's `tool.poetry.source` is supported. |
 
-- `requirements.txt`: `--index-url` is supported.
-- `pyproject.toml`: Poetry's `tool.poetry.source` is supported.
-
-#### Known Limitations
+## Known Limitations
 
 pip's `pyproject.toml` should have line-break-separated `dependencies` and `optional-dependencies`.
 
@@ -37,21 +37,26 @@ dependencies = ["httpx", "django>2.1"]
 
 ### Ruby
 
-- `Gemfile`
-- `*.gemspec`
+| Format      | Private Source        |
+| ----------- | --------------------- |
+| `Gemfile`   | `source` is supported |
+| `*.gemspec` |                       |
 
-#### Private Source
+## GitHub Actions
 
-- `Gemfile`: `source` is supported.
+| Format                    | Private Source |
+| ------------------------- | -------------- |
+| `.github/workflows/*.yml` |                |
 
 ## Configuration
 
-| Key                              | Default | Desc.                                                              |
-| -------------------------------- | ------- | ------------------------------------------------------------------ |
-| `vscode-mogami.enableCodeLens`   | `true`  | Whether to enable CodeLens or not.                                 |
-| `vscode-mogami.concurrency`      | 5       | Concurrency (a number of concurrent requests) to get package data. |
-| `vscode-mogami.usePrivateSource` | `true`  | Whether to use a private source (repository) if it's set or not.   |
-| `vscode-mogami.showPrerelease`   | `false` | Whether to show a prerelease version or not.                       |
+| Key                                       | Default | Desc.                                                              |
+| ----------------------------------------- | ------- | ------------------------------------------------------------------ |
+| `vscode-mogami.concurrency`               | 5       | Concurrency (a number of concurrent requests) to get package data. |
+| `vscode-mogami.enableCodeLens`            | `true`  | Whether to enable CodeLens or not.                                 |
+| `vscode-mogami.gitHubPersonalAccessToken` | null    | GitHub PAT for interacting with GitHub REST API.                   |
+| `vscode-mogami.showPrerelease`            | `false` | Whether to show a prerelease version or not.                       |
+| `vscode-mogami.usePrivateSource`          | `true`  | Whether to use a private source (repository) if it's set or not.   |
 
 ## Alternatives
 

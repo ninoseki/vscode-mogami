@@ -1,9 +1,9 @@
-import { parse as _parse } from "@/project/gem";
 import { DependencyType } from "@/schemas";
 
 import { regex } from "./gemspec";
+import { nameSpecifierRegexParse } from "./utils";
 
-const parse = (line: string) => _parse(line, regex);
+const parse = (line: string) => nameSpecifierRegexParse(line, regex);
 
 describe("parse", () => {
   test.each([
