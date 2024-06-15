@@ -10,11 +10,9 @@ export class ActionsProvider extends AbstractHoverProvider {
 
   constructor() {
     super(
-      ["**/.github/workflows/*.yml", "**/.github/workflows/*.yaml"].map(
-        (pattern) => {
-          return { pattern, scheme: "file" };
-        },
-      ),
+      ["**/.github/workflows/*.{yml,yaml}"].map((pattern) => {
+        return { pattern, scheme: "file" };
+      }),
     );
     this.client = new GitHubClient();
   }

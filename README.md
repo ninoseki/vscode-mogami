@@ -6,17 +6,18 @@ A VS Code extension for checking the latest version of each dependency.
 
 ## Supported Formats
 
-### Python
+- [Python](#python)
+- [Ruby](#ruby)
+- [GitHub Actions](#github-actions)
 
-- `requirements.txt`
-- `pyproject.toml`:
+### Python
 
 | Format                                                                                                                                                    | Private Source                              |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | `requirements.txt`                                                                                                                                        | `--index-url` is supported                  |
 | `pyproject.toml` ([Poetry](https://python-poetry.org/) and pip's [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)) | Poetry's `tool.poetry.source` is supported. |
 
-## Known Limitations
+#### Known Limitations
 
 pip's `pyproject.toml` should have line-break-separated `dependencies` and `optional-dependencies`.
 
@@ -42,7 +43,7 @@ dependencies = ["httpx", "django>2.1"]
 | `Gemfile`   | `source` is supported |
 | `*.gemspec` |                       |
 
-## GitHub Actions
+### GitHub Actions
 
 | Format                    | Private Source |
 | ------------------------- | -------------- |
