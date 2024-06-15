@@ -14,11 +14,9 @@ export class ActionsCodeLensProvider extends AbstractCodeLensProvider {
 
   constructor({ state }: { state: CodeLensState }) {
     super(
-      ["**/.github/workflows/*.yml", "**/.github/workflows/*.yaml"].map(
-        (pattern) => {
-          return { pattern, scheme: "file" };
-        },
-      ),
+      ["**/.github/workflows/*.{yaml,yml}"].map((pattern) => {
+        return { pattern, scheme: "file" };
+      }),
       {
         state,
         satisfies,

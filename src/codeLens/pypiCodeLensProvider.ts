@@ -16,11 +16,7 @@ export class PyPICodeLensProvider extends AbstractCodeLensProvider {
     super(
       [
         "**/pyproject.toml",
-        "**/*-requirements.txt",
-        "**/*.requirements.txt",
-        "**/requirements-*.txt",
-        "**/requirements.txt",
-        "**/requirements/*.txt",
+        "**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt}",
       ].map((pattern) => {
         return { pattern, scheme: "file" };
       }),

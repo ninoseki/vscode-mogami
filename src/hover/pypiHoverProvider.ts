@@ -12,11 +12,7 @@ export class PyPIHoverProvider extends AbstractHoverProvider {
     super(
       [
         "**/pyproject.toml",
-        "**/*-requirements.txt",
-        "**/*.requirements.txt",
-        "**/requirements-*.txt",
-        "**/requirements.txt",
-        "**/requirements/*.txt",
+        "**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt}",
       ].map((pattern) => {
         return { pattern, scheme: "file" };
       }),
