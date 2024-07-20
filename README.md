@@ -49,13 +49,16 @@ dependencies = ["httpx", "django>2.1"]
 | ------------------------- | -------------- |
 | `.github/workflows/*.yml` |                |
 
+> [!NOTE]
+> Mogami uses the GitHub REST API to get release data. The API may block you if you don't set a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). You can configure it via `vscode-mogami.gitHubPersonalAccessToken`.
+
 ## Configuration
 
 | Key                                       | Default | Desc.                                                              |
 | ----------------------------------------- | ------- | ------------------------------------------------------------------ |
 | `vscode-mogami.concurrency`               | 5       | Concurrency (a number of concurrent requests) to get package data. |
 | `vscode-mogami.enableCodeLens`            | `true`  | Whether to enable CodeLens or not.                                 |
-| `vscode-mogami.gitHubPersonalAccessToken` | null    | GitHub PAT for interacting with GitHub REST API.                   |
+| `vscode-mogami.gitHubPersonalAccessToken` | null    | GitHub personal access token for interacting with GitHub REST API. |
 | `vscode-mogami.showPrerelease`            | `false` | Whether to show a prerelease version or not.                       |
 | `vscode-mogami.usePrivateSource`          | `true`  | Whether to use a private source (repository) if it's set or not.   |
 
