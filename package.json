@@ -155,7 +155,7 @@
     "jest-mock-vscode": "^3.0.5",
     "lint-staged": "^15.2.7",
     "prettier": "^3.3.3",
-    "ts-jest": "^29.2.3",
+    "ts-jest": "29.1.5",
     "ts-node": "^10.9.2",
     "tsup": "^8.2.0",
     "typescript": "^5.5.3",

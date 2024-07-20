@@ -1,13 +1,13 @@
-import type { Config } from "jest";
+import type { JestConfigWithTsJest } from "ts-jest";
 
-const config: Config = {
+const config: JestConfigWithTsJest = {
   extensionsToTreatAsEsm: [".ts", ".tsx"],
   moduleNameMapper: {
     "^vscode$": "<rootDir>/__mocks__/vscode.js",
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   transform: {
-    "^.+\\.ts?$": ["ts-jest", { isolatedModules: true, useESM: true }],
+    "^.+\\.ts?$": ["ts-jest", { useESM: true }],
   },
 };
 
