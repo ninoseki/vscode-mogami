@@ -1,17 +1,14 @@
-import axios, { AxiosInstance } from "axios";
-import {
-  buildMemoryStorage,
-  MemoryStorage,
-  setupCache,
-} from "axios-cache-interceptor";
+import axios from "axios";
+import { AxiosCacheInstance, setupCache } from "axios-cache-interceptor";
 
 import { getShowPrerelease, getUsePrivateSource } from "@/configuration";
 import { PackageClientType, PackageType } from "@/schemas";
 import { compare, isPrerelease } from "@/versioning/utils";
 
+import { storage } from "./storage";
+
 export abstract class AbstractPackageClient implements PackageClientType {
-  client: AxiosInstance;
-  storage: MemoryStorage;
+  client: AxiosCacheInstance;
 
   private usePrivateSource: boolean;
   private showPrerelease: boolean;
@@ -19,9 +16,9 @@ export abstract class AbstractPackageClient implements PackageClientType {
   private privateSource?: URL;
 
   constructor(primarySource: string, privateSource?: string) {
-    this.client = axios.create();
-    this.storage = buildMemoryStorage();
-    setupCache(this.client, { storage: this.storage });
+    this.client = setupCache(axios.create(), {
+      storage: storage,
+    });
 
     this.primarySource = new URL(primarySource);
     if (privateSource) {
@@ -60,6 +57,6 @@ export abstract class AbstractPackageClient implements PackageClientType {
   }
 
   clearCache() {
-    this.storage.data = {};
+    storage.data = {};
   }
 }
