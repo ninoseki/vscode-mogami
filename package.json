@@ -110,9 +110,6 @@
   },
   "main": "./dist/extension.js",
   "icon": "./images/icon.png",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsup",
     "watch": "tsup --watch src",
