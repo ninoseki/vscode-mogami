@@ -20,13 +20,7 @@ export class PyPIHoverProvider extends AbstractHoverProvider {
     this.client = new PyPIClient();
   }
 
-  public parseDocumentPosition(
-    document: vscode.TextDocument,
-    position: vscode.Position,
-  ) {
-    const project = createProject(document);
-    this.client = project.getClient();
-    this.parse = project.getParseFn();
-    return document.getWordRangeAtPosition(position, project.getRegex());
+  createProject(document: vscode.TextDocument) {
+    return createProject(document);
   }
 }

@@ -4,14 +4,12 @@ import { tryCatch } from "fp-ts/lib/TaskEither";
 import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
-import {
-  DependencyPositionType,
-  PackageClientType,
-  SatisfiesFnType,
-} from "@/schemas";
+import { AbstractProject } from "@/project/abstractProject";
+import { DependencyPositionType, SatisfiesFnType } from "@/schemas";
 
 import { createCodeLenses } from "./codeLensFactory";
 import { CodeLensState } from "./codeLensState";
+import { createDependencyPositions } from "./dependencyPositionFactory";
 
 export abstract class AbstractCodeLensProvider
   implements vscode.CodeLensProvider, ExtensionComponent
@@ -24,7 +22,6 @@ export abstract class AbstractCodeLensProvider
 
   private satisfies: SatisfiesFnType;
   private state: CodeLensState;
-  abstract client: PackageClientType;
 
   name?: string;
 
@@ -67,12 +64,13 @@ export abstract class AbstractCodeLensProvider
 
     const task = tryCatch(
       () => {
-        const dependencyPositions = this.parseDocuments(document);
+        const project = this.createProject(document);
+        const dependencyPositions = this.parseDocuments(document, project);
         return createCodeLenses({
           document,
           dependencyPositions,
           satisfies: this.satisfies,
-          client: this.client,
+          client: project.getClient(),
         });
       },
       (e: unknown) => e,
@@ -87,9 +85,14 @@ export abstract class AbstractCodeLensProvider
     );
   }
 
-  public abstract parseDocuments(
+  public abstract createProject(document: vscode.TextDocument): AbstractProject;
+
+  public parseDocuments(
     document: vscode.TextDocument,
-  ): DependencyPositionType[];
+    project: AbstractProject,
+  ): DependencyPositionType[] {
+    return createDependencyPositions(document, { parse: project.getParseFn() });
+  }
 
   public activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
