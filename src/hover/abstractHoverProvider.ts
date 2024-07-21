@@ -1,11 +1,10 @@
-import assert from "assert";
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { tryCatch } from "fp-ts/lib/TaskEither";
 import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
-import { PackageClientType, ParseFnType } from "@/schemas";
+import { AbstractProject } from "@/project/abstractProject";
 
 export abstract class AbstractHoverProvider
   implements vscode.HoverProvider, ExtensionComponent
@@ -16,9 +15,6 @@ export abstract class AbstractHoverProvider
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
-  abstract client: PackageClientType;
-  parse?: ParseFnType;
-
   constructor(private documentSelector: vscode.DocumentSelector) {
     this.documentSelector = documentSelector;
 
@@ -27,29 +23,26 @@ export abstract class AbstractHoverProvider
     });
   }
 
-  public abstract parseDocumentPosition(
-    document: vscode.TextDocument,
-    position: vscode.Position,
-  ): vscode.Range | undefined;
-
   public async provideHover(
     document: vscode.TextDocument,
     position: vscode.Position,
   ): Promise<vscode.Hover | undefined> {
-    const range = this.parseDocumentPosition(document, position);
+    const project = this.createProject(document);
+    const client = project.getClient();
+    const parse = project.getParseFn();
+    const regex = project.getRegex();
+
+    const range = this.parseDocumentPosition(document, position, regex);
     const line = document.lineAt(position.line).text.trim();
 
-    // NOTE: this.parseLine may be set after analyzing document...
-    assert(this.parse);
-
-    const dependency = this.parse(line);
+    const dependency = parse(line);
     if (!dependency) {
       return;
     }
 
     const safeGetPackage = (name: string) => {
       return tryCatch(
-        () => this.client.get(name),
+        () => client.get(name),
         (e: unknown) => e,
       );
     };
@@ -69,6 +62,16 @@ export abstract class AbstractHoverProvider
       }),
       E.getOrElseW(() => undefined),
     );
+  }
+
+  public abstract createProject(document: vscode.TextDocument): AbstractProject;
+
+  public parseDocumentPosition(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    regex: RegExp,
+  ) {
+    return document.getWordRangeAtPosition(position, regex);
   }
 
   public activate(context: vscode.ExtensionContext) {

@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { AbstractCodeLensProvider } from "@/codeLens/abstractCodeLensProvider";
 import { OnClearCacheCommand } from "@/constants";
 import { AbstractHoverProvider } from "@/hover/abstractHoverProvider";
+import { clearStorage } from "@/package/storage";
 
 export class OnClearCache {
   disposable: vscode.Disposable;
@@ -26,14 +27,13 @@ export class OnClearCache {
   }
 
   execute(): void {
+    clearStorage();
+
     this.codeLensProviders.forEach((provider) => {
-      provider.client.clearCache();
       if (provider.isActive()) {
         provider.reloadCodeLenses();
       }
     });
-
-    this.hoverProviders.forEach((provider) => provider.client.clearCache());
   }
 
   dispose() {
