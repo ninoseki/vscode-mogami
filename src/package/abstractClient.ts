@@ -5,7 +5,7 @@ import { getShowPrerelease, getUsePrivateSource } from "@/configuration";
 import { PackageClientType, PackageType } from "@/schemas";
 import { compare, isPrerelease } from "@/versioning/utils";
 
-import { clearStorage, storage } from "./storage";
+import { cache, clearCache } from "./cache";
 
 export abstract class AbstractPackageClient implements PackageClientType {
   client: AxiosCacheInstance;
@@ -17,7 +17,7 @@ export abstract class AbstractPackageClient implements PackageClientType {
 
   constructor(primarySource: string, privateSource?: string) {
     this.client = setupCache(axios.create({ validateStatus: () => true }), {
-      storage: storage,
+      storage: cache,
       cachePredicate: {
         statusCheck: () => true,
       },
@@ -60,6 +60,6 @@ export abstract class AbstractPackageClient implements PackageClientType {
   }
 
   clearCache() {
-    clearStorage();
+    clearCache();
   }
 }
