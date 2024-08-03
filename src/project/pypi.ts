@@ -9,6 +9,7 @@ import { Logger } from "@/logger";
 import { PyPIClient } from "@/package/pypi";
 import { DependencyType, ParseFnType, ProjectFormatType } from "@/schemas";
 
+import * as pixi from "../format/pixi";
 import * as poetry from "../format/poetry";
 import * as pyproject from "../format/pyproject";
 import * as requirements from "../format/requirements";
@@ -40,6 +41,7 @@ export function buildRegex(
   const sorted = dependencies.sort().reverse();
   switch (format) {
     case "poetry":
+    case "pixi":
       return new RegExp("^(?<name>" + sorted.join("|") + `)\\W(?<rest>.+)?$`);
     case "pyproject":
       return new RegExp("(?<name>" + sorted.join("|") + `)(?<rest>.+)?`);
@@ -96,47 +98,32 @@ export function createProject(document: vscode.TextDocument): PythonProject {
   const basename = path.basename(document.fileName);
 
   if (basename === "pyproject.toml") {
-    // Poetry
-    const poetryResult = E.tryCatch(
-      () => {
-        const project = poetry.createProject(text);
-        if (project.dependencies.length === 0) {
-          throw new Error("No dependency found in Poetry manifest");
-        } else {
-          Logger.info(
-            `Poetry detected: ${project.dependencies.length} dependencies found`,
-          );
-        }
+    const probes = [
+      { name: "poetry", fn: poetry.createProject },
+      { name: "pixi", fn: pixi.createProject },
+      { name: "pyproject", fn: pyproject.createProject },
+    ];
+    for (const probe of probes) {
+      const result = E.tryCatch(
+        () => {
+          const project = probe.fn(text);
+          if (project.dependencies.length === 0) {
+            throw new Error(`No dependency found as ${probe.name}`);
+          } else {
+            Logger.info(
+              `${project.dependencies.length} dependencies found as ${probe.name}`,
+            );
+          }
+          return project;
+        },
+        (e: unknown) => e,
+      );
 
-        return project;
-      },
-      (e: unknown) => e,
-    );
-    if (E.isRight(poetryResult)) {
-      return new PythonProject(poetryResult.right);
-    } else {
-      Logger.error(poetryResult.left);
-    }
-
-    // pyproject.toml
-    const pyprojectResult = E.tryCatch(
-      () => {
-        const project = pyproject.createProject(text);
-        if (project.dependencies.length === 0) {
-          throw new Error("No dependency found in pyproject.toml manifest");
-        } else {
-          Logger.info(
-            `pyproject.toml detected: ${project.dependencies.length} dependencies found`,
-          );
-        }
-        return project;
-      },
-      (e: unknown) => e,
-    );
-    if (E.isRight(pyprojectResult)) {
-      return new PythonProject(pyprojectResult.right);
-    } else {
-      Logger.error(pyprojectResult.left);
+      if (E.isRight(result)) {
+        return new PythonProject(result.right);
+      } else {
+        Logger.error(result.left);
+      }
     }
   } else {
     // requirements.txt

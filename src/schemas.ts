@@ -78,7 +78,7 @@ export const PoetryProjectPoetrySourceSchema = z.object({
   url: z.string(),
 });
 
-export const PoetryProjectPoetryGroupDependenciesSchema = z.object({
+export const GroupDependenciesSchema = z.object({
   dependencies: z.record(z.string(), z.unknown()).default({}),
 });
 
@@ -88,9 +88,7 @@ export const PoetryProjectPoetrySchema = z.object({
   source: z.array(PoetryProjectPoetrySourceSchema).nullish(),
   dependencies: z.record(z.string(), z.unknown()).default({}),
   "dev-dependencies": z.record(z.string(), z.unknown()).default({}),
-  group: z
-    .record(z.string(), PoetryProjectPoetryGroupDependenciesSchema)
-    .default({}),
+  group: z.record(z.string(), GroupDependenciesSchema).default({}),
 });
 
 export const PoetryProjectToolSchema = z.object({
@@ -110,13 +108,27 @@ export const PyProjectSchema = z.object({
   project: PyProjectProjectSchema,
 });
 
+export const PixiToolPixiSchema = z.object({
+  dependencies: z.record(z.string(), z.unknown()).default({}),
+  feature: z.record(z.string(), GroupDependenciesSchema).default({}),
+});
+
+export const PixiToolSchema = z.object({
+  pixi: PixiToolPixiSchema,
+});
+
+export const PixiProjectSchema = z.object({
+  tool: PixiToolSchema,
+});
+
 export const ProjectFormatSchema = z.enum([
+  "actions",
+  "gemfile",
+  "gemspec",
+  "pixi",
   "poetry",
   "pyproject",
   "requirements",
-  "gemspec",
-  "gemfile",
-  "actions",
 ]);
 export type ProjectFormatType = z.infer<typeof ProjectFormatSchema>;
 
