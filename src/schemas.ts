@@ -17,6 +17,17 @@ export const PypiPackageSchema = z.object({
 
 export type PypiPackageType = z.infer<typeof PypiPackageSchema>;
 
+export const AnacondaPackageSchema = z.object({
+  name: z.string(),
+  summary: z.string(),
+  home: z.string().nullish(),
+  url: z.string().nullish(),
+  latestVersion: z.string(),
+  versions: z.array(z.string()),
+});
+
+export type AnacondaPackageType = z.infer<typeof AnacondaPackageSchema>;
+
 export const GemVersionSchema = z.object({
   number: z.string(),
 });

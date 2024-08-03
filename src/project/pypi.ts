@@ -6,6 +6,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import { Logger } from "@/logger";
+import { AnacondaClient } from "@/package/anaconda";
 import { PyPIClient } from "@/package/pypi";
 import { DependencyType, ParseFnType, ProjectFormatType } from "@/schemas";
 
@@ -79,6 +80,10 @@ export function parse(line: string, regex: RegExp): DependencyType | undefined {
 
 class PythonProject extends AbstractProject {
   getClient(): PyPIClient {
+    if (this.format === "pixi") {
+      return new AnacondaClient(this.source);
+    }
+
     return new PyPIClient(this.source);
   }
 

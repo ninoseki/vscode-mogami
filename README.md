@@ -19,6 +19,14 @@ A VS Code extension for checking the latest version of each dependency.
 
 #### Known Limitations
 
+##### Pixi
+
+All the dependencies in Pixi's `pyproject.toml` are considered as Anaconda packages belong to `conda-forge` (https://anaconda.org/conda-forge).
+
+The mixed case (using Anaconda and PyPI together) is not supported yet.
+
+##### pip's `pyproject.toml`
+
 pip's `pyproject.toml` should have line-break-separated `dependencies` and `optional-dependencies`.
 
 **Good**
