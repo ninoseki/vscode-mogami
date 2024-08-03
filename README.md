@@ -23,7 +23,10 @@ A VS Code extension for checking the latest version of each dependency.
 
 All the dependencies in Pixi's `pyproject.toml` are considered as Anaconda packages belong to `conda-forge` (https://anaconda.org/conda-forge).
 
-The mixed case (using Anaconda and PyPI together) is not supported yet.
+The following cases are not supported yet:
+
+- Using multiple channels (using a channel except `conda-forge`).
+- Using multiple package repositories (using Anaconda and PyPI together).
 
 ##### pip's `pyproject.toml`
 
