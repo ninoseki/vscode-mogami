@@ -12,10 +12,10 @@ A VS Code extension for checking the latest version of each dependency.
 
 ### Python
 
-| Format                                                                                                                                                    | Private Source                              |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| `requirements.txt`                                                                                                                                        | `--index-url` is supported                  |
-| `pyproject.toml` ([Poetry](https://python-poetry.org/) and pip's [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)) | Poetry's `tool.poetry.source` is supported. |
+| Format                                                                                                                                                                              | Private Source                              |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `requirements.txt`                                                                                                                                                                  | `--index-url` is supported                  |
+| `pyproject.toml` ([Poetry](https://python-poetry.org/), [Pixi](https://pixi.sh/) and pip's [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)) | Poetry's `tool.poetry.source` is supported. |
 
 #### Known Limitations
 
