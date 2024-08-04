@@ -7,7 +7,13 @@ const config: JestConfigWithTsJest = {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   transform: {
-    "^.+\\.ts?$": ["ts-jest", { useESM: true }],
+    "^.+\\.ts?$": [
+      "ts-jest",
+      {
+        useESM: true,
+        tsconfig: "tsconfig.spec.json",
+      },
+    ],
   },
 };
 
