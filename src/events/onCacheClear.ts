@@ -20,7 +20,7 @@ export class OnClearCache {
 
     this.disposable = vscode.commands.registerCommand(
       OnClearCacheCommand,
-      //  eslint-disable-next-line @typescript-eslint/unbound-method
+
       this.execute,
       this,
     );

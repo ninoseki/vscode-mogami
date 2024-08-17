@@ -18,7 +18,7 @@ export class OnHideClick {
     this.codeLensProviders = codeLensProviders;
     this.disposable = vscode.commands.registerCommand(
       OnHideClickCommand,
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       this.execute,
       this,
     );
