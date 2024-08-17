@@ -12,7 +12,7 @@ export class OnUpdateDependencyClick {
   constructor() {
     this.disposable = vscode.commands.registerCommand(
       OnUpdateDependencyClickCommand,
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       this.execute,
       this,
     );

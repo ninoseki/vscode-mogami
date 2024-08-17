@@ -16,13 +16,11 @@ export class OnActiveTextEditorChange {
     this.state = state;
     // register the vscode workspace event
     this.disposable = vscode.window.onDidChangeActiveTextEditor(
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       this.execute,
       this,
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async execute(textEditor?: vscode.TextEditor): Promise<void> {
     if (!textEditor || textEditor.document.uri.scheme !== "file") {
       await this.state.providerActive.change(undefined);

@@ -14,12 +14,10 @@ import { AbstractPackageClient } from "./abstractClient";
 export function parse(res: AxiosResponse): E.Either<unknown, PackageType> {
   return E.tryCatch(
     () => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { releases, info } = res.data;
       const parsed = PypiPackageSchema.parse({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         info: camelcaseKeys(info, { deep: true }),
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         releases,
       });
 

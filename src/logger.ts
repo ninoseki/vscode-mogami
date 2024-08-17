@@ -17,6 +17,7 @@ const createLogger = () => {
         new LogOutputChannelTransport({ outputChannel }),
       ],
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     // for Jest
     return winston.createLogger({

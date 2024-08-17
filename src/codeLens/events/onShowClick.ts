@@ -19,7 +19,7 @@ export class OnShowClick {
 
     this.disposable = vscode.commands.registerCommand(
       OnShowClickCommand,
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       this.execute,
       this,
     );
