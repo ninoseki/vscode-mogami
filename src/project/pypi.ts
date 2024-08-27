@@ -14,6 +14,7 @@ import * as pixi from "../format/pixi";
 import * as poetry from "../format/poetry";
 import * as pyproject from "../format/pyproject";
 import * as requirements from "../format/requirements";
+import * as uv from "../format/uv";
 import { AbstractProject } from "./abstractProject";
 
 const RANGE_PATTERN = [
@@ -44,6 +45,7 @@ export function buildRegex(
     case "poetry":
     case "pixi":
       return new RegExp("^(?<name>" + sorted.join("|") + `)\\W(?<rest>.+)?$`);
+    case "uv":
     case "pyproject":
       return new RegExp("(?<name>" + sorted.join("|") + `)(?<rest>.+)?`);
     default:
@@ -104,6 +106,7 @@ export function createProject(document: vscode.TextDocument): PythonProject {
 
   if (basename === "pyproject.toml") {
     const probes = [
+      { name: "uv", fn: uv.createProject },
       { name: "poetry", fn: poetry.createProject },
       { name: "pixi", fn: pixi.createProject },
       { name: "pyproject", fn: pyproject.createProject },
