@@ -15,6 +15,10 @@ export function createDependencyPositions(
       }
 
       const character = docLine.text.indexOf(dependency.name);
+      if (character < 0) {
+        return undefined;
+      }
+
       const position = new vscode.Position(line, character);
 
       return { dependency, position };
