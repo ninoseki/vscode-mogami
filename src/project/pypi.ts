@@ -47,7 +47,9 @@ export function buildRegex(
       return new RegExp("^(?<name>" + sorted.join("|") + `)\\W(?<rest>.+)?$`);
     case "uv":
     case "pyproject":
-      return new RegExp("(?<name>" + sorted.join("|") + `)(?<rest>.+)?`);
+      return new RegExp(
+        "[\"'](?<name>" + sorted.join("|") + ")(?<rest>.+)?[\"']",
+      );
     default:
       return new RegExp("^(?<name>" + sorted.join("|") + `)(?<rest>.+)?$`);
   }
