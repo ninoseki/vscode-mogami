@@ -12,10 +12,10 @@ A VS Code extension for checking the latest version of each dependency.
 
 ### Python
 
-| Format                                                                                                                                                                              | Private Source                              |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| `requirements.txt`                                                                                                                                                                  | `--index-url` is supported                  |
-| `pyproject.toml` ([Poetry](https://python-poetry.org/), [Pixi](https://pixi.sh/) and pip's [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)) | Poetry's `tool.poetry.source` is supported. |
+| Format                                                                                                                                                                                                                                   | Private Source                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `requirements.txt`                                                                                                                                                                                                                       | `--index-url` is supported                                                   |
+| `pyproject.toml` ([Poetry](https://python-poetry.org/), [Pixi](https://pixi.sh/), [uv](https://docs.astral.sh/uv/)'s `pyproject.toml` and pip's [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)) | Poetry's `tool.poetry.source` and `uv`'s `tool.uv.index-url` are supported'. |
 
 #### Known Limitations
 
@@ -28,9 +28,9 @@ The following cases are not supported yet:
 - Using multiple channels (using a channel except `conda-forge`).
 - Using multiple package repositories (using Anaconda and PyPI together).
 
-##### pip's `pyproject.toml`
+##### uv & pip's `pyproject.toml`
 
-pip's `pyproject.toml` should have line-break-separated `dependencies` and `optional-dependencies`.
+uv and pip's `pyproject.toml` should have line-break-separated `dependencies` and `optional-dependencies`.
 
 **Good**
 

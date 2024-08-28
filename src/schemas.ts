@@ -132,6 +132,27 @@ export const PixiProjectSchema = z.object({
   tool: PixiToolSchema,
 });
 
+export const UvProjectToolUvSchema = z.object({
+  indexUrl: z.string().nullish(),
+  devDependencies: z.array(z.string()).nullish(),
+});
+
+export const UvProjectToolSchema = z.object({
+  uv: UvProjectToolUvSchema,
+});
+
+export const UvProjectProjectSchema = z.object({
+  dependencies: z.array(z.string()).nullish(),
+  optionalDependencies: z.record(z.string(), z.array(z.string())).nullish(),
+});
+
+export const UvProjectSchema = z.object({
+  project: UvProjectProjectSchema,
+  tool: UvProjectToolSchema,
+});
+
+export type UvProjectType = z.infer<typeof UvProjectSchema>;
+
 export const ProjectFormatSchema = z.enum([
   "actions",
   "gemfile",
@@ -140,7 +161,9 @@ export const ProjectFormatSchema = z.enum([
   "poetry",
   "pyproject",
   "requirements",
+  "uv",
 ]);
+
 export type ProjectFormatType = z.infer<typeof ProjectFormatSchema>;
 
 export const ProjectSchema = z.object({
