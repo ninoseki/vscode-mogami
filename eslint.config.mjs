@@ -12,11 +12,11 @@ const mode = process.env.NODE_ENV === "production" ? "error" : "warn";
 
 export default tseslint.config(
   {
-    files: ["**/*.js", "**/*.cjs", "**/*.mjs"],
+    files: ["**/*.{js,cjs,mjs}"],
     extends: [eslint.configs.recommended],
   },
   {
-    files: ["**/*.ts", "**/*.cts", "**/*.mts"],
+    files: ["**/*.{ts,cts,mts}"],
     plugins: {
       "simple-import-sort": simpleImportSort,
       neverthrow: neverthrow,
