@@ -65,6 +65,12 @@ export function parse(line: string, regex: RegExp): DependencyType | undefined {
     return undefined;
   }
 
+  // rejects something like "pydantic.mypy"
+  // TODO: is there a better way to handle this?
+  if ((matches.groups?.rest || "").startsWith(".")) {
+    return undefined;
+  }
+
   const specifier = ((): string | undefined => {
     return pipe(
       O.fromNullable(matches.groups?.rest),
