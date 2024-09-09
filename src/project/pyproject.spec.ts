@@ -11,10 +11,8 @@ dependencies = [
 describe("createPythonProject", () => {
   test("should return a project", () => {
     const project = createProject(text);
-    expect(project.dependencies).toEqual([
-      "httptools",
-      "certifi",
-      "itsdangerous",
-    ]);
+    expect(new Set(project.dependencies)).toEqual(
+      new Set(["certifi", "httptools", "itsdangerous"]),
+    );
   });
 });

@@ -3,6 +3,8 @@ import { flat } from "radash";
 
 import { PixiProjectSchema, ProjectType } from "@/schemas";
 
+import { createRegex } from "./pypi";
+
 export function getDependenciesFrom(text: string): string[] {
   const tomlParsed = TOML.parse(text);
   const parsed = PixiProjectSchema.parse(tomlParsed);
@@ -17,5 +19,7 @@ export function getDependenciesFrom(text: string): string[] {
 
 export function createProject(text: string): ProjectType {
   const dependencies = getDependenciesFrom(text);
-  return { dependencies, format: "pixi" };
+  const format = "pixi";
+  const regex = createRegex(dependencies, format);
+  return { dependencies, format, regex };
 }

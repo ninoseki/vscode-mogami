@@ -3,6 +3,8 @@ import { RANGE_PATTERN } from "@renovatebot/pep440";
 
 import type { DependencyType, ProjectType } from "@/schemas";
 
+import { createRegex } from "./pypi";
+
 const packagePattern = "[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]";
 const extrasPattern = "(?:\\s*\\[[^\\]]+\\])?";
 
@@ -61,5 +63,7 @@ export function getIndexUrl(text: string): string | undefined {
 export function createProject(text: string): ProjectType {
   const dependencies = getDependenciesFrom(text);
   const source = getIndexUrl(text);
-  return { dependencies, source, format: "requirements" };
+  const format = "requirements";
+  const regex = createRegex(dependencies, format);
+  return { dependencies, source, format, regex };
 }

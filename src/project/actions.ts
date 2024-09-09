@@ -1,29 +1,14 @@
-import * as vscode from "vscode";
+import { ProjectType } from "@/schemas";
 
-import { nameSpecifierRegexParse } from "@/format/utils";
-import { GitHubClient } from "@/package/github";
-import { ParseFnType } from "@/schemas";
+import { nameSpecifierRegexParse } from "./utils";
 
-import * as actions from "../format/actions";
-import { AbstractProject } from "./abstractProject";
+export const regex = /uses:\s?(?<name>[\w\-\\/]+)@(?<specifier>.+)/;
 
-class ActionsProject extends AbstractProject {
-  getClient(): GitHubClient {
-    return new GitHubClient(this.source);
-  }
-
-  getRegex(): RegExp {
-    return actions.regex;
-  }
-
-  getParseFn(): ParseFnType {
-    return (line: string) => {
-      return nameSpecifierRegexParse(line, this.getRegex());
-    };
-  }
-}
-
-export function createProject(document: vscode.TextDocument): ActionsProject {
-  const text = document.getText();
-  return new ActionsProject(actions.createProject(text));
+export function createProject(text: string): ProjectType {
+  const dependencies = text
+    .split("\n")
+    .map((line) => nameSpecifierRegexParse(line, regex))
+    .filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
+    .map((deps) => deps.name);
+  return { dependencies, format: "actions", source: undefined, regex };
 }

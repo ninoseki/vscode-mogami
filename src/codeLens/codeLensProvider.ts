@@ -1,17 +1,18 @@
+// eslint-disable-next-line simple-import-sort/imports
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { tryCatch } from "fp-ts/lib/TaskEither";
 import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
-import { AbstractProject } from "@/project/abstractProject";
-import { DependencyPositionType, SatisfiesFnType } from "@/schemas";
 
 import { createCodeLenses } from "./codeLensFactory";
 import { CodeLensState } from "./codeLensState";
-import { createDependencyPositions } from "./dependencyPositionFactory";
+import { createDependencyPositions } from "./dependencyPosition";
+import { createProject } from "@/project";
+import { createService } from "@/service";
 
-export abstract class AbstractCodeLensProvider
+export class CodeLensProvider
   implements vscode.CodeLensProvider, ExtensionComponent
 {
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
@@ -20,33 +21,22 @@ export abstract class AbstractCodeLensProvider
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
-  private satisfies: SatisfiesFnType;
   private state: CodeLensState;
 
   name?: string;
 
   constructor(
     private documentSelector: vscode.DocumentSelector,
-    {
-      state,
-      satisfies,
-    }: {
-      state: CodeLensState;
-      satisfies: SatisfiesFnType;
-    },
+    state: CodeLensState,
+    name?: string,
   ) {
     this.documentSelector = documentSelector;
-
     this.state = state;
-    this.satisfies = satisfies;
+    this.name = name;
 
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
     });
-  }
-
-  isActive(): boolean {
-    return this.state.providerActive.value === this.name;
   }
 
   reloadCodeLenses() {
@@ -55,22 +45,26 @@ export abstract class AbstractCodeLensProvider
   }
 
   public async provideCodeLenses(document: vscode.TextDocument) {
+    await this.state.setProviderActive(this.name);
+
     if (!this.state.show.value) {
       return [];
     }
 
-    await this.state.setProviderActive(this.name);
     await this.state.setProviderBusy();
 
     const task = tryCatch(
       () => {
-        const project = this.createProject(document);
-        const dependencyPositions = this.parseDocuments(document, project);
+        const project = createProject(document);
+        const service = createService(project);
+        const dependencyPositions = createDependencyPositions(document, {
+          parse: service.parse,
+        });
         return createCodeLenses({
           document,
           dependencyPositions,
-          satisfies: this.satisfies,
-          client: project.getClient(),
+          client: service.client,
+          satisfies: service.satisfies,
         });
       },
       (e: unknown) => e,
@@ -85,13 +79,8 @@ export abstract class AbstractCodeLensProvider
     );
   }
 
-  public abstract createProject(document: vscode.TextDocument): AbstractProject;
-
-  public parseDocuments(
-    document: vscode.TextDocument,
-    project: AbstractProject,
-  ): DependencyPositionType[] {
-    return createDependencyPositions(document, { parse: project.getParseFn() });
+  public isActive(): boolean {
+    return this.state.providerActive.value === this.name;
   }
 
   public activate(context: vscode.ExtensionContext) {

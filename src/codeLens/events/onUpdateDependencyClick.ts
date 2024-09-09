@@ -1,10 +1,9 @@
 import * as E from "fp-ts/lib/Either";
 import * as vscode from "vscode";
 
+import { SuggestionCodeLens } from "@/codeLens/suggestionCodeLens";
 import { OnUpdateDependencyClickCommand } from "@/constants";
 import { formatWithExistingLeading } from "@/versioning/utils";
-
-import { SuggestionCodeLens } from "../suggestionCodeLens";
 
 export class OnUpdateDependencyClick {
   disposable: vscode.Disposable;
@@ -12,7 +11,6 @@ export class OnUpdateDependencyClick {
   constructor() {
     this.disposable = vscode.commands.registerCommand(
       OnUpdateDependencyClickCommand,
-
       this.execute,
       this,
     );

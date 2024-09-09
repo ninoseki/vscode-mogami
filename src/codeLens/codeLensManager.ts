@@ -3,18 +3,15 @@ import * as vscode from "vscode";
 import { getEnableCodeLens } from "@/configuration";
 import { ExtensionComponent } from "@/extensionComponent";
 
-import { AbstractCodeLensProvider } from "./abstractCodeLensProvider";
-import { ActionsCodeLensProvider } from "./actionsCodeLensProvider";
+import { CodeLensProvider } from "./codeLensProvider";
 import { CodeLensState } from "./codeLensState";
 import { OnActiveTextEditorChange } from "./events/onActiveTextEditorChange";
 import { OnHideClick } from "./events/onHideClick";
 import { OnShowClick } from "./events/onShowClick";
 import { OnUpdateDependencyClick } from "./events/onUpdateDependencyClick";
-import { GemfileCodeLensProvider } from "./gemCodeLensProvider";
-import { PyPICodeLensProvider } from "./pypiCodeLensProvider";
 
 export class CodeLensManager implements ExtensionComponent {
-  codeLensProviders: AbstractCodeLensProvider[];
+  codeLensProviders: CodeLensProvider[];
 
   constructor() {
     this.codeLensProviders = [];
@@ -31,9 +28,30 @@ export class CodeLensManager implements ExtensionComponent {
     await state.applyDefaults();
 
     this.codeLensProviders = [
-      new PyPICodeLensProvider({ state }),
-      new GemfileCodeLensProvider({ state }),
-      new ActionsCodeLensProvider({ state }),
+      new CodeLensProvider(
+        [
+          "**/pyproject.toml",
+          "**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt}",
+        ].map((pattern) => {
+          return { pattern, scheme: "file" };
+        }),
+        state,
+        "PyPICodeLensProvider",
+      ),
+      new CodeLensProvider(
+        ["**/Gemfile", "**/*.gemspec"].map((pattern) => {
+          return { pattern, scheme: "file" };
+        }),
+        state,
+        "GemCodeLensProvider",
+      ),
+      new CodeLensProvider(
+        ["**/.github/workflows/*.{yml,yaml}"].map((pattern) => {
+          return { pattern, scheme: "file" };
+        }),
+        state,
+        "ActionsCodeLensProvider",
+      ),
     ];
 
     this.codeLensProviders.forEach((provider) => {

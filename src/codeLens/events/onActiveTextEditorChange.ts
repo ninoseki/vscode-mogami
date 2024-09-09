@@ -1,17 +1,14 @@
 import * as vscode from "vscode";
 
-import { AbstractCodeLensProvider } from "../abstractCodeLensProvider";
-import { CodeLensState } from "../codeLensState";
+import { CodeLensProvider } from "@/codeLens/codeLensProvider";
+import { CodeLensState } from "@/codeLens/codeLensState";
 
 export class OnActiveTextEditorChange {
   disposable: vscode.Disposable;
-  codeLensProviders: AbstractCodeLensProvider[];
+  codeLensProviders: CodeLensProvider[];
   state: CodeLensState;
 
-  constructor(
-    codeLensProviders: AbstractCodeLensProvider[],
-    state: CodeLensState,
-  ) {
+  constructor(codeLensProviders: CodeLensProvider[], state: CodeLensState) {
     this.codeLensProviders = codeLensProviders;
     this.state = state;
     // register the vscode workspace event

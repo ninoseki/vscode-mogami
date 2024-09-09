@@ -3,6 +3,7 @@ import camelcaseKeys from "camelcase-keys";
 
 import { ProjectType, UvProjectSchema, UvProjectType } from "@/schemas";
 
+import { createRegex } from "./pypi";
 import { parse as pipParse } from "./requirements";
 
 function parseAsProject(text: string) {
@@ -30,5 +31,7 @@ export function createProject(text: string): ProjectType {
   const parsed = parseAsProject(text);
   const source = parsed.tool.uv.indexUrl || undefined;
   const dependencies = getDependenciesFrom(parsed);
-  return { dependencies, source, format: "uv" };
+  const format = "uv";
+  const regex = createRegex(dependencies, format);
+  return { dependencies, source, format, regex };
 }

@@ -2,13 +2,10 @@ import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
 
-import { AbstractHoverProvider } from "./abstractHoverProvider";
-import { ActionsProvider } from "./actionsHoverProvider";
-import { GemfileProvider } from "./gemHoverProvider";
-import { PyPIHoverProvider } from "./pypiHoverProvider";
+import { HoverProvider } from "./hoverProvider";
 
 export class HoverManager implements ExtensionComponent {
-  hoverProviders: AbstractHoverProvider[];
+  hoverProviders: HoverProvider[];
 
   constructor() {
     this.hoverProviders = [];
@@ -16,9 +13,24 @@ export class HoverManager implements ExtensionComponent {
 
   public activate(context: vscode.ExtensionContext) {
     this.hoverProviders = [
-      new PyPIHoverProvider(),
-      new GemfileProvider(),
-      new ActionsProvider(),
+      new HoverProvider(
+        [
+          "**/pyproject.toml",
+          "**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt}",
+        ].map((pattern) => {
+          return { pattern, scheme: "file" };
+        }),
+      ),
+      new HoverProvider(
+        ["**/Gemfile", "**/*.gemspec"].map((pattern) => {
+          return { pattern, scheme: "file" };
+        }),
+      ),
+      new HoverProvider(
+        ["**/.github/workflows/*.{yml,yaml}"].map((pattern) => {
+          return { pattern, scheme: "file" };
+        }),
+      ),
     ];
     this.hoverProviders.forEach((provider) => provider.activate(context));
   }

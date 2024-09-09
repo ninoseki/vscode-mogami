@@ -5,5 +5,5 @@ export const regex =
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function createProject(_text: string): ProjectType {
-  return { dependencies: [], format: "gemspec" };
+  return { dependencies: [], format: "gemspec", regex };
 }
