@@ -15,7 +15,7 @@ import {
 } from "@/schemas";
 import { eq, maxSatisfying } from "@/versioning/utils";
 
-import { getPackages } from "./packageFactory";
+import { getPackages } from "./package";
 import { SuggestionCodeLens } from "./suggestionCodeLens";
 
 export interface PackageSuggestion {

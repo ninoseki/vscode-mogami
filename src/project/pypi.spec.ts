@@ -1,6 +1,6 @@
 import { DependencyType, ProjectFormatType } from "@/schemas";
 
-import { buildRegex, parse } from "./pypi";
+import { createRegex, parse } from "./pypi";
 
 const dependencies = ["foo", "foo-bar"];
 
@@ -40,7 +40,7 @@ describe("parse", () => {
   ])(
     "parse(%s, %s) === %s",
     (line: string, format: string, expected: DependencyType) => {
-      const regex = buildRegex(dependencies, format as ProjectFormatType);
+      const regex = createRegex(dependencies, format as ProjectFormatType);
       const deps = parse(line, regex);
       expect(deps).not.toBeUndefined();
       expect(deps?.name).toBe(expected?.name);

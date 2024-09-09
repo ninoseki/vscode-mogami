@@ -22,5 +22,5 @@ function getSource(text: string): string | undefined {
 
 export function createProject(text: string): ProjectType {
   const source = getSource(text);
-  return { dependencies: [], format: "gemfile", source };
+  return { dependencies: [], format: "gemfile", source, regex };
 }

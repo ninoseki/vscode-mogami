@@ -3,13 +3,15 @@ import { flat } from "radash";
 
 import { PoetryProjectSchema, type ProjectType } from "@/schemas";
 
+import { createRegex } from "./pypi";
+
 export function createProject(text: string): ProjectType {
   const parsed = PoetryProjectSchema.parse(TOML.parse(text));
 
+  const format = "poetry";
   const source = (parsed.tool.poetry?.source || [])
     .map((source) => source.url)
     .find((url) => url);
-
   const dependencies = flat([
     Object.keys(parsed.tool.poetry.dependencies),
     Object.keys(parsed.tool.poetry["dev-dependencies"]),
@@ -17,6 +19,6 @@ export function createProject(text: string): ProjectType {
       Object.keys(parsed.tool.poetry.group[group].dependencies),
     ),
   ]).filter((dependency) => dependency !== "python");
-
-  return { dependencies, source, format: "poetry" };
+  const regex = createRegex(dependencies, format);
+  return { dependencies, source, format, regex };
 }

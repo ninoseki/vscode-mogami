@@ -3,6 +3,7 @@ import camelcaseKeys from "camelcase-keys";
 
 import { ProjectType, PyProjectSchema } from "@/schemas";
 
+import { createRegex } from "./pypi";
 import { parse as pipParse } from "./requirements";
 
 export function getDependenciesFrom(text: string): string[] {
@@ -27,5 +28,7 @@ export function getDependenciesFrom(text: string): string[] {
 
 export function createProject(text: string): ProjectType {
   const dependencies = getDependenciesFrom(text);
-  return { dependencies, format: "pyproject" };
+  const format = "pyproject";
+  const regex = createRegex(dependencies, format);
+  return { dependencies, format, regex };
 }

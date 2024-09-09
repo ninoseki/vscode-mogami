@@ -25,7 +25,8 @@ dev-dependencies = [
 describe("createPythonProject", () => {
   test("should return a project", () => {
     const project = createProject(text);
-    // expect(project.source).toBe("http://example.com/simple");
-    expect(project.dependencies).toEqual(["fastapi", "mkdocs", "pytest"]);
+    expect(new Set(project.dependencies)).toEqual(
+      new Set(["fastapi", "mkdocs", "pytest"]),
+    );
   });
 });

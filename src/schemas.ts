@@ -170,6 +170,7 @@ export const ProjectSchema = z.object({
   dependencies: z.array(z.string()),
   source: z.string().optional(),
   format: ProjectFormatSchema,
+  regex: z.instanceof(RegExp),
 });
 
 export type ProjectType = z.infer<typeof ProjectSchema>;

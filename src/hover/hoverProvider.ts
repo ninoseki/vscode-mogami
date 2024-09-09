@@ -4,11 +4,10 @@ import { tryCatch } from "fp-ts/lib/TaskEither";
 import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
-import { AbstractProject } from "@/project/abstractProject";
+import { createProject } from "@/project";
+import { createService } from "@/service";
 
-export abstract class AbstractHoverProvider
-  implements vscode.HoverProvider, ExtensionComponent
-{
+export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
 
@@ -27,22 +26,20 @@ export abstract class AbstractHoverProvider
     document: vscode.TextDocument,
     position: vscode.Position,
   ): Promise<vscode.Hover | undefined> {
-    const project = this.createProject(document);
-    const client = project.getClient();
-    const parse = project.getParseFn();
-    const regex = project.getRegex();
+    const project = createProject(document);
+    const service = createService(project);
 
-    const range = this.parseDocumentPosition(document, position, regex);
+    const range = this.parseDocumentPosition(document, position, project.regex);
     const line = document.lineAt(position.line).text.trim();
 
-    const dependency = parse(line);
+    const dependency = service.parse(line);
     if (!dependency) {
       return;
     }
 
     const safeGetPackage = (name: string) => {
       return tryCatch(
-        () => client.get(name),
+        () => service.client.get(name),
         (e: unknown) => e,
       );
     };
@@ -63,8 +60,6 @@ export abstract class AbstractHoverProvider
       E.getOrElseW(() => undefined),
     );
   }
-
-  public abstract createProject(document: vscode.TextDocument): AbstractProject;
 
   public parseDocumentPosition(
     document: vscode.TextDocument,

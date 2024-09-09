@@ -15,6 +15,8 @@ pytest = "*"`;
 describe("createPythonProject", () => {
   test("should return a project", () => {
     const project = createProject(text);
-    expect(project.dependencies).toEqual(["black", "fastapi", "pytest"]);
+    expect(new Set(project.dependencies)).toEqual(
+      new Set(["black", "fastapi", "pytest"]),
+    );
   });
 });

@@ -1,26 +1,25 @@
 import * as vscode from "vscode";
 
-import { AbstractCodeLensProvider } from "@/codeLens/abstractCodeLensProvider";
+import { CodeLensProvider } from "@/codeLens/codeLensProvider";
 import { OnClearCacheCommand } from "@/constants";
-import { AbstractHoverProvider } from "@/hover/abstractHoverProvider";
+import { HoverProvider } from "@/hover/hoverProvider";
 import { clearCache } from "@/package/cache";
 
 export class OnClearCache {
   disposable: vscode.Disposable;
 
-  codeLensProviders: AbstractCodeLensProvider[];
-  hoverProviders: AbstractHoverProvider[];
+  codeLensProviders: CodeLensProvider[];
+  hoverProviders: HoverProvider[];
 
   constructor(
-    codeLensProviders: AbstractCodeLensProvider[],
-    hoverProviders: AbstractHoverProvider[],
+    codeLensProviders: CodeLensProvider[],
+    hoverProviders: HoverProvider[],
   ) {
     this.codeLensProviders = codeLensProviders;
     this.hoverProviders = hoverProviders;
 
     this.disposable = vscode.commands.registerCommand(
       OnClearCacheCommand,
-
       this.execute,
       this,
     );

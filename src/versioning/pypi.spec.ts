@@ -1,4 +1,4 @@
-import { satisfies } from "./poetry";
+import { satisfies } from "./pypi";
 
 describe("satisfies", () => {
   test.each([

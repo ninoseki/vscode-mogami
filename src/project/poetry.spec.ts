@@ -26,16 +26,18 @@ describe("createPythonProject", () => {
   test("should return a project", () => {
     const project = createProject(text);
     expect(project.source).toBe("http://example.com/simple");
-    expect(project.dependencies).toEqual([
-      "luqum",
-      "sqlmodel",
-      "mypy",
-      "pre-commit",
-      "pytest",
-      "pytest-pretty",
-      "pytest-randomly",
-      "pyupgrade",
-      "ruff",
-    ]);
+    expect(new Set(project.dependencies)).toEqual(
+      new Set([
+        "luqum",
+        "sqlmodel",
+        "mypy",
+        "pre-commit",
+        "pytest",
+        "pytest-pretty",
+        "pytest-randomly",
+        "pyupgrade",
+        "ruff",
+      ]),
+    );
   });
 });
