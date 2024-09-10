@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 
 import { getEnableCodeLens } from "@/configuration";
+import { projectFormatsToDocumentSelector } from "@/constants";
 import { ExtensionComponent } from "@/extensionComponent";
 
 import { CodeLensProvider } from "./codeLensProvider";
@@ -27,32 +28,17 @@ export class CodeLensManager implements ExtensionComponent {
     const state = new CodeLensState();
     await state.applyDefaults();
 
-    this.codeLensProviders = [
-      new CodeLensProvider(
-        [
-          "**/pyproject.toml",
-          "**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt}",
-        ].map((pattern) => {
-          return { pattern, scheme: "file" };
-        }),
-        state,
-        "PyPICodeLensProvider",
-      ),
-      new CodeLensProvider(
-        ["**/Gemfile", "**/*.gemspec"].map((pattern) => {
-          return { pattern, scheme: "file" };
-        }),
-        state,
-        "GemCodeLensProvider",
-      ),
-      new CodeLensProvider(
-        ["**/.github/workflows/*.{yml,yaml}"].map((pattern) => {
-          return { pattern, scheme: "file" };
-        }),
-        state,
-        "ActionsCodeLensProvider",
-      ),
-    ];
+    this.codeLensProviders = Array.from(projectFormatsToDocumentSelector).map(
+      ([projectFormats, documentSelector]) => {
+        const name = projectFormats.join("-") + "CodeLensProvider";
+        return new CodeLensProvider(
+          documentSelector,
+          projectFormats,
+          state,
+          name,
+        );
+      },
+    );
 
     this.codeLensProviders.forEach((provider) => {
       provider.activate(context);

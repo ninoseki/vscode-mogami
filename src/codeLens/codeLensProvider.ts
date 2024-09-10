@@ -11,6 +11,7 @@ import { CodeLensState } from "./codeLensState";
 import { createDependencyPositions } from "./dependencyPosition";
 import { createProject } from "@/project";
 import { createService } from "@/service";
+import { ProjectFormatType } from "@/schemas";
 
 export class CodeLensProvider
   implements vscode.CodeLensProvider, ExtensionComponent
@@ -21,16 +22,14 @@ export class CodeLensProvider
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
-  private state: CodeLensState;
-
-  name?: string;
-
   constructor(
     private documentSelector: vscode.DocumentSelector,
-    state: CodeLensState,
-    name?: string,
+    private projectFormats: ProjectFormatType[],
+    private state: CodeLensState,
+    public name?: string,
   ) {
     this.documentSelector = documentSelector;
+    this.projectFormats = projectFormats;
     this.state = state;
     this.name = name;
 
@@ -55,7 +54,7 @@ export class CodeLensProvider
 
     const task = tryCatch(
       () => {
-        const project = createProject(document);
+        const project = createProject(document, this.projectFormats);
         const service = createService(project);
         const dependencyPositions = createDependencyPositions(document, {
           parse: service.parse,
