@@ -2,6 +2,10 @@
 
 A VS Code extension for checking the latest version of each dependency.
 
+[![Version](https://vsmarketplacebadges.dev/version-short/ninoseki.vscode-mogami.svg)](https://marketplace.visualstudio.com/items?itemName=ninoseki.vscode-mogami)
+[![Installs](https://vsmarketplacebadges.dev/installs-short/ninoseki.vscode-mogami.svg)](https://marketplace.visualstudio.com/items?itemName=ninoseki.vscode-mogami)
+[![Rating](https://vsmarketplacebadges.dev/rating-short/ninoseki.vscode-mogami.svg)](https://marketplace.visualstudio.com/items?itemName=ninoseki.vscode-mogami)
+
 ![img](https://raw.githubusercontent.com/ninoseki/vscode-mogami/main/screenshots/1.png)
 
 ## Supported Formats
