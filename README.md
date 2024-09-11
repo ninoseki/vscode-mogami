@@ -11,15 +11,24 @@ A VS Code extension for checking the latest version of each dependency.
 ## Supported Formats
 
 - [Python](#python)
+  - [requirements.txt](https://pip.pypa.io/en/stable/reference/requirements-file-format/)
+  - `pyproject.toml`:
+    - [Poetry](https://python-poetry.org/)
+    - [Pixi](https://pixi.sh/)
+    - [uv](https://docs.astral.sh/uv/)
+    - [PEP 518 and PEP 621](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
 - [Ruby](#ruby)
+  - `Gemfile`
+  - `*.gemspec`
 - [GitHub Actions](#github-actions)
+  - `.github/workflows/*.{yml,yaml}`
 
 ### Python
 
-| Format                                                                                                                                                                                                                                   | Private Source                                                               |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `requirements.txt`                                                                                                                                                                                                                       | `--index-url` is supported                                                   |
-| `pyproject.toml` ([Poetry](https://python-poetry.org/), [Pixi](https://pixi.sh/), [uv](https://docs.astral.sh/uv/)'s `pyproject.toml` and pip's [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)) | Poetry's `tool.poetry.source` and `uv`'s `tool.uv.index-url` are supported'. |
+| Format             | Private Source                                                               |
+| ------------------ | ---------------------------------------------------------------------------- |
+| `requirements.txt` | `--index-url` is supported.                                                  |
+| `pyproject.toml`   | Poetry's `tool.poetry.source` and `uv`'s `tool.uv.index-url` are supported'. |
 
 #### Known Limitations
 
@@ -53,16 +62,16 @@ dependencies = ["httpx", "django>2.1"]
 
 ### Ruby
 
-| Format      | Private Source        |
-| ----------- | --------------------- |
-| `Gemfile`   | `source` is supported |
-| `*.gemspec` |                       |
+| Format      | Private Source         |
+| ----------- | ---------------------- |
+| `Gemfile`   | `source` is supported. |
+| `*.gemspec` |                        |
 
 ### GitHub Actions
 
-| Format                    | Private Source |
-| ------------------------- | -------------- |
-| `.github/workflows/*.yml` |                |
+| Format                           | Private Source |
+| -------------------------------- | -------------- |
+| `.github/workflows/*.{yml,yaml}` |                |
 
 > [!NOTE]
 > Mogami uses the GitHub REST API to get release data. The API may block you if you don't set a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). You can configure it via `vscode-mogami.gitHubPersonalAccessToken`.
