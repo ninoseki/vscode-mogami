@@ -1,3 +1,33 @@
+import * as vscode from "vscode";
+
+import { ProjectFormatType } from "@/schemas";
+
+export const projectFormatsToDocumentSelector = new Map<
+  ProjectFormatType[],
+  vscode.DocumentSelector
+>([
+  [
+    ["actions"],
+    [{ pattern: "**/.github/workflows/*.{yml,yaml}", scheme: "file" }],
+  ],
+  [["gemspec"], [{ pattern: "**/*.gemspec", scheme: "file" }]],
+  [["gemfile"], [{ pattern: "**/Gemfile", scheme: "file" }]],
+  [
+    ["requirements"],
+    [
+      {
+        pattern:
+          "**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt}",
+        scheme: "file",
+      },
+    ],
+  ],
+  [
+    ["uv", "pixi", "poetry", "pyproject"],
+    [{ pattern: "**/pyproject.toml", scheme: "file" }],
+  ],
+]);
+
 export const ExtID = "vscode-mogami";
 export const EnableCodeLensKey = "enableCodeLens";
 export const ConcurrencyKey = "concurrency";

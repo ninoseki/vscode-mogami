@@ -5,6 +5,7 @@ import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
 import { createProject } from "@/project";
+import { ProjectFormatType } from "@/schemas";
 import { createService } from "@/service";
 
 export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
@@ -14,8 +15,12 @@ export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
-  constructor(private documentSelector: vscode.DocumentSelector) {
+  constructor(
+    private documentSelector: vscode.DocumentSelector,
+    private projectFormats: ProjectFormatType[],
+  ) {
     this.documentSelector = documentSelector;
+    this.projectFormats = projectFormats;
 
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
@@ -26,7 +31,7 @@ export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
     document: vscode.TextDocument,
     position: vscode.Position,
   ): Promise<vscode.Hover | undefined> {
-    const project = createProject(document);
+    const project = createProject(document, this.projectFormats);
     const service = createService(project);
 
     const range = this.parseDocumentPosition(document, position, project.regex);
