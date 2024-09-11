@@ -23,10 +23,10 @@ interface Probe {
 const probes: Probe[] = [
   { create: gemspec.createProject, projectFormat: "gemspec" },
   { create: gemfile.createProject, projectFormat: "gemfile" },
-  { create: actions.createProject, projectFormat: "actions" },
+  { create: actions.createProject, projectFormat: "github-actions-workflow" },
   {
     create: requirements.createProject,
-    projectFormat: "requirements",
+    projectFormat: "pip-requirements",
   },
   { create: uv.createProject, projectFormat: "uv" },
   { create: poetry.createProject, projectFormat: "poetry" },

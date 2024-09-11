@@ -7,13 +7,13 @@ export const projectFormatsToDocumentSelector = new Map<
   vscode.DocumentSelector
 >([
   [
-    ["actions"],
+    ["github-actions-workflow"],
     [{ pattern: "**/.github/workflows/*.{yml,yaml}", scheme: "file" }],
   ],
   [["gemspec"], [{ pattern: "**/*.gemspec", scheme: "file" }]],
   [["gemfile"], [{ pattern: "**/Gemfile", scheme: "file" }]],
   [
-    ["requirements"],
+    ["pip-requirements"],
     [
       {
         pattern:

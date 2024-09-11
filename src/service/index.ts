@@ -46,12 +46,12 @@ function createClient(project: ProjectType): PackageClientType {
         return GemClient;
       case "poetry":
       case "pyproject":
-      case "requirements":
+      case "pip-requirements":
       case "uv":
         return PyPIClient;
       case "pixi":
         return AnacondaClient;
-      case "actions":
+      case "github-actions-workflow":
         return GitHubClient;
       default:
         throw new Error("Unsupported format");
@@ -64,13 +64,13 @@ function createParseFn(project: ProjectType): ParseFnType {
   switch (project.format) {
     case "gemfile":
     case "gemspec":
-    case "actions":
+    case "github-actions-workflow":
       return (line: string) => {
         return nameSpecifierRegexParse(line, project.regex);
       };
     case "poetry":
     case "pyproject":
-    case "requirements":
+    case "pip-requirements":
     case "uv":
     case "pixi":
       return (line: string) => {
@@ -86,11 +86,11 @@ function getSatisfiesFn(project: ProjectType): SatisfiesFnType {
     case "gemfile":
     case "gemspec":
       return gemSatisfies;
-    case "actions":
+    case "github-actions-workflow":
       return utilsSatisfies;
     case "poetry":
     case "pyproject":
-    case "requirements":
+    case "pip-requirements":
     case "uv":
     case "pixi":
       return pypiSatisfies;

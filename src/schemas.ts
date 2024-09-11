@@ -154,13 +154,13 @@ export const UvProjectSchema = z.object({
 export type UvProjectType = z.infer<typeof UvProjectSchema>;
 
 export const ProjectFormatSchema = z.enum([
-  "actions",
+  "github-actions-workflow",
   "gemfile",
   "gemspec",
   "pixi",
   "poetry",
   "pyproject",
-  "requirements",
+  "pip-requirements",
   "uv",
 ]);
 

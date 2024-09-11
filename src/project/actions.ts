@@ -10,5 +10,10 @@ export function createProject(text: string): ProjectType {
     .map((line) => nameSpecifierRegexParse(line, regex))
     .filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
     .map((deps) => deps.name);
-  return { dependencies, format: "actions", source: undefined, regex };
+  return {
+    dependencies,
+    format: "github-actions-workflow",
+    source: undefined,
+    regex,
+  };
 }
