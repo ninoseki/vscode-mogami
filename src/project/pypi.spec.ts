@@ -25,16 +25,32 @@ describe("parse", () => {
     ['"foo==1.0.0",', "pyproject", { name: "foo", specifier: "==1.0.0" }],
     ['"foo>=1.0,<2.0"', "pyproject", { name: "foo", specifier: ">=1.0,<2.0" }],
     // requirements.txt
-    ["foo == 1.0.0", "requirements", { name: "foo", specifier: "== 1.0.0" }],
-    ["foo ~= 1.0.0", "requirements", { name: "foo", specifier: "~= 1.0.0" }],
-    ["foo != 1.0.0", "requirements", { name: "foo", specifier: "!= 1.0.0" }],
-    ["foo <= 1.0.0", "requirements", { name: "foo", specifier: "<= 1.0.0" }],
-    ["foo < 1.0.0", "requirements", { name: "foo", specifier: "< 1.0.0" }],
-    ["foo == 1.*", "requirements", { name: "foo", specifier: "== 1.*" }],
-    ["foo == *", "requirements", { name: "foo", specifier: "== *" }],
+    [
+      "foo == 1.0.0",
+      "pip-requirements",
+      { name: "foo", specifier: "== 1.0.0" },
+    ],
+    [
+      "foo ~= 1.0.0",
+      "pip-requirements",
+      { name: "foo", specifier: "~= 1.0.0" },
+    ],
+    [
+      "foo != 1.0.0",
+      "pip-requirements",
+      { name: "foo", specifier: "!= 1.0.0" },
+    ],
+    [
+      "foo <= 1.0.0",
+      "pip-requirements",
+      { name: "foo", specifier: "<= 1.0.0" },
+    ],
+    ["foo < 1.0.0", "pip-requirements", { name: "foo", specifier: "< 1.0.0" }],
+    ["foo == 1.*", "pip-requirements", { name: "foo", specifier: "== 1.*" }],
+    ["foo == *", "pip-requirements", { name: "foo", specifier: "== *" }],
     [
       "foo[extra] == 1.0.0",
-      "requirements",
+      "pip-requirements",
       { name: "foo", specifier: "== 1.0.0" },
     ],
   ])(

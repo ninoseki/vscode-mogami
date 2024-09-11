@@ -63,7 +63,7 @@ export function getIndexUrl(text: string): string | undefined {
 export function createProject(text: string): ProjectType {
   const dependencies = getDependenciesFrom(text);
   const source = getIndexUrl(text);
-  const format = "requirements";
+  const format = "pip-requirements";
   const regex = createRegex(dependencies, format);
   return { dependencies, source, format, regex };
 }
