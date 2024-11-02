@@ -16,9 +16,17 @@ export function getDependenciesFrom(parsed: UvProjectType): string[] {
   const optionalDependencies = Object.values(
     parsed.project.optionalDependencies || {},
   ).flat();
-  const devDependencies = parsed.tool.uv.devDependencies || [];
+  const groupsDependencies = Object.values(
+    parsed.dependencyGroups || {},
+  ).flat();
+  const devDependencies = parsed.tool?.uv?.devDependencies || [];
 
-  return [dependencies, optionalDependencies, devDependencies]
+  return [
+    dependencies,
+    optionalDependencies,
+    devDependencies,
+    groupsDependencies,
+  ]
     .flat()
     .map((dependency) => {
       const pipParsed = pipParse(dependency);
@@ -29,7 +37,7 @@ export function getDependenciesFrom(parsed: UvProjectType): string[] {
 
 export function createProject(text: string): ProjectType {
   const parsed = parseAsProject(text);
-  const source = parsed.tool.uv.indexUrl || undefined;
+  const source = parsed.tool?.uv?.indexUrl || undefined;
   const dependencies = getDependenciesFrom(parsed);
   const format = "uv";
   const regex = createRegex(dependencies, format);

@@ -13,6 +13,9 @@ dependencies = [
 [project.optional-dependencies]
 foo = ["mkdocs>=1.6.0"]
 
+[dependency-groups]
+test = ["coverage"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -26,7 +29,7 @@ describe("createPythonProject", () => {
   test("should return a project", () => {
     const project = createProject(text);
     expect(new Set(project.dependencies)).toEqual(
-      new Set(["fastapi", "mkdocs", "pytest"]),
+      new Set(["coverage", "fastapi", "mkdocs", "pytest"]),
     );
   });
 });
