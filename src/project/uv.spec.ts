@@ -15,6 +15,7 @@ foo = ["mkdocs>=1.6.0"]
 
 [dependency-groups]
 test = ["coverage"]
+all = [{include-group = "test"}]
 
 [build-system]
 requires = ["hatchling"]

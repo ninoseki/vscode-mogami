@@ -1,5 +1,5 @@
-import TOML from "@iarna/toml";
 import camelcaseKeys from "camelcase-keys";
+import { parse } from "smol-toml";
 
 import { ProjectType, UvProjectSchema, UvProjectType } from "@/schemas";
 
@@ -7,8 +7,7 @@ import { createRegex } from "./pypi";
 import { parse as pipParse } from "./requirements";
 
 function parseAsProject(text: string) {
-  const tomlParsed = TOML.parse(text);
-  return UvProjectSchema.parse(camelcaseKeys(tomlParsed, { deep: true }));
+  return UvProjectSchema.parse(camelcaseKeys(parse(text), { deep: true }));
 }
 
 export function getDependenciesFrom(parsed: UvProjectType): string[] {
@@ -16,9 +15,9 @@ export function getDependenciesFrom(parsed: UvProjectType): string[] {
   const optionalDependencies = Object.values(
     parsed.project.optionalDependencies || {},
   ).flat();
-  const groupsDependencies = Object.values(
-    parsed.dependencyGroups || {},
-  ).flat();
+  const groupsDependencies = Object.values(parsed.dependencyGroups || {})
+    .flat()
+    .filter((i): i is string => typeof i === "string");
   const devDependencies = parsed.tool?.uv?.devDependencies || [];
 
   return [
