@@ -1,12 +1,12 @@
-import TOML from "@iarna/toml";
 import { flat } from "radash";
+import { parse } from "smol-toml";
 
 import { PoetryProjectSchema, type ProjectType } from "@/schemas";
 
 import { createRegex } from "./pypi";
 
 export function createProject(text: string): ProjectType {
-  const parsed = PoetryProjectSchema.parse(TOML.parse(text));
+  const parsed = PoetryProjectSchema.parse(parse(text));
 
   const format = "poetry";
   const source = (parsed.tool.poetry?.source || [])

@@ -8,7 +8,6 @@ export default defineConfig({
   clean: true,
   external: ["vscode"],
   noExternal: [
-    "@iarna/toml",
     "@renovatebot/pep440",
     "@renovatebot/ruby-semver",
     "axios-cache-interceptor",
@@ -20,6 +19,7 @@ export default defineConfig({
     "p-map",
     "radash",
     "semver",
+    "smol-toml",
     "url-join",
     "winston-transport-vscode",
     "zod",

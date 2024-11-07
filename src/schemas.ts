@@ -150,7 +150,9 @@ export const UvProjectSchema = z.object({
   project: UvProjectProjectSchema,
   tool: UvProjectToolSchema.nullish(),
   // PEP 735 (ref. https://github.com/astral-sh/uv/releases/tag/0.4.27)
-  dependencyGroups: z.record(z.string(), z.array(z.string())).nullish(),
+  dependencyGroups: z
+    .record(z.string(), z.union([z.array(z.string()), z.unknown()]))
+    .nullish(),
 });
 
 export type UvProjectType = z.infer<typeof UvProjectSchema>;

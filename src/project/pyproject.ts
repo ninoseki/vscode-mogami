@@ -1,5 +1,5 @@
-import TOML from "@iarna/toml";
 import camelcaseKeys from "camelcase-keys";
+import { parse } from "smol-toml";
 
 import { ProjectType, PyProjectSchema } from "@/schemas";
 
@@ -7,9 +7,8 @@ import { createRegex } from "./pypi";
 import { parse as pipParse } from "./requirements";
 
 export function getDependenciesFrom(text: string): string[] {
-  const tomlParsed = TOML.parse(text);
   const parsed = PyProjectSchema.parse(
-    camelcaseKeys(tomlParsed, { deep: true }),
+    camelcaseKeys(parse(text), { deep: true }),
   );
 
   const dependencies = parsed.project.dependencies || [];
