@@ -60,6 +60,10 @@ dependencies = [
 dependencies = ["httpx", "django>2.1"]
 ```
 
+##### Authentication / Private Repository
+
+A private repository (source) protected by authentication is not supported.
+
 ### Ruby
 
 | Format      | Private Source         |
