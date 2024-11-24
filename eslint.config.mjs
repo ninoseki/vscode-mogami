@@ -2,6 +2,7 @@
 import eslint from "@eslint/js";
 import neverthrow from "@ninoseki/eslint-plugin-neverthrow";
 import typescriptEslintParser from "@typescript-eslint/parser";
+import vitest from "@vitest/eslint-plugin";
 import regexpPlugin from "eslint-plugin-regexp";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import tseslint from "typescript-eslint";
@@ -15,7 +16,7 @@ export default tseslint.config(
     extends: [eslint.configs.recommended],
   },
   {
-    files: ["**/*.{ts,cts,mts}"],
+    files: ["**/*.{ts,cts,mts,cjs,mjs}"],
     plugins: {
       "simple-import-sort": simpleImportSort,
       neverthrow: neverthrow,
@@ -41,6 +42,11 @@ export default tseslint.config(
   },
   {
     files: ["**/?(*.)spec.ts"],
-    rules: { "jest/prefer-expect-assertions": "off" },
+    plugins: {
+      vitest,
+    },
+    rules: {
+      ...vitest.configs.recommended.rules,
+    },
   }
 );

@@ -136,6 +136,7 @@
     "@types/url-join": "^4.0.3",
     "@types/vscode": "^1.80.0",
     "@vitest/coverage-v8": "^2.1.5",
+    "@vitest/eslint-plugin": "^1.1.10",
     "@vscode/vsce": "^3.2.1",
     "eslint": "^9.14.0",
     "eslint-plugin-prettier": "^5.2.1",
