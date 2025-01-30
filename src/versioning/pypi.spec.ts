@@ -9,6 +9,9 @@ describe("satisfies", () => {
     ["2.0", "^2.0", true],
     ["2.0", "^2.0", true],
     ["2.0.0", "^2.0", true],
+    ["2.0.0.a1", ">2.0", false],
+    ["2.0.0.a1", "<2.0", false],
+    ["2.0.0.a1", "~=2.0", true],
   ])(
     "satisfies(%s, %s) === %s",
     (version: string, specifier: string, expected: boolean) => {

@@ -46,20 +46,11 @@ export abstract class AbstractPackageClient implements PackageClientType {
   abstract get(name: string): Promise<PackageType>;
 
   protected normalizePackage(pkg: PackageType) {
-    const sortedVersions = pkg.versions.sort(compare);
-
-    if (this.showPrerelease) {
-      // reset the version (= the latest version) with considering prerelease versions
-      pkg.version = sortedVersions[sortedVersions.length - 1];
-      return pkg;
-    }
-
-    // prerelease version can be the latest version if PyPI simple API is used
-    if (isPrerelease(pkg.version)) {
-      const version = sortedVersions.reverse().find((v) => !isPrerelease(v));
-      pkg.version = version || pkg.version;
-    }
-
+    const versions = this.showPrerelease
+      ? pkg.versions
+      : pkg.versions.filter((v) => !isPrerelease(v));
+    const sortedVersions = versions.sort(compare);
+    pkg.version = sortedVersions[sortedVersions.length - 1];
     return pkg;
   }
 

@@ -1,4 +1,5 @@
-import * as compareVersions from "compare-versions";
+import { parse } from "@renovatebot/pep440/lib/version";
+import { compareVersions, validate } from "compare-versions";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import semver from "semver";
@@ -47,13 +48,48 @@ export function removeLeading(version: string) {
   return version.trim().replace(leadingCharsRegex, "").trim();
 }
 
+export function preCoerce(version: string) {
+  // convert non-standard pre-release to semver pre-release
+  // e.g. 7.2.0.beta2 -> 7.2.0-beta.2
+  const parsed = parse(version);
+  if (!parsed?.release) {
+    return version;
+  }
+
+  const release = parsed!.release.join(".");
+  const pre = (parsed?.pre || [])
+    .map((x) => {
+      if (x === "a") {
+        return "alpha";
+      }
+      if (x === "b") {
+        return "beta";
+      }
+      return x;
+    })
+    .join(".");
+
+  if (pre === "") {
+    return release;
+  }
+
+  return [release, pre].join("-");
+}
+
+export function _coerce(version: string) {
+  // force coerce version. should be only used by eq & compare
+  return semver.coerce(preCoerce(version) || version, {
+    includePrerelease: true,
+  });
+}
+
 export function coerceUnlessValid(version: string) {
   const parsed = semver.parse(version);
   if (parsed) {
     return parsed;
   }
 
-  return semver.coerce(version);
+  return _coerce(version);
 }
 
 export function eq(v1: string, v2?: string): boolean {
@@ -65,12 +101,8 @@ export function eq(v1: string, v2?: string): boolean {
   // (e.g. activemodel 7.1.3.4)
   const rv1 = removeLeading(v1);
   const rv2 = removeLeading(v2);
-  if (compareVersions.validate(rv1) && compareVersions.validate(rv2)) {
-    return compareVersions.compareVersions(rv1, rv2) === 0;
-  }
-
-  if (isPrerelease(v1) && isPrerelease(v2)) {
-    return v1 == v2;
+  if (validate(rv1) && validate(rv2)) {
+    return compareVersions(rv1, rv2) === 0;
   }
 
   const cv1 = coerceUnlessValid(v1);
@@ -85,12 +117,8 @@ export function eq(v1: string, v2?: string): boolean {
 
 export function compare(v1: string, v2: string): number {
   // use compare-version for non-semver version comparison
-  if (compareVersions.validate(v1) && compareVersions.validate(v2)) {
-    return compareVersions.compareVersions(v1, v2);
-  }
-
-  if (isPrerelease(v1) && isPrerelease(v2)) {
-    return v1.localeCompare(v2);
+  if (validate(v1) && validate(v2)) {
+    return compareVersions(v1, v2);
   }
 
   const cv1 = coerceUnlessValid(v1);
@@ -116,24 +144,24 @@ export function maxSatisfying({
     .find((v) => satisfies(v, specifier));
 }
 
-export function isPrerelease(v: string): boolean {
-  // return null if the version is a prerelease version
-  if (semver.prerelease(v, { loose: true }) !== null) {
-    return true;
-  }
-  return !/^\d[.\d]+$/.test(v);
-}
-
 export function satisfies(version: string, specifier?: string): boolean {
   if (!specifier) {
     return false;
   }
 
   const coercedVersion = pipe(
-    O.fromNullable(semver.coerce(version)),
+    O.fromNullable(semver.coerce(version, { includePrerelease: true })),
     O.map((v) => v.toString()),
     O.getOrElse(() => version),
   );
 
   return semver.satisfies(coercedVersion, specifier);
+}
+
+export function isPrerelease(v: string): boolean {
+  // return null if the version is a prerelease version
+  if (semver.prerelease(v, { loose: true }) !== null) {
+    return true;
+  }
+  return !/^\d[.\d]+$/.test(v);
 }
