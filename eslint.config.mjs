@@ -7,7 +7,6 @@ import regexpPlugin from "eslint-plugin-regexp";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import tseslint from "typescript-eslint";
 
-// eslint-disable-next-line no-undef
 const mode = process.env.NODE_ENV === "production" ? "error" : "warn";
 
 export default tseslint.config(
