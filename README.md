@@ -25,10 +25,10 @@ A VS Code extension for checking the latest version of each dependency.
 
 ### Python
 
-| Format             | Private Source                                                               |
-| ------------------ | ---------------------------------------------------------------------------- |
-| `requirements.txt` | `--index-url` is supported.                                                  |
-| `pyproject.toml`   | Poetry's `tool.poetry.source` and `uv`'s `tool.uv.index-url` are supported'. |
+| Format             | Private Source                                                              |
+| ------------------ | --------------------------------------------------------------------------- |
+| `requirements.txt` | `--index-url` is supported.                                                 |
+| `pyproject.toml`   | Poetry's `tool.poetry.source` and `uv`'s `tool.uv.index-url` are supported. |
 
 #### Known Limitations
 
@@ -41,9 +41,9 @@ The following cases are not supported yet:
 - Using multiple channels (using a channel except `conda-forge`).
 - Using multiple package repositories (using Anaconda and PyPI together).
 
-##### uv & pip's `pyproject.toml`
+##### PEP 621 Styled `pyproject.toml`
 
-uv and pip's `pyproject.toml` should have line-break-separated `dependencies` and `optional-dependencies`.
+[PEP 621](https://peps.python.org/pep-0621/) style `pyproject.toml` should have line-break-separated `dependencies` and `optional-dependencies`.
 
 **Good**
 
