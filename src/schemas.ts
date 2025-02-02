@@ -84,6 +84,15 @@ export const PositionSchema = z.object({
 
 export type PositionType = z.infer<typeof PositionSchema>;
 
+export const PyProjectProjectSchema = z.object({
+  dependencies: z.array(z.string()).nullish(),
+  optionalDependencies: z.record(z.string(), z.array(z.string())).nullish(),
+});
+
+export const PyProjectSchema = z.object({
+  project: PyProjectProjectSchema,
+});
+
 export const PoetryProjectPoetrySourceSchema = z.object({
   name: z.string(),
   url: z.string(),
@@ -108,15 +117,7 @@ export const PoetryProjectToolSchema = z.object({
 
 export const PoetryProjectSchema = z.object({
   tool: PoetryProjectToolSchema,
-});
-
-export const PyProjectProjectSchema = z.object({
-  dependencies: z.array(z.string()).nullish(),
-  optionalDependencies: z.record(z.string(), z.array(z.string())).nullish(),
-});
-
-export const PyProjectSchema = z.object({
-  project: PyProjectProjectSchema,
+  project: PyProjectProjectSchema.nullish(),
 });
 
 export const PixiToolPixiSchema = z.object({
