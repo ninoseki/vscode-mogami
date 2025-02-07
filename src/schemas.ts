@@ -103,7 +103,7 @@ export const GroupDependenciesSchema = z.object({
 });
 
 export const PoetryProjectPoetrySchema = z.object({
-  name: z.string(),
+  name: z.string().nullish(),
   version: z.string().nullish(),
   source: z.array(PoetryProjectPoetrySourceSchema).nullish(),
   dependencies: z.record(z.string(), z.unknown()).default({}),
