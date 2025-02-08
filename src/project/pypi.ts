@@ -45,7 +45,7 @@ export function parse(line: string, regex: RegExp): DependencyType | undefined {
 
   const specifier = ((): string | undefined => {
     return pipe(
-      O.fromNullable(matches.groups?.rest),
+      O.fromNullable(rest),
       O.flatMap((s: string) => {
         const matches = specifierRegex.exec(s) || versionRegex.exec(s);
         if (matches) {
