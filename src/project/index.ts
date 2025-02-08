@@ -28,8 +28,10 @@ const probes: Probe[] = [
     create: requirements.createProject,
     projectFormat: "pip-requirements",
   },
-  { create: uv.createProject, projectFormat: "uv" },
+  // order should be poetry > uv > pixi > pyproject, otherwise poetry will be detected as uv
+  // (Poetry v2 supports PEP 621 so)
   { create: poetry.createProject, projectFormat: "poetry" },
+  { create: uv.createProject, projectFormat: "uv" },
   { create: pixi.createProject, projectFormat: "pixi" },
   { create: pyproject.createProject, projectFormat: "pyproject" },
 ];

@@ -28,14 +28,18 @@ export function parse(line: string, regex: RegExp): DependencyType | undefined {
   if (!matches) {
     return undefined;
   }
-  const name = matches.groups?.name;
+  // FIXME: dirty hack to avoid "duplicate capture group name" error, should be removed in ES2025
+  const name = matches.groups?.name || matches.groups?.name2;
   if (!name) {
     return undefined;
   }
 
+  // FIXME: dirty hack to avoid "duplicate capture group name" error, should be removed in ES2025
+  const rest = matches.groups?.rest || matches.groups?.rest2;
   // rejects something like "pydantic.mypy"
   // TODO: is there a better way to handle this?
-  if ((matches.groups?.rest || "").startsWith(".")) {
+
+  if ((rest || "").startsWith(".")) {
     return undefined;
   }
 
@@ -61,15 +65,25 @@ export function createRegex(
   format: ProjectFormatType,
 ): RegExp {
   const sorted = dependencies.sort().reverse();
+
+  const poetryPixiRegex = new RegExp(
+    "^(?<name>" + sorted.join("|") + `)\\W(?<rest>.+)?$`,
+  );
+  const uvPyProjectRegex = new RegExp(
+    "[\"'](?<name>" + sorted.join("|") + ")(?<rest>.+)?[\"']",
+  );
+
   switch (format) {
     case "poetry":
+      // FIXME: dirty hack to avoid "duplicate capture group name" error, should be removed in ES2025
+      return new RegExp(
+        `(${poetryPixiRegex.source})|(${uvPyProjectRegex.source.replace("<name>", "<name2>").replace("<rest>", "<rest2>")})`,
+      );
     case "pixi":
-      return new RegExp("^(?<name>" + sorted.join("|") + `)\\W(?<rest>.+)?$`);
+      return poetryPixiRegex;
     case "uv":
     case "pyproject":
-      return new RegExp(
-        "[\"'](?<name>" + sorted.join("|") + ")(?<rest>.+)?[\"']",
-      );
+      return uvPyProjectRegex;
     default:
       return new RegExp("^(?<name>" + sorted.join("|") + `)(?<rest>.+)?$`);
   }
