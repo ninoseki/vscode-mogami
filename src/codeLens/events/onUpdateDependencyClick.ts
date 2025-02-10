@@ -20,12 +20,12 @@ export class OnUpdateDependencyClick {
     if (
       !codeLens.replaceRange ||
       !codeLens.dependency.specifier ||
-      E.isLeft(codeLens.pkg)
+      E.isLeft(codeLens.pkgResult)
     ) {
       return;
     }
 
-    const pkg = codeLens.pkg.right;
+    const pkg = codeLens.pkgResult.right;
     const edit = new vscode.WorkspaceEdit();
     edit.replace(
       codeLens.documentUrl,

@@ -111,7 +111,6 @@ export type ProjectFormatType = z.infer<typeof ProjectFormatSchema>;
 export interface ProjectType {
   format: ProjectFormatType;
   dependencies: [DependencyType, RawRangeType][];
-  satisfies: SatisfiesFnType;
   source?: string;
   detailedFormat?: string;
 }
