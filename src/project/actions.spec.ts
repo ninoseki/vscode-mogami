@@ -1,24 +1,32 @@
-import { DependencyType } from "@/schemas";
+import type { TextDocumentLikeType } from "@/schemas";
 
-import { regex } from "./actions";
-import { nameSpecifierRegexParse } from "./utils";
+import { parseProject } from "./actions";
 
-const parse = (line: string) => nameSpecifierRegexParse(line, regex);
+export function makeTextDocumentLike(lines: string[]): TextDocumentLikeType {
+  return {
+    getText: vi.fn(() => lines.join("\n")),
+    lineAt: vi.fn((line) => ({
+      text: lines[line],
+      range: {
+        start: { line, character: 0 },
+        end: { line, character: lines[line].length - 2 },
+      },
+    })),
+    lineCount: lines.length,
+  };
+}
 
-describe("parse", () => {
-  it.each([
-    [
-      "uses: actions/checkout@v4",
-      { name: "actions/checkout", specifier: "v4" },
-    ],
-    [
-      "uses: actions/setup-python@v5",
-      { name: "actions/setup-python", specifier: "v5" },
-    ],
-  ])("parse(%s) === %s", (line: string, expected: DependencyType) => {
-    const deps = parse(line);
-    expect(deps).not.toBeUndefined();
-    expect(deps?.name).toBe(expected?.name);
-    expect(deps?.specifier).toBe(expected?.specifier);
+describe("parseProject", () => {
+  it("should extract dependencies", () => {
+    const document = makeTextDocumentLike(["uses: actions/checkout@v4"]);
+
+    const result = parseProject(document);
+
+    expect(result.dependencies).toEqual([
+      [
+        { name: "actions/checkout", specifier: "v4", type: "ProjectName" },
+        [0, 0, 0, 23],
+      ],
+    ]);
   });
 });

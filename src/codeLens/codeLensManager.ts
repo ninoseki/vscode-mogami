@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 
-import { getEnableCodeLens } from "@/configuration";
-import { projectFormatsToDocumentSelector } from "@/constants";
+import { getConcurrency, getEnableCodeLens } from "@/configuration";
+import { projectFormatToDocumentSelector } from "@/constants";
 import { ExtensionComponent } from "@/extensionComponent";
+import { ProjectParser } from "@/project";
 
 import { CodeLensProvider } from "./codeLensProvider";
 import { CodeLensState } from "./codeLensState";
@@ -28,12 +29,15 @@ export class CodeLensManager implements ExtensionComponent {
     const state = new CodeLensState();
     await state.applyDefaults();
 
-    this.codeLensProviders = Array.from(projectFormatsToDocumentSelector).map(
-      ([projectFormats, documentSelector]) => {
-        const name = projectFormats.join("-") + "CodeLensProvider";
+    const concurrency = getConcurrency();
+
+    this.codeLensProviders = Array.from(projectFormatToDocumentSelector).map(
+      ([projectFormat, documentSelector]) => {
+        const name = `${projectFormat}-CodeLensProvider`;
         return new CodeLensProvider(
           documentSelector,
-          projectFormats,
+          new ProjectParser(projectFormat),
+          concurrency,
           state,
           name,
         );

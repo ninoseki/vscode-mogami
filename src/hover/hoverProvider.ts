@@ -1,29 +1,24 @@
-import * as E from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/function";
-import { tryCatch } from "fp-ts/lib/TaskEither";
 import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
-import { createProject } from "@/project";
-import { ProjectFormatType } from "@/schemas";
-import { createService } from "@/service";
+import { ProjectParser } from "@/project";
 
 export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
-  private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
+  private _onDidChangeConfiguration: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
 
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
-    this._onDidChangeCodeLenses.event;
+    this._onDidChangeConfiguration.event;
 
   constructor(
     private documentSelector: vscode.DocumentSelector,
-    private projectFormats: ProjectFormatType[],
+    private projectParser: ProjectParser,
   ) {
     this.documentSelector = documentSelector;
-    this.projectFormats = projectFormats;
+    this.projectParser = projectParser;
 
     vscode.workspace.onDidChangeConfiguration(() => {
-      this._onDidChangeCodeLenses.fire();
+      this._onDidChangeConfiguration.fire();
     });
   }
 
@@ -31,47 +26,26 @@ export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
     document: vscode.TextDocument,
     position: vscode.Position,
   ): Promise<vscode.Hover | undefined> {
-    const project = createProject(document, this.projectFormats);
-    const service = createService(project);
-
-    const range = this.parseDocumentPosition(document, position, project.regex);
-    const line = document.lineAt(position.line).text.trim();
-
-    const dependency = service.parse(line);
-    if (!dependency) {
+    const service = this.projectParser.parse(document);
+    const got = service.getDependencyByPosition(position);
+    if (!got) {
       return;
     }
+    const dependency = got[0];
+    const range = got[1];
 
-    const safeGetPackage = (name: string) => {
-      return tryCatch(
-        () => service.client.get(name),
-        (e: unknown) => e,
-      );
-    };
-
-    const task = safeGetPackage(dependency.name);
-    const result = await task();
-    return pipe(
-      result,
-      E.map((pkg) => {
-        const sections = [
-          pkg.summary,
-          `Latest version: ${pkg.version}`,
-          pkg.url,
-        ].filter((i): i is Exclude<typeof i, undefined> => i !== undefined);
-        const message = sections.join("\n\n");
-        return new vscode.Hover(message, range);
-      }),
-      E.getOrElseW(() => undefined),
-    );
-  }
-
-  public parseDocumentPosition(
-    document: vscode.TextDocument,
-    position: vscode.Position,
-    regex: RegExp,
-  ) {
-    return document.getWordRangeAtPosition(position, regex);
+    try {
+      const pkg = await service.getPackage(dependency.name);
+      const sections = [
+        pkg.summary,
+        `Latest version: ${pkg.version}`,
+        pkg.url,
+      ].filter((i): i is Exclude<typeof i, undefined> => i !== undefined);
+      const message = sections.join("\n\n");
+      return new vscode.Hover(message, range);
+    } catch {
+      return;
+    }
   }
 
   public activate(context: vscode.ExtensionContext) {
