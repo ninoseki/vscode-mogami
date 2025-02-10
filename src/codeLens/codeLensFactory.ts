@@ -69,13 +69,13 @@ function createUpdatableSuggestion(pkg: PackageType): PackageSuggestion {
 
 function createCodeLens({
   document,
-  pkg,
+  packageResult,
   dependency,
   range,
   suggestion,
 }: {
   document: vscode.TextDocument;
-  pkg: E.Either<unknown, PackageType>;
+  packageResult: E.Either<unknown, PackageType>;
   dependency: DependencyType;
   range: vscode.Range;
   suggestion: PackageSuggestion;
@@ -106,7 +106,7 @@ function createCodeLens({
 
   const codeLens = new SuggestionCodeLens(range, {
     replaceRange,
-    pkg,
+    packageResult,
     dependency,
     documentUrl: vscode.Uri.file(document.fileName),
   });
@@ -122,19 +122,19 @@ export async function createCodeLenses(
 ): Promise<SuggestionCodeLens[]> {
   // get packages in bulk and create code lenses based on the results
   const results = await service.getAllPackageResults({ concurrency });
-  return zipWith(service.dependencies, results, (item, pkg) => {
+  return zipWith(service.dependencies, results, (item, packageResult) => {
     const dependency = item[0];
     const range = item[1];
-    return { dependency, range, pkg };
+    return { dependency, range, packageResult };
   })
     .flatMap((item) => {
-      const { dependency, range } = item;
+      const { dependency, range, packageResult } = item;
       const suggestions: PackageSuggestion[] = [];
 
-      if (E.isLeft(item.pkg)) {
-        suggestions.push(createErrorSuggestion(item.pkg.left));
+      if (E.isLeft(packageResult)) {
+        suggestions.push(createErrorSuggestion(packageResult.left));
       } else {
-        const pkg = item.pkg.right;
+        const pkg = packageResult.right;
         const isLatest =
           eq(pkg.version, dependency.specifier) || !dependency.specifier;
         const isFixedVersion = semver.valid(dependency.specifier);
@@ -165,7 +165,7 @@ export async function createCodeLenses(
       return suggestions.map((suggestion) =>
         createCodeLens({
           document,
-          pkg: item.pkg,
+          packageResult,
           dependency,
           range,
           suggestion,
