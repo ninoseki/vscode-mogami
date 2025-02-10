@@ -69,13 +69,13 @@ function createUpdatableSuggestion(pkg: PackageType): PackageSuggestion {
 
 function createCodeLens({
   document,
-  packageResult,
+  pkgResult,
   dependency,
   range,
   suggestion,
 }: {
   document: vscode.TextDocument;
-  packageResult: E.Either<unknown, PackageType>;
+  pkgResult: E.Either<unknown, PackageType>;
   dependency: DependencyType;
   range: vscode.Range;
   suggestion: PackageSuggestion;
@@ -106,7 +106,7 @@ function createCodeLens({
 
   const codeLens = new SuggestionCodeLens(range, {
     replaceRange,
-    packageResult,
+    pkgResult,
     dependency,
     documentUrl: vscode.Uri.file(document.fileName),
   });
@@ -122,19 +122,19 @@ export async function createCodeLenses(
 ): Promise<SuggestionCodeLens[]> {
   // get packages in bulk and create code lenses based on the results
   const results = await service.getAllPackageResults({ concurrency });
-  return zipWith(service.dependencies, results, (item, packageResult) => {
+  return zipWith(service.dependencies, results, (item, pkgResult) => {
     const dependency = item[0];
     const range = item[1];
-    return { dependency, range, packageResult };
+    return { dependency, range, pkgResult };
   })
     .flatMap((item) => {
-      const { dependency, range, packageResult } = item;
+      const { dependency, range, pkgResult } = item;
       const suggestions: PackageSuggestion[] = [];
 
-      if (E.isLeft(packageResult)) {
-        suggestions.push(createErrorSuggestion(packageResult.left));
+      if (E.isLeft(pkgResult)) {
+        suggestions.push(createErrorSuggestion(pkgResult.left));
       } else {
-        const pkg = packageResult.right;
+        const pkg = pkgResult.right;
         const isLatest =
           eq(pkg.version, dependency.specifier) || !dependency.specifier;
         const isFixedVersion = semver.valid(dependency.specifier);
@@ -165,7 +165,7 @@ export async function createCodeLenses(
       return suggestions.map((suggestion) =>
         createCodeLens({
           document,
-          packageResult,
+          pkgResult,
           dependency,
           range,
           suggestion,
