@@ -7,15 +7,10 @@ import semver from "semver";
 import * as vscode from "vscode";
 
 import { OnUpdateDependencyClickCommand } from "@/constants";
-import {
-  DependencyPositionType,
-  DependencyType,
-  PackageClientType,
-  PackageType,
-} from "@/schemas";
+import { ProjectService } from "@/project";
+import type { DependencyType, PackageType } from "@/schemas";
 import { eq, maxSatisfying } from "@/versioning/utils";
 
-import { getPackages } from "./package";
 import { SuggestionCodeLens } from "./suggestionCodeLens";
 
 export interface PackageSuggestion {
@@ -76,26 +71,21 @@ function createCodeLens({
   document,
   pkg,
   dependency,
-  position,
+  range,
   suggestion,
 }: {
   document: vscode.TextDocument;
   pkg: E.Either<unknown, PackageType>;
   dependency: DependencyType;
-  position: vscode.Position;
+  range: vscode.Range;
   suggestion: PackageSuggestion;
   replaceable?: boolean;
 }): SuggestionCodeLens | undefined {
-  const docLine = document.lineAt(position.line);
-  const range = document.getWordRangeAtPosition(position);
-  if (!range) {
-    return undefined;
-  }
-
   const replaceRange: vscode.Range | undefined = (() => {
     if (!suggestion.replaceable) {
       return undefined;
     }
+    const docLine = document.lineAt(range.start.line);
     return pipe(
       O.fromNullable(dependency.specifier),
       O.flatMap((s: string) => {
@@ -125,24 +115,20 @@ function createCodeLens({
   return codeLens;
 }
 
-export async function createCodeLenses({
-  document,
-  satisfies,
-  client,
-  dependencyPositions,
-}: {
-  document: vscode.TextDocument;
-  dependencyPositions: DependencyPositionType[];
-  satisfies: (version: string, specifier?: string) => boolean;
-  client: PackageClientType;
-}): Promise<SuggestionCodeLens[]> {
-  const names = dependencyPositions.map((x) => x.dependency.name);
-  const results = await getPackages({ names, client });
-  return zipWith(dependencyPositions, results, (dependencyPosition, pkg) => {
-    return { dependencyPosition, pkg };
+export async function createCodeLenses(
+  document: vscode.TextDocument,
+  service: ProjectService,
+  { concurrency }: { concurrency: number },
+): Promise<SuggestionCodeLens[]> {
+  // get packages in bulk and create code lenses based on the results
+  const results = await service.getAllPackageResults({ concurrency });
+  return zipWith(service.dependencies, results, (item, pkg) => {
+    const dependency = item[0];
+    const range = item[1];
+    return { dependency, range, pkg };
   })
     .flatMap((item) => {
-      const { dependency, position } = item.dependencyPosition;
+      const { dependency, range } = item;
       const suggestions: PackageSuggestion[] = [];
 
       if (E.isLeft(item.pkg)) {
@@ -156,7 +142,7 @@ export async function createCodeLenses({
         const satisfiesVersion = maxSatisfying({
           pkg,
           specifier: dependency.specifier,
-          satisfies,
+          satisfies: service.satisfies,
         });
 
         if (isLatest) {
@@ -181,7 +167,7 @@ export async function createCodeLenses({
           document,
           pkg: item.pkg,
           dependency,
-          position,
+          range,
           suggestion,
         }),
       );

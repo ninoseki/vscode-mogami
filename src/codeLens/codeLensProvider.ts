@@ -1,17 +1,13 @@
-// eslint-disable-next-line simple-import-sort/imports
 import * as E from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import { tryCatch } from "fp-ts/lib/TaskEither";
 import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
+import { ProjectParser } from "@/project";
 
 import { createCodeLenses } from "./codeLensFactory";
 import { CodeLensState } from "./codeLensState";
-import { createDependencyPositions } from "./dependencyPosition";
-import { createProject } from "@/project";
-import { createService } from "@/service";
-import { ProjectFormatType } from "@/schemas";
 
 export class CodeLensProvider
   implements vscode.CodeLensProvider, ExtensionComponent
@@ -24,12 +20,14 @@ export class CodeLensProvider
 
   constructor(
     private documentSelector: vscode.DocumentSelector,
-    private projectFormats: ProjectFormatType[],
+    private projectParser: ProjectParser,
+    private concurrency: number,
     private state: CodeLensState,
     public name?: string,
   ) {
     this.documentSelector = documentSelector;
-    this.projectFormats = projectFormats;
+    this.projectParser = projectParser;
+    this.concurrency = concurrency;
     this.state = state;
     this.name = name;
 
@@ -50,20 +48,11 @@ export class CodeLensProvider
       return [];
     }
 
-    await this.state.setProviderBusy();
-
     const task = tryCatch(
       () => {
-        const project = createProject(document, this.projectFormats);
-        const service = createService(project);
-        const dependencyPositions = createDependencyPositions(document, {
-          parse: service.parse,
-        });
-        return createCodeLenses({
-          document,
-          dependencyPositions,
-          client: service.client,
-          satisfies: service.satisfies,
+        const service = this.projectParser.parse(document);
+        return createCodeLenses(document, service, {
+          concurrency: this.concurrency,
         });
       },
       (e: unknown) => e,

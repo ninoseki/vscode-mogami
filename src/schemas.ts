@@ -70,119 +70,50 @@ export const PackageSchema = z.object({
 
 export type PackageType = z.infer<typeof PackageSchema>;
 
-export const DependencySchema = z.object({
-  name: z.string(),
-  specifier: z.string().optional(),
-});
+export interface DependencyType {
+  name: string;
+  type?: string;
+  specifier?: string;
+}
 
-export type DependencyType = z.infer<typeof DependencySchema>;
+export type RawRangeType = [
+  startLine: number,
+  startCharacter: number,
+  endLine: number,
+  endCharacter: number,
+];
 
-export const PositionSchema = z.object({
-  line: z.number(),
-  character: z.number(),
-});
+export interface PositionLikeType {
+  line: number;
+  character: number;
+}
 
-export type PositionType = z.infer<typeof PositionSchema>;
-
-export const PyProjectProjectSchema = z.object({
-  dependencies: z.array(z.string()).nullish(),
-  optionalDependencies: z.record(z.string(), z.array(z.string())).nullish(),
-});
-
-export const PyProjectSchema = z.object({
-  project: PyProjectProjectSchema,
-});
-
-export const PoetryProjectPoetrySourceSchema = z.object({
-  name: z.string(),
-  url: z.string(),
-});
-
-export const GroupDependenciesSchema = z.object({
-  dependencies: z.record(z.string(), z.unknown()).default({}),
-});
-
-export const PoetryProjectPoetrySchema = z.object({
-  name: z.string().nullish(),
-  version: z.string().nullish(),
-  source: z.array(PoetryProjectPoetrySourceSchema).nullish(),
-  dependencies: z.record(z.string(), z.unknown()).default({}),
-  "dev-dependencies": z.record(z.string(), z.unknown()).default({}),
-  group: z.record(z.string(), GroupDependenciesSchema).default({}),
-});
-
-export const PoetryProjectToolSchema = z.object({
-  poetry: PoetryProjectPoetrySchema,
-});
-
-export const PoetryProjectSchema = z.object({
-  tool: PoetryProjectToolSchema,
-  project: PyProjectProjectSchema.nullish(),
-});
-
-export const PixiToolPixiSchema = z.object({
-  dependencies: z.record(z.string(), z.unknown()).default({}),
-  feature: z.record(z.string(), GroupDependenciesSchema).default({}),
-});
-
-export const PixiToolSchema = z.object({
-  pixi: PixiToolPixiSchema,
-});
-
-export const PixiProjectSchema = z.object({
-  tool: PixiToolSchema,
-});
-
-export const UvProjectToolUvSchema = z.object({
-  indexUrl: z.string().nullish(),
-  devDependencies: z.array(z.string()).nullish(),
-});
-
-export const UvProjectToolSchema = z.object({
-  uv: UvProjectToolUvSchema.nullish(),
-});
-
-export const UvProjectProjectSchema = z.object({
-  dependencies: z.array(z.string()).nullish(),
-  optionalDependencies: z.record(z.string(), z.array(z.string())).nullish(),
-});
-
-export const UvProjectSchema = z.object({
-  project: UvProjectProjectSchema,
-  tool: UvProjectToolSchema.nullish(),
-  // PEP 735 (ref. https://github.com/astral-sh/uv/releases/tag/0.4.27)
-  dependencyGroups: z
-    .record(z.string(), z.union([z.array(z.string()), z.unknown()]))
-    .nullish(),
-});
-
-export type UvProjectType = z.infer<typeof UvProjectSchema>;
+export interface RangeLikeType {
+  start: PositionLikeType;
+  end: PositionLikeType;
+}
+export interface TextDocumentLikeType {
+  lineCount: number;
+  lineAt(line: number): { text: string; range: RangeLikeType };
+  getText(): string;
+}
 
 export const ProjectFormatSchema = z.enum([
   "github-actions-workflow",
   "gemfile",
   "gemspec",
-  "pixi",
-  "poetry",
-  "pyproject",
   "pip-requirements",
-  "uv",
+  "pyproject",
 ]);
 
 export type ProjectFormatType = z.infer<typeof ProjectFormatSchema>;
 
-export const ProjectSchema = z.object({
-  dependencies: z.array(z.string()),
-  source: z.string().optional(),
-  format: ProjectFormatSchema,
-  regex: z.instanceof(RegExp),
-});
-
-export type ProjectType = z.infer<typeof ProjectSchema>;
-
-export interface DependencyPositionType {
-  position: vscode.Position;
-  dependency: DependencyType;
+export interface ProjectType {
+  format: ProjectFormatType;
+  dependencies: [DependencyType, RawRangeType][];
+  satisfies: SatisfiesFnType;
+  source?: string;
+  detailedFormat?: string;
 }
 
 export interface CodeLensType {
@@ -192,7 +123,6 @@ export interface CodeLensType {
   deps: DependencyType;
 }
 
-export type ParseFnType = (line: string) => DependencyType | undefined;
 export type SatisfiesFnType = (version: string, specifier?: string) => boolean;
 
 export interface PackageClientType {

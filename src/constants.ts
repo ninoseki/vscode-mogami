@@ -2,18 +2,18 @@ import * as vscode from "vscode";
 
 import { ProjectFormatType } from "@/schemas";
 
-export const projectFormatsToDocumentSelector = new Map<
-  ProjectFormatType[],
+export const projectFormatToDocumentSelector = new Map<
+  ProjectFormatType,
   vscode.DocumentSelector
 >([
   [
-    ["github-actions-workflow"],
+    "github-actions-workflow",
     [{ pattern: "**/.github/workflows/*.{yml,yaml}", scheme: "file" }],
   ],
-  [["gemspec"], [{ pattern: "**/*.gemspec", scheme: "file" }]],
-  [["gemfile"], [{ pattern: "**/Gemfile", scheme: "file" }]],
+  ["gemspec", [{ pattern: "**/*.gemspec", scheme: "file" }]],
+  ["gemfile", [{ pattern: "**/Gemfile", scheme: "file" }]],
   [
-    ["pip-requirements"],
+    "pip-requirements",
     [
       {
         pattern:
@@ -22,10 +22,7 @@ export const projectFormatsToDocumentSelector = new Map<
       },
     ],
   ],
-  [
-    ["uv", "pixi", "poetry", "pyproject"],
-    [{ pattern: "**/pyproject.toml", scheme: "file" }],
-  ],
+  ["pyproject", [{ pattern: "**/pyproject.toml", scheme: "file" }]],
 ]);
 
 export const ExtID = "vscode-mogami";

@@ -1,19 +1,56 @@
-import { ProjectType } from "@/schemas";
-
-import { nameSpecifierRegexParse } from "./utils";
+import type {
+  DependencyType,
+  ProjectType,
+  RawRangeType,
+  TextDocumentLikeType,
+} from "@/schemas";
+import { satisfies } from "@/versioning/utils";
 
 export const regex = /uses:\s?(?<name>[\w\-\\/]+)@(?<specifier>.+)/;
 
-export function createProject(text: string): ProjectType {
-  const dependencies = text
-    .split("\n")
-    .map((line) => nameSpecifierRegexParse(line, regex))
-    .filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
-    .map((deps) => deps.name);
+export function parseLineAsDependency(
+  line: string,
+): DependencyType | undefined {
+  const matches = regex.exec(line);
+
+  if (!matches) {
+    return undefined;
+  }
+
+  const name = matches.groups?.name;
+  const specifier = matches.groups?.specifier;
+  if (!name) {
+    return undefined;
+  }
+
+  return { name, specifier: specifier?.trim(), type: "ProjectName" };
+}
+
+export function parseProject(document: TextDocumentLikeType): ProjectType {
+  const dependencies: [DependencyType, RawRangeType][] = [];
+
+  for (let line = 0; line < document.lineCount; line++) {
+    const { text, range } = document.lineAt(line);
+
+    const dependency = parseLineAsDependency(text);
+    if (!dependency) {
+      continue;
+    }
+
+    dependencies.push([
+      dependency,
+      [
+        range.start.line,
+        range.start.character,
+        range.end.line,
+        range.end.character,
+      ],
+    ]);
+  }
+
   return {
     dependencies,
     format: "github-actions-workflow",
-    source: undefined,
-    regex,
+    satisfies,
   };
 }
