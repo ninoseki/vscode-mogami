@@ -322,3 +322,26 @@ describe("parseProject with Pixi", () => {
     ]);
   });
 });
+
+describe("parseProject with git versioning", () => {
+  // TODO: consider how to deal with git versioning well...
+  it("should NOT extract requirements", () => {
+    const document = makeTextDocumentLike([
+      "[project]",
+      "dependencies = [",
+      '  "django ==5.1.6",',
+      ' "django-cron @ git+https://github.com/jorenham/django-cron.git@cec7465",',
+      ' "django-suit @ git+https://github.com/jorenham/django-suit.git@3d249e7",',
+      "]",
+    ]);
+
+    const result = parseProject(document);
+    // git versioned requirements/dependencies are not recognized
+    expect(result.dependencies).toEqual([
+      [
+        { name: "django", specifier: "==5.1.6", type: "ProjectName" },
+        [2, 2, 2, 18],
+      ],
+    ]);
+  });
+});
