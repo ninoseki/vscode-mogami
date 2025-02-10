@@ -13,10 +13,10 @@ A VS Code extension for checking the latest version of each dependency.
 - [Python](#python)
   - [requirements.txt](https://pip.pypa.io/en/stable/reference/requirements-file-format/)
   - `pyproject.toml`:
-    - [Poetry](https://python-poetry.org/)
     - [Pixi](https://pixi.sh/)
+    - [Poetry](https://python-poetry.org/)
+    - [PyPA](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
     - [uv](https://docs.astral.sh/uv/)
-    - [PEP 518 and PEP 621](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
 - [Ruby](#ruby)
   - `Gemfile`
   - `*.gemspec`
@@ -34,31 +34,12 @@ A VS Code extension for checking the latest version of each dependency.
 
 ##### Pixi
 
-All the dependencies in Pixi's `pyproject.toml` are considered as Anaconda packages belong to `conda-forge` (https://anaconda.org/conda-forge).
+All the dependencies in Pixi's `pyproject.toml` are considered as [conda-forge](https://anaconda.org/conda-forge) packages.
 
 The following cases are not supported yet:
 
 - Using multiple channels (using a channel except `conda-forge`).
 - Using multiple package repositories (using Anaconda and PyPI together).
-
-##### PEP 621 Styled `pyproject.toml`
-
-[PEP 621](https://peps.python.org/pep-0621/) style `pyproject.toml` should have line-break-separated `dependencies` and `optional-dependencies`.
-
-**Good**
-
-```toml
-dependencies = [
-  "httpx",
-  "django>2.1"
-]
-```
-
-**Bad**
-
-```toml
-dependencies = ["httpx", "django>2.1"]
-```
 
 ##### Authentication / Private Repository
 
@@ -93,3 +74,4 @@ A private repository (source) protected by authentication is not supported.
 ## Alternatives
 
 - [vscode-versionlens](https://gitlab.com/versionlens/vscode-versionlens)
+- [pypi-assistant](https://github.com/Twixes/pypi-assistant)
