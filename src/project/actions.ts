@@ -4,7 +4,6 @@ import type {
   RawRangeType,
   TextDocumentLikeType,
 } from "@/schemas";
-import { satisfies } from "@/versioning/utils";
 
 export const regex = /uses:\s?(?<name>[\w\-\\/]+)@(?<specifier>.+)/;
 
@@ -51,6 +50,5 @@ export function parseProject(document: TextDocumentLikeType): ProjectType {
   return {
     dependencies,
     format: "github-actions-workflow",
-    satisfies,
   };
 }

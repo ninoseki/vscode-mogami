@@ -16,6 +16,9 @@ import type {
   ProjectType,
   SatisfiesFnType,
 } from "@/schemas";
+import { satisfies as gemSatisfies } from "@/versioning/gem";
+import { satisfies as pypiSatisfies } from "@/versioning/pypi";
+import { satisfies as utilsSatisfies } from "@/versioning/utils";
 
 import * as actions from "./actions";
 import * as gemfile from "./gemfile";
@@ -47,6 +50,20 @@ function createClient(project: ProjectType): PackageClientType {
   return new klass(project.source);
 }
 
+function getSatisfiesFn(project: ProjectType): SatisfiesFnType {
+  switch (project.format) {
+    case "gemfile":
+    case "gemspec":
+      return gemSatisfies;
+    case "github-actions-workflow":
+      return utilsSatisfies;
+    case "pyproject":
+    case "pip-requirements":
+      return pypiSatisfies;
+    default:
+      throw new Error("Unsupported format");
+  }
+}
 export class ProjectService {
   public satisfies: SatisfiesFnType;
   private client: PackageClientType;
@@ -56,7 +73,7 @@ export class ProjectService {
     project: ProjectType,
     dependencies: [DependencyType, vscode.Range][],
   ) {
-    this.satisfies = project.satisfies;
+    this.satisfies = getSatisfiesFn(project);
     this.client = createClient(project);
     this.dependencies = dependencies;
   }

@@ -6,7 +6,6 @@ import type {
   RawRangeType,
   TextDocumentLikeType,
 } from "@/schemas";
-import { satisfies } from "@/versioning/pypi";
 
 // Forked from https://github.com/renovatebot/renovate
 const packagePattern = "[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]";
@@ -79,5 +78,5 @@ export function parseProject(document: TextDocumentLikeType): ProjectType {
     ]);
   }
 
-  return { dependencies, source, format: "pip-requirements", satisfies };
+  return { dependencies, source, format: "pip-requirements" };
 }

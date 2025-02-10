@@ -4,7 +4,6 @@ import type {
   RawRangeType,
   TextDocumentLikeType,
 } from "@/schemas";
-import { satisfies } from "@/versioning/gem";
 
 export const regex =
   /\b\w+\.(add_development_dependency|add_runtime_dependency|add_dependency)\s+("|')(?<name>(.+))("|'),\s("|')(?<specifier>(.+))("|')/;
@@ -52,6 +51,5 @@ export function parseProject(document: TextDocumentLikeType): ProjectType {
   return {
     dependencies,
     format: "gemspec",
-    satisfies,
   };
 }

@@ -15,7 +15,6 @@ import type {
   RawRangeType,
   TextDocumentLikeType,
 } from "@/schemas";
-import { satisfies } from "@/versioning/pypi";
 
 import { parseLineAsDependency } from "./requirements";
 
@@ -289,7 +288,6 @@ export function parseProject(document: TextDocumentLikeType): ProjectType {
   return {
     dependencies: dependencies,
     format: "pyproject",
-    satisfies,
     source: visitor.source,
     detailedFormat: visitor.detailedFormat,
   };
