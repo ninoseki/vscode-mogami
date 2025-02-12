@@ -125,7 +125,7 @@ export interface CodeLensType {
 
 export type SatisfiesFnType = (version: string, specifier?: string) => boolean;
 
-export type ValidRangeFnType = (specifier?: string) => boolean;
+export type validateRangeFnType = (specifier?: string) => boolean;
 
 export interface PackageClientType {
   get: (name: string) => Promise<PackageType>;

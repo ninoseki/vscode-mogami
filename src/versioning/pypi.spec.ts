@@ -1,4 +1,4 @@
-import { satisfies, validRange } from "./pypi";
+import { satisfies, validateRange } from "./pypi";
 
 describe("satisfies", () => {
   test.each([
@@ -20,7 +20,7 @@ describe("satisfies", () => {
   );
 });
 
-describe("validRange", () => {
+describe("validateRange", () => {
   test.each([
     [undefined, false],
     ["1.0.0", false],
@@ -32,9 +32,9 @@ describe("validRange", () => {
     // invalid ranged version specifier
     [">=1.0.0 <2.0.0", false],
   ])(
-    "validRange(%s) === %s",
+    "validateRange(%s) === %s",
     (specifier: string | undefined, expected: boolean) => {
-      expect(validRange(specifier)).toBe(expected);
+      expect(validateRange(specifier)).toBe(expected);
     },
   );
 });

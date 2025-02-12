@@ -9,7 +9,7 @@ import type {
   DependencyType,
   PackageType,
   SatisfiesFnType,
-  ValidRangeFnType,
+  validateRangeFnType,
 } from "@/schemas";
 import { eq, maxSatisfying } from "@/versioning/utils";
 
@@ -71,12 +71,12 @@ export function createPackageSuggestions({
   dependency,
   pkgResult,
   satisfies,
-  validRange,
+  validateRange,
 }: {
   dependency: DependencyType;
   pkgResult: E.Either<unknown, PackageType>;
   satisfies: SatisfiesFnType;
-  validRange: ValidRangeFnType;
+  validateRange: validateRangeFnType;
 }): PackageSuggestion[] {
   if (E.isLeft(pkgResult)) {
     return [createErrorSuggestion(pkgResult.left)];
@@ -88,7 +88,7 @@ export function createPackageSuggestions({
   const isLatest: boolean =
     eq(pkg.version, dependency.specifier) || !dependency.specifier;
   const isFixedSpecifier: boolean = semver.valid(dependency.specifier) !== null;
-  const isRangeSpecifier: boolean = validRange(dependency.specifier);
+  const isRangeSpecifier: boolean = validateRange(dependency.specifier);
   const satisfiesVersion = maxSatisfying({
     pkg,
     specifier: dependency.specifier,

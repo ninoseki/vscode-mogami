@@ -23,7 +23,7 @@ export function satisfies(version: string, specifier?: string): boolean {
 
 const isStrictEqualityOperator = (op: string) => ["==", "==="].includes(op);
 
-export function validRange(specifier?: string): boolean {
+export function validateRange(specifier?: string): boolean {
   if (!specifier) {
     return false;
   }
