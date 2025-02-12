@@ -83,12 +83,12 @@ export async function createCodeLenses(
         });
       };
 
-      const { satisfies, validRange } = service;
+      const { satisfies, validateRange } = service;
       const suggestions = createPackageSuggestions({
         dependency,
         pkgResult,
         satisfies,
-        validRange,
+        validateRange,
       });
       return suggestions.map(suggestionMapper);
     })

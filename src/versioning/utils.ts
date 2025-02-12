@@ -166,6 +166,6 @@ export function isPrerelease(v: string): boolean {
   return !/^\d[.\d]+$/.test(v);
 }
 
-export function validRange(specifier?: string): boolean {
+export function validateRange(specifier?: string): boolean {
   return semver.validRange(specifier) !== null;
 }

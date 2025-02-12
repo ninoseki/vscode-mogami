@@ -1,7 +1,7 @@
 import * as E from "fp-ts/lib/Either";
 
 import { DependencyType, PackageType, SatisfiesFnType } from "@/schemas";
-import { satisfies, validRange } from "@/versioning/utils";
+import { satisfies, validateRange } from "@/versioning/utils";
 
 import { createPackageSuggestions, PackageSuggestion } from "./utils";
 
@@ -101,7 +101,7 @@ describe("createPackageSuggestions", () => {
           dependency,
           pkgResult,
           satisfies,
-          validRange,
+          validateRange,
         }),
       ).toEqual(expected);
     },

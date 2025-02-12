@@ -15,16 +15,16 @@ import type {
   ProjectFormatType,
   ProjectType,
   SatisfiesFnType,
-  ValidRangeFnType,
+  validateRangeFnType,
 } from "@/schemas";
 import { satisfies as gemSatisfies } from "@/versioning/gem";
 import {
   satisfies as pypiSatisfies,
-  validRange as pypiValidRange,
+  validateRange as pypiValidateRange,
 } from "@/versioning/pypi";
 import {
   satisfies as utilsSatisfies,
-  validRange as utilsValidRange,
+  validateRange as utilsValidateRange,
 } from "@/versioning/utils";
 
 import * as actions from "./actions";
@@ -72,15 +72,15 @@ function getSatisfiesFn(project: ProjectType): SatisfiesFnType {
   }
 }
 
-function getValidRangeFn(project: ProjectType): ValidRangeFnType {
+function getValidateRangeFn(project: ProjectType): validateRangeFnType {
   switch (project.format) {
     case "gemfile":
     case "gemspec":
     case "github-actions-workflow":
-      return utilsValidRange;
+      return utilsValidateRange;
     case "pyproject":
     case "pip-requirements":
-      return pypiValidRange;
+      return pypiValidateRange;
     default:
       throw new Error("Unsupported format");
   }
@@ -91,7 +91,7 @@ export class ProjectService {
   public dependencies: [DependencyType, vscode.Range][];
 
   public satisfies: SatisfiesFnType;
-  public validRange: ValidRangeFnType;
+  public validateRange: validateRangeFnType;
 
   constructor(
     project: ProjectType,
@@ -101,7 +101,7 @@ export class ProjectService {
     this.dependencies = dependencies;
 
     this.satisfies = getSatisfiesFn(project);
-    this.validRange = getValidRangeFn(project);
+    this.validateRange = getValidateRangeFn(project);
   }
 
   public getDependencyByPosition(
