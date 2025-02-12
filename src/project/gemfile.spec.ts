@@ -24,6 +24,7 @@ describe("parseProject", () => {
       '  gem "grape-entity", "0.0.0"',
       `  gem "coveralls", "~> 0.8", require: false`,
       `gem "rails"`,
+      `  gem "foo", "> 0.8", "< 1.0"`,
     ]);
 
     const result = parseProject(document);
@@ -45,7 +46,14 @@ describe("parseProject", () => {
         { name: "coveralls", specifier: "~> 0.8", type: "ProjectName" },
         [3, 0, 3, 41],
       ],
-      [{ name: "rails", type: "ProjectName" }, [4, 0, 4, 9]],
+      [
+        { name: "rails", specifier: undefined, type: "ProjectName" },
+        [4, 0, 4, 9],
+      ],
+      [
+        { name: "foo", specifier: "> 0.8\t< 1.0", type: "ProjectName" },
+        [5, 0, 5, 27],
+      ],
     ]);
   });
 });

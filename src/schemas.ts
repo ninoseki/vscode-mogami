@@ -74,6 +74,7 @@ export interface DependencyType {
   name: string;
   type?: string;
   specifier?: string;
+  specifierInputs?: string[];
 }
 
 export type RawRangeType = [

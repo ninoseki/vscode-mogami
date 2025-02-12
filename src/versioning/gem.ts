@@ -5,11 +5,14 @@ import { pipe } from "fp-ts/lib/function";
 
 const safeRequirementCreate = (
   specifier?: string,
-): E.Either<unknown, Requirement> =>
-  E.tryCatch<unknown, Requirement>(
-    () => Requirement.create(specifier),
+): E.Either<unknown, Requirement> => {
+  // (multiple) specifiers are splitted by tab
+  const inputs = specifier?.split("\t") || [];
+  return E.tryCatch<unknown, Requirement>(
+    () => Requirement.create(...inputs),
     (e: unknown) => e,
   );
+};
 
 export function satisfies(version: string, specifier?: string): boolean {
   return pipe(
