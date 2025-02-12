@@ -5,25 +5,15 @@ import type {
   TextDocumentLikeType,
 } from "@/schemas";
 
+import { parseLineAsDependencyByRegExp } from "./gemfile";
+
 export const regex =
-  /\b\w+\.(add_development_dependency|add_runtime_dependency|add_dependency)\s+("|')(?<name>(.+))("|'),\s("|')(?<specifier>(.+))("|')/;
+  /\b\w+\.(add_development_dependency|add_runtime_dependency|add_dependency)\s+("|')(?<name>([\w-]+))(("|'),\s("|')(?<specifier>(.+))("|'))?/;
 
 export function parseLineAsDependency(
   line: string,
 ): DependencyType | undefined {
-  const matches = regex.exec(line);
-
-  if (!matches) {
-    return undefined;
-  }
-
-  const name = matches.groups?.name;
-  const specifier = matches.groups?.specifier;
-  if (!name) {
-    return undefined;
-  }
-
-  return { name, specifier: specifier?.trim(), type: "ProjectName" };
+  return parseLineAsDependencyByRegExp(line, regex);
 }
 
 export function parseProject(document: TextDocumentLikeType): ProjectType {

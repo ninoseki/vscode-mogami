@@ -5,25 +5,44 @@ import type {
   TextDocumentLikeType,
 } from "@/schemas";
 
-export const regex =
-  /\bgem\s+("|')(?<name>([\w-]+))(("|'),\s("|')(?<specifier>(.+))("|'))?/;
-
-export function parseLineAsDependency(
+export function parseLineAsDependencyByRegExp(
   line: string,
+  regexp: RegExp,
 ): DependencyType | undefined {
-  const matches = regex.exec(line);
+  const matches = regexp.exec(line);
 
   if (!matches) {
     return undefined;
   }
 
   const name = matches.groups?.name;
-  const specifier = matches.groups?.specifier;
   if (!name) {
     return undefined;
   }
+  const specifier = (() => {
+    const s = matches.groups?.specifier;
+    if (!s) {
+      return undefined;
+    }
+    const mapper = (s: string): string => {
+      // replace tabs inside & trim afterwards
+      // (tab should not be included because it's used as a delimiter)
+      return s.replaceAll("\t", "").trim();
+    };
+    // join requirements in a specifier with tab
+    return s.replace(/["']/g, "").split(",").map(mapper).join("\t");
+  })();
 
-  return { name, specifier: specifier?.trim(), type: "ProjectName" };
+  return { name, specifier, type: "ProjectName" };
+}
+
+export const regexp =
+  /\bgem\s+("|')(?<name>([\w-]+))(("|'),\s("|')(?<specifier>(.+))("|'))?/;
+
+export function parseLineAsDependency(
+  line: string,
+): DependencyType | undefined {
+  return parseLineAsDependencyByRegExp(line, regexp);
 }
 
 function parseSource(line: string): string | undefined {

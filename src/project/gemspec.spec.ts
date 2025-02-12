@@ -21,6 +21,8 @@ describe("parseProject", () => {
     const document = makeTextDocumentLike([
       '  spec.add_development_dependency "bundler", "~> 2.0"',
       'spec.add_dependency "addressable", "~> 2.8"',
+      'spec.add_development_dependency "bundler"',
+      'spec.add_development_dependency "bundler", "~> 2.0", "< 3.0"',
     ]);
 
     const result = parseProject(document);
@@ -33,6 +35,14 @@ describe("parseProject", () => {
       [
         { name: "addressable", specifier: "~> 2.8", type: "ProjectName" },
         [1, 0, 1, 41],
+      ],
+      [
+        { name: "bundler", specifier: undefined, type: "ProjectName" },
+        [2, 0, 2, 39],
+      ],
+      [
+        { name: "bundler", specifier: "~> 2.0\t< 3.0", type: "ProjectName" },
+        [3, 0, 3, 58],
       ],
     ]);
   });
