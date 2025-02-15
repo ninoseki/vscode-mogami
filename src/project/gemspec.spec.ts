@@ -29,19 +29,39 @@ describe("parseProject", () => {
 
     expect(result.dependencies).toEqual([
       [
-        { name: "bundler", specifier: "~> 2.0", type: "ProjectName" },
+        {
+          name: "bundler",
+          specifierRequirements: ["~> 2.0"],
+          specifier: "~> 2.0",
+          type: "ProjectName",
+        },
         [0, 0, 0, 51],
       ],
       [
-        { name: "addressable", specifier: "~> 2.8", type: "ProjectName" },
+        {
+          name: "addressable",
+          specifierRequirements: ["~> 2.8"],
+          specifier: "~> 2.8",
+          type: "ProjectName",
+        },
         [1, 0, 1, 41],
       ],
       [
-        { name: "bundler", specifier: undefined, type: "ProjectName" },
+        {
+          name: "bundler",
+          specifierRequirements: undefined,
+          specifier: undefined,
+          type: "ProjectName",
+        },
         [2, 0, 2, 39],
       ],
       [
-        { name: "bundler", specifier: "~> 2.0\t< 3.0", type: "ProjectName" },
+        {
+          name: "bundler",
+          specifierRequirements: ["~> 2.0", "< 3.0"],
+          specifier: "< 3.0",
+          type: "ProjectName",
+        },
         [3, 0, 3, 58],
       ],
     ]);

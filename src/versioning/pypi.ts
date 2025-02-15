@@ -4,7 +4,13 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import semver from "semver";
 
-export function satisfies(version: string, specifier?: string): boolean {
+import { DependencyType } from "@/schemas";
+
+export function satisfies(
+  version: string,
+  dependency: DependencyType,
+): boolean {
+  const { specifier } = dependency;
   if (!specifier) {
     return false;
   }
@@ -23,7 +29,8 @@ export function satisfies(version: string, specifier?: string): boolean {
 
 const isStrictEqualityOperator = (op: string) => ["==", "==="].includes(op);
 
-export function validateRange(specifier?: string): boolean {
+export function validateRange(dependency: DependencyType): boolean {
+  const { specifier } = dependency;
   if (!specifier) {
     return false;
   }

@@ -4,7 +4,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import semver from "semver";
 
-import { PackageType } from "@/schemas";
+import { DependencyType, PackageType, SatisfiesFnType } from "@/schemas";
 
 // Forked from https://gitlab.com/versionlens/vscode-versionlens/
 // eslint-disable-next-line regexp/no-super-linear-backtracking
@@ -24,13 +24,17 @@ export const semverLeadingChars = [
 
 const leadingCharsRegex = /^[\^~><=]+/;
 
+function parseLeading(version: string): string | null {
+  const regExResult = extractSymbolFromVersionRegex.exec(version);
+  return regExResult && regExResult[1];
+}
+
 export function formatWithExistingLeading(
   existingVersion: string,
   newVersion: string,
+  { replaceLt }: { replaceLt: boolean } = { replaceLt: true },
 ) {
-  const regExResult = extractSymbolFromVersionRegex.exec(existingVersion);
-  const leading = regExResult && regExResult[1];
-
+  const leading = parseLeading(existingVersion);
   const hasLeading: boolean = pipe(
     O.fromNullable(leading),
     O.map((leading: string) => semverLeadingChars.includes(leading.trim())),
@@ -39,6 +43,13 @@ export function formatWithExistingLeading(
 
   if (!hasLeading) {
     return newVersion;
+  }
+
+  const hasLt = leading?.trim() === "<";
+
+  if (hasLt && replaceLt) {
+    const rest = leading?.replace("<", "");
+    return `<=${rest}${newVersion}`;
   }
 
   return `${leading}${newVersion}`;
@@ -131,20 +142,24 @@ export function compare(v1: string, v2: string): number {
 
 export function maxSatisfying({
   pkg,
-  specifier,
+  dependency,
   satisfies,
 }: {
   pkg: PackageType;
-  specifier?: string;
-  satisfies: (version: string, specifier?: string) => boolean;
+  dependency: DependencyType;
+  satisfies: SatisfiesFnType;
 }): string | undefined {
   return pkg.versions
     .sort(compare)
     .reverse()
-    .find((v) => satisfies(v, specifier));
+    .find((v) => satisfies(v, dependency));
 }
 
-export function satisfies(version: string, specifier?: string): boolean {
+export function satisfies(
+  version: string,
+  dependency: DependencyType,
+): boolean {
+  const { specifier } = dependency;
   if (!specifier) {
     return false;
   }
@@ -166,6 +181,25 @@ export function isPrerelease(v: string): boolean {
   return !/^\d[.\d]+$/.test(v);
 }
 
-export function validateRange(specifier?: string): boolean {
-  return semver.validRange(specifier) !== null;
+export function validateRange(dependency: DependencyType): boolean {
+  const hasNothingOrStrictEqualLeading = (constraint: string): boolean => {
+    const leading = parseLeading(constraint);
+    return [null, "", "=="].includes(leading);
+  };
+
+  if (dependency.specifierRequirements) {
+    return !dependency.specifierRequirements.some(
+      hasNothingOrStrictEqualLeading,
+    );
+  }
+
+  if (!dependency.specifier) {
+    return false;
+  }
+
+  if (hasNothingOrStrictEqualLeading(dependency.specifier)) {
+    return false;
+  }
+
+  return semver.validRange(dependency.specifier) !== null;
 }

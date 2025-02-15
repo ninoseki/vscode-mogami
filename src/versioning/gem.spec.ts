@@ -10,7 +10,12 @@ describe("satisfies", () => {
   ])(
     "satisfies(%s, %s) === %s",
     (version: string, specifier: string, expected: boolean) => {
-      expect(satisfies(version, specifier)).toBe(expected);
+      expect(
+        satisfies(version, {
+          name: "dummy",
+          specifierRequirements: [specifier],
+        }),
+      ).toBe(expected);
     },
   );
 });

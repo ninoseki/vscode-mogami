@@ -15,7 +15,7 @@ describe("satisfies", () => {
   ])(
     "satisfies(%s, %s) === %s",
     (version: string, specifier: string, expected: boolean) => {
-      expect(satisfies(version, specifier)).toBe(expected);
+      expect(satisfies(version, { name: "dummy", specifier })).toBe(expected);
     },
   );
 });
@@ -34,7 +34,7 @@ describe("validateRange", () => {
   ])(
     "validateRange(%s) === %s",
     (specifier: string | undefined, expected: boolean) => {
-      expect(validateRange(specifier)).toBe(expected);
+      expect(validateRange({ name: "dummy", specifier })).toBe(expected);
     },
   );
 });

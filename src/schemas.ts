@@ -74,7 +74,9 @@ export interface DependencyType {
   name: string;
   type?: string;
   specifier?: string;
-  specifierInputs?: string[];
+  // Gem can have multiple requirements like:
+  // "progressbar", ">= 1.9.0", "< 2.0"
+  specifierRequirements?: string[];
 }
 
 export type RawRangeType = [
@@ -123,9 +125,12 @@ export interface CodeLensType {
   deps: DependencyType;
 }
 
-export type SatisfiesFnType = (version: string, specifier?: string) => boolean;
+export type SatisfiesFnType = (
+  version: string,
+  dependency: DependencyType,
+) => boolean;
 
-export type validateRangeFnType = (specifier?: string) => boolean;
+export type validateRangeFnType = (dependency: DependencyType) => boolean;
 
 export interface PackageClientType {
   get: (name: string) => Promise<PackageType>;

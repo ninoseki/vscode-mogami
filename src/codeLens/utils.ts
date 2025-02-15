@@ -88,10 +88,10 @@ export function createPackageSuggestions({
   const isLatest: boolean =
     eq(pkg.version, dependency.specifier) || !dependency.specifier;
   const isFixedSpecifier: boolean = semver.valid(dependency.specifier) !== null;
-  const isRangeSpecifier: boolean = validateRange(dependency.specifier);
+  const isRangeSpecifier: boolean = validateRange(dependency);
   const satisfiesVersion = maxSatisfying({
     pkg,
-    specifier: dependency.specifier,
+    dependency,
     satisfies,
   });
 
