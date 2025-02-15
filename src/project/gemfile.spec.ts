@@ -31,27 +31,57 @@ describe("parseProject", () => {
 
     expect(result.dependencies).toEqual([
       [
-        { name: "pry", specifier: "~> 0.12", type: "ProjectName" },
+        {
+          name: "pry",
+          specifierRequirements: ["~> 0.12"],
+          specifier: "~> 0.12",
+          type: "ProjectName",
+        },
         [0, 0, 0, 20],
       ],
       [
-        { name: "anyway_config", specifier: "0.0.0", type: "ProjectName" },
+        {
+          name: "anyway_config",
+          specifierRequirements: ["0.0.0"],
+          specifier: "0.0.0",
+          type: "ProjectName",
+        },
         [1, 0, 1, 28],
       ],
       [
-        { name: "grape-entity", specifier: "0.0.0", type: "ProjectName" },
+        {
+          name: "grape-entity",
+          specifierRequirements: ["0.0.0"],
+          specifier: "0.0.0",
+          type: "ProjectName",
+        },
         [2, 0, 2, 27],
       ],
       [
-        { name: "coveralls", specifier: "~> 0.8", type: "ProjectName" },
+        {
+          name: "coveralls",
+          specifierRequirements: ["~> 0.8"],
+          specifier: "~> 0.8",
+          type: "ProjectName",
+        },
         [3, 0, 3, 41],
       ],
       [
-        { name: "rails", specifier: undefined, type: "ProjectName" },
+        {
+          name: "rails",
+          specifierRequirements: undefined,
+          specifier: undefined,
+          type: "ProjectName",
+        },
         [4, 0, 4, 9],
       ],
       [
-        { name: "foo", specifier: "> 0.8\t< 1.0", type: "ProjectName" },
+        {
+          name: "foo",
+          specifierRequirements: ["> 0.8", "< 1.0"],
+          specifier: "< 1.0",
+          type: "ProjectName",
+        },
         [5, 0, 5, 27],
       ],
     ]);

@@ -1,3 +1,5 @@
+import { DependencyType } from "@/schemas";
+
 import {
   compare,
   eq,
@@ -5,6 +7,7 @@ import {
   isPrerelease,
   preCoerce,
   removeLeading,
+  validateRange,
 } from "./utils";
 
 describe("formatWithExistingLeading", () => {
@@ -116,5 +119,19 @@ describe("isPrerelease", () => {
     ["4.13.0b2", true],
   ])("isPrerelease(%s) === %s", (version: string, expected: boolean) => {
     expect(isPrerelease(version)).toBe(expected);
+  });
+});
+
+describe("validateRange", () => {
+  test.each([
+    [{ name: "dummy", specifier: undefined }, false],
+    [{ name: "dummy", specifier: "1.0" }, false],
+    [{ name: "dummy", specifier: ">1.0" }, true],
+    [{ name: "dummy", specifier: ">1.0 <2.0" }, true],
+    [{ name: "dummy", specifierRequirements: ["1.0"] }, false],
+    [{ name: "dummy", specifierRequirements: ["==1.0"] }, false],
+    [{ name: "dummy", specifierRequirements: [">1.0", "<2.0"] }, true],
+  ])("validateRange(%s) === %s", (v: DependencyType, expected: boolean) => {
+    expect(validateRange(v)).toBe(expected);
   });
 });

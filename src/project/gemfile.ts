@@ -4,6 +4,7 @@ import type {
   RawRangeType,
   TextDocumentLikeType,
 } from "@/schemas";
+import { compare, removeLeading } from "@/versioning/utils";
 
 export function parseLineAsDependencyByRegExp(
   line: string,
@@ -19,21 +20,31 @@ export function parseLineAsDependencyByRegExp(
   if (!name) {
     return undefined;
   }
-  const specifier = (() => {
+  const specifierRequirements = (() => {
     const s = matches.groups?.specifier;
     if (!s) {
       return undefined;
     }
-    const mapper = (s: string): string => {
-      // replace tabs inside & trim afterwards
-      // (tab should not be included because it's used as a delimiter)
-      return s.replaceAll("\t", "").trim();
-    };
     // join requirements in a specifier with tab
-    return s.replace(/["']/g, "").split(",").map(mapper).join("\t");
+    return s
+      .replace(/["']/g, "")
+      .split(",")
+      .map((s) => s.trim());
   })();
 
-  return { name, specifier, type: "ProjectName" };
+  // set the biggest requirement (without leading) as a specifier to make it compatible with other formats
+  const specifier = (() => {
+    if (!specifierRequirements) {
+      return undefined;
+    }
+    const compareWithoutLeading = (v1: string, v2: string) => {
+      return compare(removeLeading(v1), removeLeading(v2));
+    };
+    const sorted = specifierRequirements.sort(compareWithoutLeading);
+    return sorted[sorted.length - 1];
+  })();
+
+  return { name, specifier, specifierRequirements, type: "ProjectName" };
 }
 
 export const regexp =
