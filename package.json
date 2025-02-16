@@ -27,7 +27,8 @@
     "workspaceContains:**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt}",
     "workspaceContains:**/*.gemspec",
     "workspaceContains:**/Gemfile",
-    "workspaceContains:**/.github/workflows/*.{yaml,yml}"
+    "workspaceContains:**/.github/workflows/*.{yaml,yml}",
+    "workspaceContains:**/shard.yml"
   ],
   "contributes": {
     "commands": [
@@ -166,6 +167,7 @@
     "toml-eslint-parser": "^0.10.0",
     "url-join": "^5.0.0",
     "winston-transport-vscode": "^0.1.0",
+    "yaml-eslint-parser": "^1.2.3",
     "zod": "^3.24.2"
   }
 }

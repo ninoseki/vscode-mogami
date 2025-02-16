@@ -28,23 +28,31 @@ function createCodeLens({
     if (!suggestion.replaceable) {
       return undefined;
     }
-    const docLine = document.lineAt(range.start.line);
-    return pipe(
-      O.fromNullable(dependency.specifier),
-      O.flatMap((s: string) => {
-        const index = docLine.text.lastIndexOf(s);
-        if (index > 0) {
-          return O.some(
-            new vscode.Range(
-              new vscode.Position(docLine.lineNumber, index),
-              new vscode.Position(docLine.lineNumber, index + s.length),
-            ),
-          );
-        }
-        return O.none;
-      }),
-      O.getOrElseW(() => undefined),
-    );
+
+    // check from end to start
+    for (let i = range.end.line - range.start.line; i >= 0; i--) {
+      const lineNumber = range.start.line + i;
+      const text = document.lineAt(lineNumber).text;
+      const result = pipe(
+        O.fromNullable(dependency.specifier),
+        O.flatMap((s: string) => {
+          const index = text.lastIndexOf(s);
+          if (index > 0) {
+            return O.some(
+              new vscode.Range(
+                new vscode.Position(lineNumber, index),
+                new vscode.Position(lineNumber, index + s.length),
+              ),
+            );
+          }
+          return O.none;
+        }),
+      );
+      if (O.isSome(result)) {
+        return result.value;
+      }
+    }
+    return undefined;
   })();
 
   const codeLens = new SuggestionCodeLens(range, {

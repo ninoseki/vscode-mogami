@@ -10,29 +10,37 @@ A VS Code extension for checking the latest version of each dependency.
 
 ## Supported Formats
 
-- [Python](#python)
+- Python:
   - [requirements.txt](https://pip.pypa.io/en/stable/reference/requirements-file-format/)
   - `pyproject.toml`:
-    - [Pixi](https://pixi.sh/)
-    - [Poetry](https://python-poetry.org/)
-    - [PyPA](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
-    - [uv](https://docs.astral.sh/uv/)
-- [Ruby](#ruby)
+    - [Pixi](https://pixi.sh/): `tool.pixi.dependencies` & `tool.pixi.feature.*.dependencies`
+    - [Poetry](https://python-poetry.org/): `tool.poetry.dependencies` & `tool.poetry.group.*.dependencies`. `tool.poetry.source`
+    - [PyPA](https://packaging.python.org/en/latest/specifications/pyproject-toml/): `project.dependencies`, `project.optional-dependencies` & `dependency-groups`
+    - [uv](https://docs.astral.sh/uv/): `tool.uv.constraint-dependencies`, `tool.uv.dev-dependencies` & `tool.uv.override-dependencies`
+- Ruby:
   - `Gemfile`
   - `*.gemspec`
-- [GitHub Actions](#github-actions)
+- GitHub Actions:
   - `.github/workflows/*.{yml,yaml}`
+- Crystal Shards:
 
-### Python
+  - `shard.yml`
 
-| Format             | Private Source                                                              |
-| ------------------ | --------------------------------------------------------------------------- |
-| `requirements.txt` | `--index-url` is supported.                                                 |
-| `pyproject.toml`   | Poetry's `tool.poetry.source` and `uv`'s `tool.uv.index-url` are supported. |
+## Custom Source
 
-#### Known Limitations
+By default, this extension uses a public source (repository) to check package data. The following formats & configurations are supported to change a source to be used.
 
-##### Pixi
+- Python:
+  - [requirements.txt](https://pip.pypa.io/en/stable/reference/requirements-file-format/): `--index-url`
+  - `pyproject.toml`:
+    - [Poetry](https://python-poetry.org/): `tool.poetry.source`
+    - [uv](https://docs.astral.sh/uv/): `tool.uv,.index-url`
+- Ruby:
+  - `Gemfile`: `source`
+
+## Known Limitations
+
+### Pixi
 
 All the dependencies in Pixi's `pyproject.toml` are considered as [conda-forge](https://anaconda.org/conda-forge) packages.
 
@@ -41,25 +49,9 @@ The following cases are not supported yet:
 - Using multiple channels (using a channel except `conda-forge`).
 - Using multiple package repositories (using Anaconda and PyPI together).
 
-##### Authentication / Private Repository
+### Crystal Shards
 
-A private repository (source) protected by authentication is not supported.
-
-### Ruby
-
-| Format      | Private Source         |
-| ----------- | ---------------------- |
-| `Gemfile`   | `source` is supported. |
-| `*.gemspec` |                        |
-
-### GitHub Actions
-
-| Format                           | Private Source |
-| -------------------------------- | -------------- |
-| `.github/workflows/*.{yml,yaml}` |                |
-
-> [!NOTE]
-> Mogami uses the GitHub REST API to get release data. The API may block you if you don't set a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). You can configure it via `vscode-mogami.gitHubPersonalAccessToken`.
+A `github` attributed dependency is supported. `gitlab`, `bitbucket`, etc. are not supported.
 
 ## Configuration
 
@@ -70,6 +62,9 @@ A private repository (source) protected by authentication is not supported.
 | `vscode-mogami.gitHubPersonalAccessToken` | null    | GitHub personal access token for interacting with GitHub REST API. |
 | `vscode-mogami.showPrerelease`            | `false` | Whether to show a prerelease version or not.                       |
 | `vscode-mogami.usePrivateSource`          | `true`  | Whether to use a private source (repository) if it's set or not.   |
+
+> [!NOTE]
+> Mogami uses the GitHub REST API to get release data of GitHub Actions Workflow and Crystal Shards. The API may block you if you don't set a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). You can configure it via `vscode-mogami.gitHubPersonalAccessToken`.
 
 ## Alternatives
 

@@ -32,29 +32,30 @@ import * as gemfile from "./gemfile";
 import * as gemspec from "./gemspec";
 import * as pyproject from "./pyproject";
 import * as requirements from "./requirements";
+import * as shards from "./shards";
 
 type VersionedFileKey = `${string}::${number}`;
 
 function createClient(project: ProjectType): PackageClientType {
-  const klass = (() => {
-    if (project.format === "gemfile" || project.format === "gemspec") {
-      return GemClient;
-    }
-    if (project.format === "pyproject" && project.detailedFormat === "pixi") {
-      return AnacondaClient;
-    }
-    if (project.format === "pyproject") {
-      return PyPIClient;
-    }
-    if (project.format === "pip-requirements") {
-      return PyPIClient;
-    }
-    if (project.format === "github-actions-workflow") {
-      return GitHubClient;
-    }
-    throw new Error("Unsupported format");
-  })();
-  return new klass(project.source);
+  if (project.format === "gemfile" || project.format === "gemspec") {
+    return new GemClient(project.source);
+  }
+  if (project.format === "pyproject" && project.detailedFormat === "pixi") {
+    return new AnacondaClient(project.source);
+  }
+  if (project.format === "pyproject") {
+    return new PyPIClient(project.source);
+  }
+  if (project.format === "pip-requirements") {
+    return new PyPIClient(project.source);
+  }
+  if (project.format === "github-actions-workflow") {
+    return new GitHubClient(project.source, { preserveVersionPrefix: false });
+  }
+  if (project.format === "shards") {
+    return new GitHubClient(project.source, { preserveVersionPrefix: true });
+  }
+  throw new Error("Unsupported format");
 }
 
 function getSatisfiesFn(project: ProjectType): SatisfiesFnType {
@@ -66,6 +67,7 @@ function getSatisfiesFn(project: ProjectType): SatisfiesFnType {
       return utilsSatisfies;
     case "pyproject":
     case "pip-requirements":
+    case "shards":
       return pypiSatisfies;
     default:
       throw new Error("Unsupported format");
@@ -80,6 +82,7 @@ function getValidateRangeFn(project: ProjectType): validateRangeFnType {
       return utilsValidateRange;
     case "pyproject":
     case "pip-requirements":
+    case "shards":
       return pypiValidateRange;
     default:
       throw new Error("Unsupported format");
@@ -161,6 +164,9 @@ export class ProjectParser {
       }
       if (this.projectFormatType === "github-actions-workflow") {
         return actions.parseProject(document);
+      }
+      if (this.projectFormatType === "shards") {
+        return shards.parseProject(document);
       }
     })();
 
