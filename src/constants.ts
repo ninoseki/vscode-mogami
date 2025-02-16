@@ -23,6 +23,7 @@ export const projectFormatToDocumentSelector = new Map<
     ],
   ],
   ["pyproject", [{ pattern: "**/pyproject.toml", scheme: "file" }]],
+  ["shards", [{ pattern: "**/shard.yml", scheme: "file" }]],
 ]);
 
 export const ExtID = "vscode-mogami";

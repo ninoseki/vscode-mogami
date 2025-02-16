@@ -23,6 +23,7 @@ export default defineConfig({
     "toml-eslint-parser",
     "url-join",
     "winston-transport-vscode",
+    "yaml-eslint-parser",
     "zod",
   ],
 });

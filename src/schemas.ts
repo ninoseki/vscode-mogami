@@ -102,9 +102,10 @@ export interface TextDocumentLikeType {
 }
 
 export const ProjectFormatSchema = z.enum([
-  "github-actions-workflow",
+  "shards",
   "gemfile",
   "gemspec",
+  "github-actions-workflow",
   "pip-requirements",
   "pyproject",
 ]);
