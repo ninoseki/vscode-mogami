@@ -16,12 +16,8 @@ export abstract class AbstractPackageClient implements PackageClientType {
   private privateSource?: URL;
 
   constructor(primarySource: string, privateSource?: string) {
-    // returns always true in validStatus & cachePredicate to cache all the responses including errors
-    this.client = setupCache(axios.create({ validateStatus: () => true }), {
+    this.client = setupCache(axios.create(), {
       storage: cache,
-      cachePredicate: {
-        statusCheck: () => true,
-      },
       // ignore header based cache control to cache Ruby Gem API responses
       // (ref. https://axios-cache-interceptor.js.org/config#headerinterpreter)
       headerInterpreter: () => "not enough headers",
