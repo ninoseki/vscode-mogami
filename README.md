@@ -23,7 +23,6 @@ A VS Code extension for checking the latest version of each dependency.
 - GitHub Actions:
   - `.github/workflows/*.{yml,yaml}`
 - Crystal Shards:
-
   - `shard.yml`
 
 ## Custom Source
