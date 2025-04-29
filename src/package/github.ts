@@ -3,7 +3,7 @@ import semver from "semver";
 import urlJoin from "url-join";
 
 import { getGitHubPersonalAccessToken } from "@/configuration";
-import { GitHubReleasesSchema, PackageType } from "@/schemas";
+import { GitHubReleaseSchema, GitHubTagSchema, PackageType } from "@/schemas";
 
 import { AbstractPackageClient } from "./abstractClient";
 export class GitHubClient extends AbstractPackageClient {
@@ -29,28 +29,44 @@ export class GitHubClient extends AbstractPackageClient {
       return {};
     })();
 
-    const res = await this.client.get(
-      urlJoin(this.source.toString(), "repos", name, "releases"),
-      { headers },
-    );
-    const releases = GitHubReleasesSchema.parse(
-      camelcaseKeys(res.data, { deep: true }),
-    );
-    if (releases.length > 0) {
-      const release = releases[0];
-      const coerceOrOriginal = (tagName: string): string =>
-        // apply coerce if preserveVersionPrefix is true
-        this.preserveVersionPrefix
-          ? semver.coerce(tagName)?.version || tagName
-          : tagName;
+    const getLatestRelease = async () => {
+      const res = await this.client.get(
+        urlJoin(this.source.toString(), "repos", name, "releases", "latest"),
+        { headers },
+      );
+      return GitHubReleaseSchema.parse(camelcaseKeys(res.data, { deep: true }));
+    };
 
-      return {
-        name,
-        version: coerceOrOriginal(release.tagName),
-        versions: releases.map((r) => coerceOrOriginal(r.tagName)),
-      };
-    }
+    const getTag = async (tagName: string) => {
+      const res = await this.client.get(
+        urlJoin(
+          this.source.toString(),
+          "repos",
+          name,
+          "git",
+          "refs",
+          "tags",
+          tagName,
+        ),
+        { headers },
+      );
+      return GitHubTagSchema.parse(res.data);
+    };
 
-    throw Error("There is no release");
+    const release = await getLatestRelease();
+    const tag = await getTag(release.tagName);
+    const coerceOrOriginal = (tagName: string): string =>
+      // apply coerce if preserveVersionPrefix is true
+      this.preserveVersionPrefix
+        ? semver.coerce(tagName)?.version || tagName
+        : tagName;
+
+    const version = coerceOrOriginal(release.tagName);
+    return {
+      name,
+      version,
+      versions: [version],
+      alias: tag.object.sha,
+    };
   }
 }

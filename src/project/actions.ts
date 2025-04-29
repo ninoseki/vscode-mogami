@@ -22,7 +22,16 @@ export function parseLineAsDependency(
     return undefined;
   }
 
-  return { name, specifier: specifier?.trim(), type: "ProjectName" };
+  const normalizeSpecifier = (specifier?: string) => {
+    if (!specifier) {
+      return undefined;
+    }
+    const withoutComment = specifier.split("#")[0];
+    return withoutComment.trim();
+  };
+  const normalizedSpecifier = normalizeSpecifier(specifier);
+
+  return { name, specifier: normalizedSpecifier, type: "ProjectName" };
 }
 
 export function parseProject(document: TextDocumentLikeType): ProjectType {

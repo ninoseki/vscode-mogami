@@ -50,19 +50,26 @@ export const GemPackageSchema = z.object({
 export type GemType = z.infer<typeof GemSchema>;
 export type GemPackageType = z.infer<typeof GemPackageSchema>;
 
+const GitHubTagObjectSchema = z.object({
+  sha: z.string(),
+});
+
+export const GitHubTagSchema = z.object({
+  object: GitHubTagObjectSchema,
+});
+
+export type GitHubTagType = z.infer<typeof GitHubTagSchema>;
+
 export const GitHubReleaseSchema = z.object({
   tagName: z.string(),
 });
 
 export type GitHubReleaseType = z.infer<typeof GitHubReleaseSchema>;
 
-export const GitHubReleasesSchema = z.array(GitHubReleaseSchema);
-
-export type GitHubReleasesType = z.infer<typeof GitHubReleasesSchema>;
-
 export const PackageSchema = z.object({
   name: z.string(),
   version: z.string().describe("The latest version of the package"),
+  alias: z.string().optional().describe("An alias of the the latest version"),
   versions: z.array(z.string()),
   summary: z.string().optional(),
   url: z.string().optional(),

@@ -86,7 +86,10 @@ export function createPackageSuggestions({
   const pkg = pkgResult.right;
 
   const isLatest: boolean =
-    eq(pkg.version, dependency.specifier) || !dependency.specifier;
+    eq(pkg.version, dependency.specifier) || // compare version
+    pkg.alias === dependency.specifier || // alias check
+    !dependency.specifier; // no specifier = latest
+
   const isFixedSpecifier: boolean = semver.valid(dependency.specifier) !== null;
   const isRangeSpecifier: boolean = validateRange(dependency);
   const satisfiesVersion = maxSatisfying({
