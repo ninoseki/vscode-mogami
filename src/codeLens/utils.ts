@@ -85,11 +85,21 @@ export function createPackageSuggestions({
   const suggestions: PackageSuggestion[] = [];
   const pkg = pkgResult.right;
 
-  const isLatest: boolean =
-    eq(pkg.version, dependency.specifier) || // compare version
-    pkg.alias === dependency.specifier || // alias check
-    !dependency.specifier; // no specifier = latest
+  const checkIsLatest = (): boolean => {
+    if (dependency.specifier) {
+      // check alias equality (if alias is available)
+      if (pkg.alias === dependency.specifier) {
+        return true;
+      }
 
+      // check semantic versioning equality
+      return eq(pkg.version, dependency.specifier);
+    }
+    // consider it's the latest version if no specifier is provided
+    return true;
+  };
+
+  const isLatest = checkIsLatest();
   const isFixedSpecifier: boolean = semver.valid(dependency.specifier) !== null;
   const isRangeSpecifier: boolean = validateRange(dependency);
   const satisfiesVersion = maxSatisfying({
