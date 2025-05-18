@@ -17,7 +17,7 @@ export const projectFormatToDocumentSelector = new Map<
     [
       {
         pattern:
-          "**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt}",
+          "**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt,constraints.txt}",
         scheme: "file",
       },
     ],
