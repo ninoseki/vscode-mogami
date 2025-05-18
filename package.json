@@ -24,7 +24,7 @@
   ],
   "activationEvents": [
     "workspaceContains:**/pyproject.toml",
-    "workspaceContains:**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt}",
+    "workspaceContains:**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt,constraints.txt}",
     "workspaceContains:**/*.gemspec",
     "workspaceContains:**/Gemfile",
     "workspaceContains:**/.github/workflows/*.{yaml,yml}",
