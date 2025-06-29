@@ -195,9 +195,11 @@ export class ProjectParser {
       throw new Error("Unsupported project format");
     }
 
-    Logger.debug(
-      `Project detected: ${project.format} (${project.dependencies.length} dependencies found), detailed format: ${project.detailedFormat ?? "N/A"}, source: ${project.source ?? "N/A"}`,
-    );
+    Logger.debug(`Project detected: ${project.format}`, {
+      detailedFormat: project.detailedFormat,
+      source: project.source,
+      dependenciesCount: project.dependencies.length,
+    });
 
     this.cache.set(cacheKey, project);
 
