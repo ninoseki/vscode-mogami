@@ -5,6 +5,7 @@ import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
 import { ProjectParser } from "@/project";
+import { ProjectFormatType } from "@/schemas";
 
 import { createCodeLenses } from "./codeLensFactory";
 import { CodeLensState } from "./codeLensState";
@@ -18,19 +19,16 @@ export class CodeLensProvider
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
+  private projectParser: ProjectParser | undefined;
+
   constructor(
+    private context: vscode.ExtensionContext,
     private documentSelector: vscode.DocumentSelector,
-    private projectParser: ProjectParser,
+    private projectFormat: ProjectFormatType,
     private concurrency: number,
     private state: CodeLensState,
     public name?: string,
   ) {
-    this.documentSelector = documentSelector;
-    this.projectParser = projectParser;
-    this.concurrency = concurrency;
-    this.state = state;
-    this.name = name;
-
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
     });
@@ -41,6 +39,14 @@ export class CodeLensProvider
     this._onDidChangeCodeLenses.fire();
   }
 
+  private async getProjectParser(): Promise<ProjectParser> {
+    if (this.projectParser) {
+      return this.projectParser;
+    }
+    this.projectParser = new ProjectParser(this.context, this.projectFormat);
+    return this.projectParser;
+  }
+
   public async provideCodeLenses(document: vscode.TextDocument) {
     await this.state.setProviderActive(this.name);
 
@@ -48,9 +54,10 @@ export class CodeLensProvider
       return [];
     }
 
+    const projectParser = await this.getProjectParser();
     const task = tryCatch(
       () => {
-        const service = this.projectParser.parse(document);
+        const service = projectParser.parse(document);
         return createCodeLenses(document, service, {
           concurrency: this.concurrency,
         });

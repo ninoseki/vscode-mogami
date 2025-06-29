@@ -2,22 +2,27 @@ import camelcaseKeys from "camelcase-keys";
 import semver from "semver";
 import urlJoin from "url-join";
 
-import { getGitHubPersonalAccessToken } from "@/configuration";
 import { GitHubReleaseSchema, GitHubTagSchema, PackageType } from "@/schemas";
 
 import { AbstractPackageClient } from "./abstractClient";
 export class GitHubClient extends AbstractPackageClient {
-  private gitHubPersonalAccessToken: string | null = null;
+  private gitHubPersonalAccessToken: string | undefined = undefined;
   private preserveVersionPrefix: boolean;
 
   constructor(
     privateSource?: string,
-    { preserveVersionPrefix }: { preserveVersionPrefix: boolean } = {
+    {
+      preserveVersionPrefix,
+      gitHubPersonalAccessToken,
+    }: {
+      preserveVersionPrefix: boolean;
+      gitHubPersonalAccessToken?: string;
+    } = {
       preserveVersionPrefix: true,
     },
   ) {
     super("https://api.github.com", privateSource);
-    this.gitHubPersonalAccessToken = getGitHubPersonalAccessToken();
+    this.gitHubPersonalAccessToken = gitHubPersonalAccessToken;
     this.preserveVersionPrefix = preserveVersionPrefix;
   }
 

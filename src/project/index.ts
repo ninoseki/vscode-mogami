@@ -17,6 +17,7 @@ import type {
   SatisfiesFnType,
   validateRangeFnType,
 } from "@/schemas";
+import { getGitHubPersonalAccessToken } from "@/secrets";
 import { satisfies as gemSatisfies } from "@/versioning/gem";
 import {
   satisfies as pypiSatisfies,
@@ -36,7 +37,10 @@ import * as shards from "./shards";
 
 type VersionedFileKey = `${string}::${number}`;
 
-function createClient(project: ProjectType): PackageClientType {
+async function createClient(
+  context: vscode.ExtensionContext,
+  project: ProjectType,
+): Promise<PackageClientType> {
   if (project.format === "gemfile" || project.format === "gemspec") {
     return new GemClient(project.source);
   }
@@ -49,12 +53,21 @@ function createClient(project: ProjectType): PackageClientType {
   if (project.format === "pip-requirements") {
     return new PyPIClient(project.source);
   }
+
+  const gitHubPersonalAccessToken = await getGitHubPersonalAccessToken(context);
   if (project.format === "github-actions-workflow") {
-    return new GitHubClient(project.source, { preserveVersionPrefix: false });
+    return new GitHubClient(project.source, {
+      preserveVersionPrefix: false,
+      gitHubPersonalAccessToken,
+    });
   }
   if (project.format === "shards") {
-    return new GitHubClient(project.source, { preserveVersionPrefix: true });
+    return new GitHubClient(project.source, {
+      preserveVersionPrefix: true,
+      gitHubPersonalAccessToken,
+    });
   }
+
   throw new Error("Unsupported format");
 }
 
@@ -90,19 +103,15 @@ function getValidateRangeFn(project: ProjectType): validateRangeFnType {
 }
 
 export class ProjectService {
-  private client: PackageClientType;
-  public dependencies: [DependencyType, vscode.Range][];
-
   public satisfies: SatisfiesFnType;
   public validateRange: validateRangeFnType;
+  private client: PackageClientType | undefined;
 
   constructor(
-    project: ProjectType,
-    dependencies: [DependencyType, vscode.Range][],
+    private context: vscode.ExtensionContext,
+    private project: ProjectType,
+    private dependencies: [DependencyType, vscode.Range][],
   ) {
-    this.client = createClient(project);
-    this.dependencies = dependencies;
-
     this.satisfies = getSatisfiesFn(project);
     this.validateRange = getValidateRangeFn(project);
   }
@@ -117,17 +126,26 @@ export class ProjectService {
     }
   }
 
+  private async getClient(): Promise<PackageClientType> {
+    if (!this.client) {
+      this.client = await createClient(this.context, this.project);
+    }
+    return this.client;
+  }
+
   public async getPackage(name: string): Promise<PackageType> {
-    return this.client.get(name);
+    const client = await this.getClient();
+    return await client.get(name);
   }
 
   async getAllPackageResults({ concurrency }: { concurrency: number }) {
     // NOTE: client may have an error while fetching a package
     //       thus wrap it with tryCatch (to show an error in CodeLens)
     const names = this.dependencies.map(([dep]) => dep.name);
+    const client = await this.getClient();
     const tasks = names.map((name) =>
       tryCatch(
-        () => this.client.get(name),
+        () => client.get(name),
         (e: unknown) => e,
       ),
     );
@@ -141,7 +159,10 @@ export class ProjectParser {
     max: 30,
   });
 
-  constructor(public projectFormatType: ProjectFormatType) {}
+  constructor(
+    private context: vscode.ExtensionContext,
+    public projectFormatType: ProjectFormatType,
+  ) {}
 
   public parse(document: vscode.TextDocument): ProjectService {
     const cacheKey: VersionedFileKey = `${document.uri.toString(true)}::${document.version}`;
@@ -186,7 +207,7 @@ export class ProjectParser {
         new vscode.Range(...range),
       ]);
 
-    return new ProjectService(project, dependencies);
+    return new ProjectService(this.context, project, dependencies);
   }
 
   public clear(): void {
