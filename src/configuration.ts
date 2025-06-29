@@ -4,7 +4,6 @@ import {
   ConcurrencyKey,
   EnableCodeLensKey,
   ExtID,
-  gitHubPersonalAccessToken,
   showPrerelease,
   usePrivateSourceKey,
 } from "@/constants";
@@ -25,10 +24,4 @@ export function getUsePrivateSource() {
 
 export function getShowPrerelease() {
   return vscode.workspace.getConfiguration(ExtID).get(showPrerelease, false);
-}
-
-export function getGitHubPersonalAccessToken(): string | null {
-  return vscode.workspace
-    .getConfiguration(ExtID)
-    .get(gitHubPersonalAccessToken, null);
 }

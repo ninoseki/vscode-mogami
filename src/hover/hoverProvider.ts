@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
 import { ProjectParser } from "@/project";
+import { ProjectFormatType } from "@/schemas";
 
 export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
   private _onDidChangeConfiguration: vscode.EventEmitter<void> =
@@ -10,23 +11,32 @@ export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeConfiguration.event;
 
-  constructor(
-    private documentSelector: vscode.DocumentSelector,
-    private projectParser: ProjectParser,
-  ) {
-    this.documentSelector = documentSelector;
-    this.projectParser = projectParser;
+  private projectParser: ProjectParser | undefined;
 
+  constructor(
+    private context: vscode.ExtensionContext,
+    private documentSelector: vscode.DocumentSelector,
+    private projectFormat: ProjectFormatType,
+  ) {
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeConfiguration.fire();
     });
+  }
+
+  private async getProjectParser(): Promise<ProjectParser> {
+    if (this.projectParser) {
+      return this.projectParser;
+    }
+    this.projectParser = new ProjectParser(this.context, this.projectFormat);
+    return this.projectParser;
   }
 
   public async provideHover(
     document: vscode.TextDocument,
     position: vscode.Position,
   ): Promise<vscode.Hover | undefined> {
-    const service = this.projectParser.parse(document);
+    const parser = await this.getProjectParser();
+    const service = parser.parse(document);
     const got = service.getDependencyByPosition(position);
     if (!got) {
       return;

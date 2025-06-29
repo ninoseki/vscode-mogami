@@ -3,7 +3,6 @@ import * as vscode from "vscode";
 import { getConcurrency, getEnableCodeLens } from "@/configuration";
 import { projectFormatToDocumentSelector } from "@/constants";
 import { ExtensionComponent } from "@/extensionComponent";
-import { ProjectParser } from "@/project";
 
 import { CodeLensProvider } from "./codeLensProvider";
 import { CodeLensState } from "./codeLensState";
@@ -35,8 +34,9 @@ export class CodeLensManager implements ExtensionComponent {
       ([projectFormat, documentSelector]) => {
         const name = `${projectFormat}-CodeLensProvider`;
         return new CodeLensProvider(
+          context,
           documentSelector,
-          new ProjectParser(projectFormat),
+          projectFormat,
           concurrency,
           state,
           name,
