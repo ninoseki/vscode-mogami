@@ -17,23 +17,26 @@ export function parse(res: AxiosResponse): E.Either<unknown, PackageType> {
       const { releases, info } = res.data;
       const parsed = PypiPackageSchema.parse({
         info: camelcaseKeys(info, { deep: true }),
-
         releases,
       });
 
-      const url = [
-        parsed.info.homePage,
-        parsed.info.projectUrl,
-        parsed.info.packageUrl,
-      ].find(
-        (url): url is Exclude<typeof url, null> => url !== null && url !== "",
-      );
+      const versions = Object.entries(parsed.releases)
+        .map((entry): string | undefined => {
+          const version = entry[0];
+          const release = entry[1];
+          const isYanked = release.some((r: { yanked: boolean }) => r.yanked);
+          if (isYanked) {
+            return undefined;
+          }
+          return version;
+        })
+        .filter((i): i is Exclude<typeof i, undefined> => i !== undefined);
+
       return {
         name: parsed.info.name,
         version: parsed.info.version,
         summary: parsed.info.summary,
-        versions: Object.keys(parsed.releases),
-        url,
+        versions,
       };
     },
     (e: unknown) => e,
