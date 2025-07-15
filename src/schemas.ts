@@ -10,9 +10,13 @@ export const PypiInfoSchema = z.object({
   version: z.string(),
 });
 
+export const PypiPackageReleaseSchema = z.object({
+  yanked: z.boolean(),
+});
+
 export const PypiPackageSchema = z.object({
   info: PypiInfoSchema,
-  releases: z.record(z.string(), z.any()),
+  releases: z.record(z.string(), z.array(PypiPackageReleaseSchema)),
 });
 
 export type PypiPackageType = z.infer<typeof PypiPackageSchema>;
