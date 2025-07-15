@@ -19,12 +19,18 @@ export function parse(res: AxiosResponse): E.Either<unknown, PackageType> {
         info: camelcaseKeys(info, { deep: true }),
         releases,
       });
-
+      const url = [
+        parsed.info.homePage,
+        parsed.info.projectUrl,
+        parsed.info.packageUrl,
+      ].find(
+        (url): url is Exclude<typeof url, null> => url !== null && url !== "",
+      );
       const versions = Object.entries(parsed.releases)
         .map((entry): string | undefined => {
           const version = entry[0];
           const release = entry[1];
-          const isYanked = release.some((r: { yanked: boolean }) => r.yanked);
+          const isYanked = release.some((r) => r.yanked);
           if (isYanked) {
             return undefined;
           }
@@ -37,6 +43,7 @@ export function parse(res: AxiosResponse): E.Either<unknown, PackageType> {
         version: parsed.info.version,
         summary: parsed.info.summary,
         versions,
+        url,
       };
     },
     (e: unknown) => e,
