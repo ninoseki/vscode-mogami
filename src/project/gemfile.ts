@@ -10,6 +10,11 @@ export function parseLineAsDependencyByRegExp(
   line: string,
   regexp: RegExp,
 ): DependencyType | undefined {
+  // ignore a comment
+  if (line.trim().startsWith("#")) {
+    return undefined;
+  }
+
   const matches = regexp.exec(line);
 
   if (!matches) {
