@@ -27,9 +27,6 @@ export function parseMetadataBlock(text: string): Block | undefined {
       startLine = i;
       break;
     }
-    if (i >= 20) {
-      break; // Only search in the first 20 lines
-    }
   }
 
   if (startLine === -1) {
