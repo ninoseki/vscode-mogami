@@ -109,16 +109,17 @@ export interface RangeLikeType {
 export interface TextDocumentLikeType {
   lineCount: number;
   lineAt(line: number): { text: string; range: RangeLikeType };
-  getText(): string;
+  getText(range?: RangeLikeType | RawRangeType): string;
 }
 
 export const ProjectFormatSchema = z.enum([
-  "shards",
   "gemfile",
   "gemspec",
   "github-actions-workflow",
+  "pep723",
   "pip-requirements",
   "pyproject",
+  "shards",
 ]);
 
 export type ProjectFormatType = z.infer<typeof ProjectFormatSchema>;

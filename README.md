@@ -17,6 +17,7 @@ A VS Code extension for checking the latest version of each dependency.
     - [Poetry](https://python-poetry.org/): `tool.poetry.dependencies` & `tool.poetry.group.*.dependencies`. `tool.poetry.source`
     - [PyPA](https://packaging.python.org/en/latest/specifications/pyproject-toml/): `project.dependencies`, `project.optional-dependencies` & `dependency-groups`
     - [uv](https://docs.astral.sh/uv/): `tool.uv.constraint-dependencies`, `tool.uv.dev-dependencies` & `tool.uv.override-dependencies`
+  - [PEP 723](https://peps.python.org/pep-0723/)
 - Ruby:
   - `Gemfile`
   - `*.gemspec`
