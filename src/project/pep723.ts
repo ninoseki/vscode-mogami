@@ -97,11 +97,11 @@ export function parseProject(document: TextDocumentLikeType): ProjectType {
       // +1 to ignore the header
       range[0] + block.startLine + 1,
       // +1 to ignore the comment (#)
-      range[1] + 2,
+      range[1] + 1,
       // +1 to ignore the footer
       range[2] + block.startLine + 1,
       // +1 to ignore the comment (#)
-      range[3] + 2,
+      range[3] + 1,
     ];
     return [dep, adjustedRange] as [DependencyType, RawRangeType];
   });
