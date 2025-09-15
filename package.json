@@ -124,6 +124,7 @@
   "icon": "./images/icon.png",
   "scripts": {
     "build": "tsup",
+    "dev": "tsup --sourcemap",
     "watch": "tsup --watch src",
     "coverage": "vitest run --coverage",
     "lint": "eslint src --fix",
