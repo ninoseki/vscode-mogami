@@ -1,4 +1,3 @@
-// forked from https://github.com/Twixes/pypi-assistant/
 import type { TextDocumentLikeType } from "@/schemas";
 
 import { parseProject } from "./pyproject";

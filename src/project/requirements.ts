@@ -25,8 +25,10 @@ const packageRegex = /^[a-z0-9][\w.-]*[a-z0-9]$/i;
 export function parseLineAsDependency(
   line: string,
 ): DependencyType | undefined {
-  const [_line] = line.split("#").map((part) => part.trim());
-  const [lineNoEnvMarkers] = _line.split(";").map((part) => part.trim());
+  const [commentTrimmed] = line.split("#").map((part) => part.trim());
+  const [lineNoEnvMarkers] = commentTrimmed
+    .split(";")
+    .map((part) => part.trim());
   const lineNoHashes = lineNoEnvMarkers.split(" \\")[0];
   const matches = pkgValRegex.exec(lineNoHashes);
 

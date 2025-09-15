@@ -31,6 +31,7 @@ import {
 import * as actions from "./actions";
 import * as gemfile from "./gemfile";
 import * as gemspec from "./gemspec";
+import * as pep723 from "./pep723";
 import * as pyproject from "./pyproject";
 import * as requirements from "./requirements";
 import * as shards from "./shards";
@@ -47,10 +48,11 @@ async function createClient(
   if (project.format === "pyproject" && project.detailedFormat === "pixi") {
     return new AnacondaClient(project.source);
   }
-  if (project.format === "pyproject") {
-    return new PyPIClient(project.source);
-  }
-  if (project.format === "pip-requirements") {
+  if (
+    project.format === "pyproject" ||
+    project.format === "pip-requirements" ||
+    project.format === "pep723"
+  ) {
     return new PyPIClient(project.source);
   }
 
@@ -80,6 +82,7 @@ function getSatisfiesFn(project: ProjectType): SatisfiesFnType {
       return utilsSatisfies;
     case "pyproject":
     case "pip-requirements":
+    case "pep723":
     case "shards":
       return pypiSatisfies;
     default:
@@ -95,6 +98,7 @@ function getValidateRangeFn(project: ProjectType): validateRangeFnType {
       return utilsValidateRange;
     case "pyproject":
     case "pip-requirements":
+    case "pep723":
     case "shards":
       return pypiValidateRange;
     default:
@@ -110,7 +114,7 @@ export class ProjectService {
   constructor(
     private context: vscode.ExtensionContext,
     private project: ProjectType,
-    private dependencies: [DependencyType, vscode.Range][],
+    public dependencies: [DependencyType, vscode.Range][],
   ) {
     this.satisfies = getSatisfiesFn(project);
     this.validateRange = getValidateRangeFn(project);
@@ -176,6 +180,9 @@ export class ProjectParser {
       }
       if (this.projectFormatType === "pyproject") {
         return pyproject.parseProject(document);
+      }
+      if (this.projectFormatType === "pep723") {
+        return pep723.parseProject(document);
       }
       if (this.projectFormatType === "gemfile") {
         return gemfile.parseProject(document);

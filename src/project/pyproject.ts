@@ -1,4 +1,3 @@
-// forked from https://github.com/Twixes/pypi-assistant/
 import { parseTOML, traverseNodes } from "toml-eslint-parser";
 import {
   TOMLArray,
@@ -7,38 +6,25 @@ import {
   TOMLTable,
   TOMLValue,
 } from "toml-eslint-parser/lib/ast";
-import { Visitor } from "toml-eslint-parser/lib/traverse";
 
-import type {
-  DependencyType,
-  ProjectType,
-  RawRangeType,
-  TextDocumentLikeType,
-} from "@/schemas";
+import type { ProjectType, TextDocumentLikeType } from "@/schemas";
 
-import { parseLineAsDependency } from "./requirements";
+import { TOMLVisitor } from "./common";
 
-class PyprojectTOMLVisitor implements Visitor<TOMLNode> {
-  private pathStack: (string | number)[] = [];
-
-  public dependencies: [DependencyType, RawRangeType][] = [];
+class PyprojectTOMLVisitor extends TOMLVisitor {
   public source: string | undefined = undefined;
   public detailedFormat?: string = undefined;
 
   public enterNode(node: TOMLNode) {
+    super.enterNode(node);
+
     if (node.type === "TOMLTable") {
-      this.pathStack = node.resolvedKey.slice();
       this.potentiallyRegisterPoetryDependency(node);
       this.potentiallyRegisterPixiDependency(node);
       return;
     }
 
     if (node.type === "TOMLKeyValue") {
-      this.pathStack.push(
-        ...node.key.keys.map((key) =>
-          "name" in key ? key.name : "value" in key ? key.value : "",
-        ),
-      );
       this.potentiallyRegisterPoetryDependency(node);
       this.potentiallyRegisterPixiDependency(node);
       if (!this.source) {
@@ -55,12 +41,6 @@ class PyprojectTOMLVisitor implements Visitor<TOMLNode> {
 
     if (!this.source && node.type === "TOMLValue") {
       this.potentiallyRegisterUvSource(node);
-    }
-  }
-
-  public leaveNode(node: TOMLNode) {
-    if (node.type === "TOMLKeyValue") {
-      this.pathStack.pop();
     }
   }
 
@@ -210,33 +190,6 @@ class PyprojectTOMLVisitor implements Visitor<TOMLNode> {
       return;
     }
     this.registerElementsAsDependencies(node.elements);
-  }
-
-  private registerElementsAsDependencies(elements: TOMLNode[]): void {
-    for (const elem of elements) {
-      if (
-        elem.type !== "TOMLValue" ||
-        typeof elem.value !== "string" ||
-        !elem.value
-      ) {
-        continue; // Only non-empty strings can be dependency specifiers
-      }
-
-      const requirement = parseLineAsDependency(elem.value);
-      if (requirement?.type === undefined) {
-        continue;
-      }
-
-      this.dependencies.push([
-        requirement,
-        [
-          elem.loc.start.line - 1,
-          elem.loc.start.column,
-          elem.loc.end.line - 1,
-          elem.loc.end.column,
-        ],
-      ]);
-    }
   }
 
   private potentiallyRegisterPoetrySource(node: TOMLKeyValue): void {

@@ -22,29 +22,13 @@
     "Programming Languages",
     "Other"
   ],
-  "badges": [
-    {
-      "url": "https://vsmarketplacebadges.dev/version-short/ninoseki.vscode-mogami.img",
-      "href": "https://marketplace.visualstudio.com/items?itemName=ninoseki.vscode-mogami",
-      "description": "Extension version"
-    },
-    {
-      "url": "https://vsmarketplacebadges.dev/installs-short/ninoseki.vscode-mogami.img",
-      "href": "https://marketplace.visualstudio.com/items?itemName=ninoseki.vscode-mogami",
-      "description": "Extension installs"
-    },
-    {
-      "url": "https://vsmarketplacebadges.dev/rating-short/ninoseki.vscode-mogami.img",
-      "href": "https://marketplace.visualstudio.com/items?itemName=ninoseki.vscode-mogami",
-      "description": "Extension rating"
-    }
-  ],
   "activationEvents": [
-    "workspaceContains:**/pyproject.toml",
+    "onLanguage:python",
+    "workspaceContains:**/.github/workflows/*.{yaml,yml}",
     "workspaceContains:**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt,constraints.txt}",
     "workspaceContains:**/*.gemspec",
     "workspaceContains:**/Gemfile",
-    "workspaceContains:**/.github/workflows/*.{yaml,yml}",
+    "workspaceContains:**/pyproject.toml",
     "workspaceContains:**/shard.yml"
   ],
   "contributes": {

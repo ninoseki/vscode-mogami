@@ -6,6 +6,7 @@ import * as vscode from "vscode";
 import { ExtensionComponent } from "@/extensionComponent";
 import { ProjectParser } from "@/project";
 import { ProjectFormatType } from "@/schemas";
+import { Selector } from "@/selector";
 
 import { createCodeLenses } from "./codeLensFactory";
 import { CodeLensState } from "./codeLensState";
@@ -23,7 +24,7 @@ export class CodeLensProvider
 
   constructor(
     private context: vscode.ExtensionContext,
-    private documentSelector: vscode.DocumentSelector,
+    private selector: Selector,
     private projectFormat: ProjectFormatType,
     private concurrency: number,
     private state: CodeLensState,
@@ -48,6 +49,10 @@ export class CodeLensProvider
   }
 
   public async provideCodeLenses(document: vscode.TextDocument) {
+    if (!this.selector.hasPattern(document)) {
+      return [];
+    }
+
     await this.state.setProviderActive(this.name);
 
     if (!this.state.show.value) {
@@ -80,7 +85,10 @@ export class CodeLensProvider
 
   public activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
-      vscode.languages.registerCodeLensProvider(this.documentSelector, this),
+      vscode.languages.registerCodeLensProvider(
+        this.selector.documentSelector,
+        this,
+      ),
     );
   }
 }

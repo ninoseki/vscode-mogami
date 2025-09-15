@@ -22,7 +22,6 @@ function createCodeLens({
   dependency: DependencyType;
   range: vscode.Range;
   suggestion: PackageSuggestion;
-  replaceable?: boolean;
 }): SuggestionCodeLens | undefined {
   const replaceRange: vscode.Range | undefined = (() => {
     if (!suggestion.replaceable) {

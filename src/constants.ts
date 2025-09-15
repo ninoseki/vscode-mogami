@@ -1,29 +1,35 @@
-import * as vscode from "vscode";
-
 import { ProjectFormatType } from "@/schemas";
 
-export const projectFormatToDocumentSelector = new Map<
-  ProjectFormatType,
-  vscode.DocumentSelector
->([
+import { Selector } from "./selector";
+
+export const projectFormatToSelector = new Map<ProjectFormatType, Selector>([
   [
     "github-actions-workflow",
-    [{ pattern: "**/.github/workflows/*.{yml,yaml}", scheme: "file" }],
+    new Selector([
+      { pattern: "**/.github/workflows/*.{yml,yaml}", scheme: "file" },
+    ]),
   ],
-  ["gemspec", [{ pattern: "**/*.gemspec", scheme: "file" }]],
-  ["gemfile", [{ pattern: "**/Gemfile", scheme: "file" }]],
+  ["gemspec", new Selector({ pattern: "**/*.gemspec", scheme: "file" })],
+  ["gemfile", new Selector({ pattern: "**/Gemfile", scheme: "file" })],
   [
     "pip-requirements",
-    [
+    new Selector([
       {
         pattern:
           "**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt,constraints.txt}",
         scheme: "file",
       },
-    ],
+    ]),
   ],
-  ["pyproject", [{ pattern: "**/pyproject.toml", scheme: "file" }]],
-  ["shards", [{ pattern: "**/shard.yml", scheme: "file" }]],
+  ["pyproject", new Selector({ pattern: "**/pyproject.toml", scheme: "file" })],
+  [
+    "pep723",
+    new Selector(
+      { language: "python", scheme: "file" },
+      /^#\s*\/\/\/\s*script\s*$/gm,
+    ),
+  ],
+  ["shards", new Selector({ pattern: "**/shard.yml", scheme: "file" })],
 ]);
 
 export const ExtID = "vscode-mogami";
