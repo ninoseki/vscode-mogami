@@ -4,7 +4,6 @@ import {
   TOMLKeyValue,
   TOMLNode,
   TOMLTable,
-  TOMLValue,
 } from "toml-eslint-parser/lib/ast";
 
 import type { ProjectType, TextDocumentLikeType } from "@/schemas";
@@ -12,7 +11,6 @@ import type { ProjectType, TextDocumentLikeType } from "@/schemas";
 import { TOMLVisitor } from "./common";
 
 class PyprojectTOMLVisitor extends TOMLVisitor {
-  public source: string | undefined = undefined;
   public detailedFormat?: string = undefined;
 
   public enterNode(node: TOMLNode) {
@@ -37,10 +35,6 @@ class PyprojectTOMLVisitor extends TOMLVisitor {
       this.potentiallyRegisterPep631Dependency(node);
       this.potentiallyRegisterPep735Dependency(node);
       this.potentiallyRegisterUvDependency(node);
-    }
-
-    if (!this.source && node.type === "TOMLValue") {
-      this.potentiallyRegisterUvSource(node);
     }
   }
 
@@ -202,21 +196,6 @@ class PyprojectTOMLVisitor extends TOMLVisitor {
           return "value" in node.value
             ? node.value.value.toString()
             : undefined;
-        }
-        return undefined;
-      })();
-
-      if (source && !this.source) {
-        this.source = source;
-      }
-    }
-  }
-
-  private potentiallyRegisterUvSource(node: TOMLValue): void {
-    if (this.pathStack[0] === "tool" && this.pathStack[1] === "uv") {
-      const source: string | undefined = (() => {
-        if ((this.pathStack[2] as string) === "index-url") {
-          return node.value.toString();
         }
         return undefined;
       })();

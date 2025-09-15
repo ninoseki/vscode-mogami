@@ -109,5 +109,6 @@ export function parseProject(document: TextDocumentLikeType): ProjectType {
   return {
     dependencies: dependencies,
     format: "pep723",
+    source: visitor.source,
   };
 }

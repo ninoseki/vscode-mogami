@@ -34,7 +34,7 @@ By default, this extension uses a public source (repository) to check package da
   - [requirements.txt](https://pip.pypa.io/en/stable/reference/requirements-file-format/): `--index-url`
   - `pyproject.toml`:
     - [Poetry](https://python-poetry.org/): `tool.poetry.source`
-    - [uv](https://docs.astral.sh/uv/): `tool.uv.index-url`
+    - [uv](https://docs.astral.sh/uv/): `tool.uv.index-url` and `tool.uv.index`
 - Ruby:
   - `Gemfile`: `source`
 

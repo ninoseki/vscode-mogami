@@ -235,10 +235,21 @@ describe("parseProject with uv", () => {
     ]);
   });
 
-  it("should extract source", () => {
+  it("should extract source from tool.uv.index-url", () => {
     const document = makeTextDocumentLike([
       "[tool.uv]",
       "index-url = 'https://example.com'",
+    ]);
+
+    const result = parseProject(document);
+
+    expect(result.source).toEqual("https://example.com");
+  });
+
+  it("should extract source from tool.uv.index", () => {
+    const document = makeTextDocumentLike([
+      "[[tool.uv.index]]",
+      "url = 'https://example.com'",
     ]);
 
     const result = parseProject(document);
