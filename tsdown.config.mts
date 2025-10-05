@@ -1,4 +1,11 @@
+import * as fs from "node:fs";
+
 import { defineConfig } from "tsdown";
+import type { PackageJson } from "type-fest";
+
+const packageJson: PackageJson = JSON.parse(
+  fs.readFileSync("package.json", "utf-8")
+);
 
 export default defineConfig({
   entry: ["src/extension.ts"],
@@ -7,23 +14,5 @@ export default defineConfig({
   dts: false,
   clean: true,
   external: ["vscode"],
-  noExternal: [
-    "@renovatebot/pep440",
-    "@renovatebot/ruby-semver",
-    "axios-cache-interceptor",
-    "axios",
-    "camelcase-keys",
-    "compare-versions",
-    "fp-ts",
-    "linkedom",
-    "lru-cache",
-    "p-map",
-    "radash",
-    "semver",
-    "toml-eslint-parser",
-    "url-join",
-    "winston-transport-vscode",
-    "yaml-eslint-parser",
-    "zod",
-  ],
+  noExternal: Object.keys(packageJson.dependencies || {}),
 });
