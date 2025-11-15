@@ -1,7 +1,5 @@
 import { satisfies as pep440Satisfies } from "@renovatebot/pep440";
 import { parse } from "@renovatebot/pep440/lib/specifier";
-import { pipe } from "fp-ts/lib/function";
-import * as O from "fp-ts/Option";
 import semver from "semver";
 
 import { DependencyType } from "@/schemas";
@@ -15,15 +13,11 @@ export function satisfies(
     return false;
   }
 
-  const coercedVersion = pipe(
-    O.fromNullable(semver.coerce(version)),
-    O.map((v) => v.toString()),
-    O.getOrElse(() => version),
-  );
+  const coerced: string =
+    semver.coerce(version, { includePrerelease: true })?.toString() || version;
 
   return (
-    pep440Satisfies(coercedVersion, specifier) ||
-    semver.satisfies(coercedVersion, specifier)
+    pep440Satisfies(coerced, specifier) || semver.satisfies(coerced, specifier)
   );
 }
 

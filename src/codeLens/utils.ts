@@ -1,7 +1,7 @@
 // split from codeLensFactory.ts to make them testable
 // (using "vscode" package makes it difficult to test with vitest)
 import { isAxiosError } from "axios";
-import * as E from "fp-ts/lib/Either";
+import { Result } from "neverthrow";
 import semver from "semver";
 
 import { OnUpdateDependencyClickCommand } from "@/constants";
@@ -74,16 +74,16 @@ export function createPackageSuggestions({
   validateRange,
 }: {
   dependency: DependencyType;
-  pkgResult: E.Either<unknown, PackageType>;
+  pkgResult: Result<PackageType, unknown>;
   satisfies: SatisfiesFnType;
   validateRange: validateRangeFnType;
 }): PackageSuggestion[] {
-  if (E.isLeft(pkgResult)) {
-    return [createErrorSuggestion(pkgResult.left)];
+  if (pkgResult.isErr()) {
+    return [createErrorSuggestion(pkgResult.error)];
   }
 
   const suggestions: PackageSuggestion[] = [];
-  const pkg = pkgResult.right;
+  const pkg = pkgResult.value;
 
   const checkIsLatest = (): boolean => {
     if (dependency.specifier) {

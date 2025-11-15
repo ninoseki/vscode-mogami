@@ -1,4 +1,3 @@
-import * as E from "fp-ts/lib/Either";
 import * as vscode from "vscode";
 
 import { SuggestionCodeLens } from "@/codeLens/suggestionCodeLens";
@@ -20,12 +19,12 @@ export class OnUpdateDependencyClick {
     if (
       !codeLens.replaceRange ||
       !codeLens.dependency.specifier ||
-      E.isLeft(codeLens.pkgResult)
+      codeLens.pkgResult.isErr()
     ) {
       return;
     }
 
-    const pkg = codeLens.pkgResult.right;
+    const pkg = codeLens.pkgResult.value;
     const edit = new vscode.WorkspaceEdit();
     edit.replace(
       codeLens.documentUrl,

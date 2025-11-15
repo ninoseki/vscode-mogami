@@ -1,7 +1,5 @@
 import { parse } from "@renovatebot/pep440/lib/version";
 import { compareVersions, validate } from "compare-versions";
-import { pipe } from "fp-ts/lib/function";
-import * as O from "fp-ts/Option";
 import semver from "semver";
 
 import { DependencyType, PackageType, SatisfiesFnType } from "@/schemas";
@@ -35,11 +33,13 @@ export function formatWithExistingLeading(
   { replaceLt }: { replaceLt: boolean } = { replaceLt: true },
 ) {
   const leading = parseLeading(existingVersion);
-  const hasLeading: boolean = pipe(
-    O.fromNullable(leading),
-    O.map((leading: string) => semverLeadingChars.includes(leading.trim())),
-    O.getOrElseW(() => false),
-  );
+
+  const hasLeading: boolean = (() => {
+    if (leading) {
+      return semverLeadingChars.includes(leading.trim());
+    }
+    return false;
+  })();
 
   if (!hasLeading) {
     return newVersion;
@@ -164,13 +164,15 @@ export function satisfies(
     return false;
   }
 
-  const coercedVersion = pipe(
-    O.fromNullable(semver.coerce(version, { includePrerelease: true })),
-    O.map((v) => v.toString()),
-    O.getOrElse(() => version),
-  );
+  const coerced = ((): string => {
+    const c = semver.coerce(version, { includePrerelease: true });
+    if (c) {
+      return c.toString();
+    }
+    return version;
+  })();
 
-  return semver.satisfies(coercedVersion, specifier);
+  return semver.satisfies(coerced, specifier);
 }
 
 export function isPrerelease(v: string): boolean {

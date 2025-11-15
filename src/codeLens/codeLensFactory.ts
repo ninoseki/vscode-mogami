@@ -1,7 +1,4 @@
-import { zipWith } from "fp-ts/lib/Array";
-import * as E from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/function";
-import * as O from "fp-ts/Option";
+import { Result } from "neverthrow";
 import * as vscode from "vscode";
 
 import { ProjectService } from "@/project";
@@ -18,7 +15,7 @@ function createCodeLens({
   suggestion,
 }: {
   document: vscode.TextDocument;
-  pkgResult: E.Either<unknown, PackageType>;
+  pkgResult: Result<PackageType, unknown>;
   dependency: DependencyType;
   range: vscode.Range;
   suggestion: PackageSuggestion;
@@ -32,23 +29,25 @@ function createCodeLens({
     for (let i = range.end.line - range.start.line; i >= 0; i--) {
       const lineNumber = range.start.line + i;
       const text = document.lineAt(lineNumber).text;
-      const result = pipe(
-        O.fromNullable(dependency.specifier),
-        O.flatMap((s: string) => {
-          const index = text.lastIndexOf(s);
-          if (index > 0) {
-            return O.some(
-              new vscode.Range(
-                new vscode.Position(lineNumber, index),
-                new vscode.Position(lineNumber, index + s.length),
-              ),
-            );
-          }
-          return O.none;
-        }),
-      );
-      if (O.isSome(result)) {
-        return result.value;
+
+      const result = (() => {
+        if (!dependency.specifier) {
+          return undefined;
+        }
+        const index = text.lastIndexOf(dependency.specifier);
+        if (index > 0) {
+          return new vscode.Range(
+            new vscode.Position(lineNumber, index),
+            new vscode.Position(
+              lineNumber,
+              index + dependency.specifier.length,
+            ),
+          );
+        }
+      })();
+
+      if (result) {
+        return result;
       }
     }
     return undefined;
@@ -72,11 +71,11 @@ export async function createCodeLenses(
 ): Promise<SuggestionCodeLens[]> {
   // get packages in bulk and create code lenses based on the results
   const results = await service.getAllPackageResults({ concurrency });
-  return zipWith(service.dependencies, results, (item, pkgResult) => {
-    const dependency = item[0];
-    const range = item[1];
-    return { dependency, range, pkgResult };
-  })
+  return service.dependencies
+    .map(([dependency, range], index) => {
+      const pkgResult = results[index];
+      return { dependency, range, pkgResult };
+    })
     .flatMap((item) => {
       const { dependency, range, pkgResult } = item;
 
