@@ -1,10 +1,10 @@
 import * as fs from "node:fs";
 
-import { defineConfig } from "tsdown";
+import { defineConfig } from "tsup";
 import type { PackageJson } from "type-fest";
 
 const packageJson: PackageJson = JSON.parse(
-  fs.readFileSync("package.json", "utf-8")
+  fs.readFileSync("package.json", "utf-8"),
 );
 
 export default defineConfig({
