@@ -120,7 +120,7 @@
       }
     }
   },
-  "main": "./dist/extension.js",
+  "main": "./dist/extension.cjs",
   "icon": "./images/icon.png",
   "scripts": {
     "build": "tsdown",
