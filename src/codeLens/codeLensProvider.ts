@@ -1,6 +1,4 @@
-import * as E from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/function";
-import { tryCatch } from "fp-ts/lib/TaskEither";
+import { ResultAsync } from "neverthrow";
 import * as vscode from "vscode";
 
 import { ExtensionComponent } from "@/extensionComponent";
@@ -60,23 +58,18 @@ export class CodeLensProvider
     }
 
     const projectParser = await this.getProjectParser();
-    const task = tryCatch(
-      () => {
-        const service = projectParser.parse(document);
-        return createCodeLenses(document, service, {
-          concurrency: this.concurrency,
-        });
-      },
-      (e: unknown) => e,
-    );
-    const result = await task();
+
+    const promise = async () => {
+      const service = projectParser.parse(document);
+      return await createCodeLenses(document, service, {
+        concurrency: this.concurrency,
+      });
+    };
+    const result = ResultAsync.fromPromise(promise(), (e) => e as Error);
 
     await this.state.clearProviderBusy();
 
-    return pipe(
-      result,
-      E.getOrElseW(() => []),
-    );
+    return result.unwrapOr([]);
   }
 
   public isActive(): boolean {

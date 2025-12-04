@@ -1,4 +1,4 @@
-import * as E from "fp-ts/lib/Either";
+import { ok } from "neverthrow";
 
 import { DependencyType, PackageType, SatisfiesFnType } from "@/schemas";
 import { satisfies, validateRange } from "@/versioning/utils";
@@ -95,7 +95,7 @@ describe("createPackageSuggestions", () => {
       satisfies: SatisfiesFnType,
       expected: PackageSuggestion[],
     ) => {
-      const pkgResult = E.right(pkg);
+      const pkgResult = ok(pkg); // eslint-disable-line neverthrow/must-use-result
       expect(
         createPackageSuggestions({
           dependency,

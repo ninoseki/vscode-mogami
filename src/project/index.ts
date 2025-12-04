@@ -1,5 +1,5 @@
-import { tryCatch } from "fp-ts/TaskEither";
 import { LRUCache } from "lru-cache";
+import { ResultAsync } from "neverthrow";
 import pmap from "p-map";
 import vscode from "vscode";
 
@@ -144,16 +144,14 @@ export class ProjectService {
 
   async getAllPackageResults({ concurrency }: { concurrency: number }) {
     // NOTE: client may have an error while fetching a package
-    //       thus wrap it with tryCatch (to show an error in CodeLens)
+    //       thus wrap it with ResultAsync (to show an error in CodeLens)
     const names = this.dependencies.map(([dep]) => dep.name);
     const client = await this.getClient();
-    const tasks = names.map((name) =>
-      tryCatch(
-        () => client.get(name),
-        (e: unknown) => e,
-      ),
+    const results = names.map(
+      (name) => () =>
+        ResultAsync.fromPromise(client.get(name), (e: unknown) => e),
     );
-    return await pmap(tasks, (t) => t(), { concurrency });
+    return await pmap(results, async (t) => await t(), { concurrency });
   }
 }
 

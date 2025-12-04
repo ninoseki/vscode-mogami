@@ -1,11 +1,11 @@
-import * as E from "fp-ts/lib/Either";
+import { Result } from "neverthrow";
 import { CodeLens, Range, Uri } from "vscode";
 
 import { DependencyType, PackageType } from "@/schemas";
 
 export class SuggestionCodeLens extends CodeLens {
   replaceRange?: Range;
-  pkgResult: E.Either<unknown, PackageType>;
+  pkgResult: Result<PackageType, unknown>;
   dependency: DependencyType;
   documentUrl: Uri;
 
@@ -19,7 +19,7 @@ export class SuggestionCodeLens extends CodeLens {
     }: {
       replaceRange?: Range;
       documentUrl: Uri;
-      pkgResult: E.Either<unknown, PackageType>;
+      pkgResult: Result<PackageType, unknown>;
       dependency: DependencyType;
     },
   ) {
