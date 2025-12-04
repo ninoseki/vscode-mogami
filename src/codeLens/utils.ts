@@ -36,6 +36,9 @@ function createErrorSuggestion(err: unknown): PackageSuggestion {
           return `internal server error`;
       }
     }
+    if (err instanceof Error) {
+      return err.message;
+    }
     return `something went wrong`;
   })();
   return {

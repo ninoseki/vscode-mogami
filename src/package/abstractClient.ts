@@ -45,6 +45,11 @@ export abstract class AbstractPackageClient implements PackageClientType {
     const versions = this.showPrerelease
       ? pkg.versions
       : pkg.versions.filter((v) => !isPrerelease(v));
+
+    if (versions.length === 0) {
+      throw new Error("No valid versions found");
+    }
+
     const sortedVersions = versions.sort(compare);
     pkg.version = sortedVersions[sortedVersions.length - 1];
     return pkg;
