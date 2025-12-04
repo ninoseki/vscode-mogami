@@ -4,6 +4,7 @@ import { parseHTML } from "linkedom";
 import { unique } from "radash";
 import semver from "semver";
 import urlJoin from "url-join";
+import { ZodError } from "zod";
 
 import { PackageType, PypiPackageSchema } from "@/schemas";
 import { compare } from "@/versioning/utils";
@@ -100,8 +101,14 @@ export class PyPIClient extends AbstractPackageClient {
     try {
       const result = parse(res);
       return this.normalizePackage(result);
-    } catch {
-      // continue to simple parser
+    } catch (err) {
+      // if it's zod error, try simple parse
+      if (err instanceof ZodError) {
+        // continue to simple parse
+      } else {
+        // throw logic error
+        throw err;
+      }
     }
 
     try {
