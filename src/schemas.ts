@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const PypiInfoSchema = z.object({
   name: z.string(),
-  summary: z.string(),
+  summary: z.string().nullish(),
   homePage: z.string().nullish(),
   packageUrl: z.string().nullish(),
   projectUrl: z.string().nullish(),
@@ -23,7 +23,7 @@ export type PypiPackageType = z.infer<typeof PypiPackageSchema>;
 
 export const AnacondaPackageSchema = z.object({
   name: z.string(),
-  summary: z.string(),
+  summary: z.string().nullish(),
   home: z.string().nullish(),
   url: z.string().nullish(),
   latestVersion: z.string(),
