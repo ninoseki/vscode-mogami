@@ -1,12 +1,16 @@
 // forked from https://github.com/Twixes/pypi-assistant/
-import { TOMLKeyValue, TOMLNode, TOMLValue } from "toml-eslint-parser/lib/ast";
-import { Visitor } from "toml-eslint-parser/lib/traverse";
+import type { AST, traverseNodes } from "toml-eslint-parser";
+
+type TOMLKeyValue = AST.TOMLKeyValue;
+type TOMLNode = AST.TOMLNode;
+type TOMLValue = AST.TOMLValue;
+type Visitor = Parameters<typeof traverseNodes>[1];
 
 import type { DependencyType, RawRangeType } from "@/schemas";
 
 import { parseLineAsDependency } from "./requirements";
 
-export class TOMLVisitor implements Visitor<TOMLNode> {
+export class TOMLVisitor implements Visitor {
   public pathStack: (string | number)[] = [];
   public dependencies: [DependencyType, RawRangeType][] = [];
   public source: string | undefined = undefined;
