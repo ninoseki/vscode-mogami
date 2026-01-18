@@ -1,11 +1,10 @@
-import { Visitor } from "toml-eslint-parser/lib/traverse";
-import { parseYAML, traverseNodes } from "yaml-eslint-parser";
-import {
-  YAMLMapping,
-  YAMLNode,
-  YAMLPair,
-  YAMLScalar,
-} from "yaml-eslint-parser/lib/ast";
+import { type AST, parseYAML, traverseNodes } from "yaml-eslint-parser";
+
+type YAMLMapping = AST.YAMLMapping;
+type YAMLNode = AST.YAMLNode;
+type YAMLPair = AST.YAMLPair;
+type YAMLScalar = AST.YAMLScalar;
+type Visitor = Parameters<typeof traverseNodes>[1];
 
 import type {
   DependencyType,
@@ -14,7 +13,7 @@ import type {
   TextDocumentLikeType,
 } from "@/schemas";
 
-class ShardsYAMLVisitor implements Visitor<YAMLNode> {
+class ShardsYAMLVisitor implements Visitor {
   public dependencies: [DependencyType, RawRangeType][] = [];
   public source: string | undefined = undefined;
 

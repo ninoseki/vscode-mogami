@@ -1,5 +1,7 @@
-import { parseTOML, traverseNodes } from "toml-eslint-parser";
-import { TOMLArray, TOMLNode } from "toml-eslint-parser/lib/ast";
+import { type AST, parseTOML, traverseNodes } from "toml-eslint-parser";
+
+type TOMLArray = AST.TOMLArray;
+type TOMLNode = AST.TOMLNode;
 
 import type {
   DependencyType,

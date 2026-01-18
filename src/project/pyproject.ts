@@ -1,10 +1,9 @@
-import { parseTOML, traverseNodes } from "toml-eslint-parser";
-import {
-  TOMLArray,
-  TOMLKeyValue,
-  TOMLNode,
-  TOMLTable,
-} from "toml-eslint-parser/lib/ast";
+import { type AST, parseTOML, traverseNodes } from "toml-eslint-parser";
+
+type TOMLArray = AST.TOMLArray;
+type TOMLKeyValue = AST.TOMLKeyValue;
+type TOMLNode = AST.TOMLNode;
+type TOMLTable = AST.TOMLTable;
 
 import type { ProjectType, TextDocumentLikeType } from "@/schemas";
 
