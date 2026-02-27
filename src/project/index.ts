@@ -38,6 +38,38 @@ import * as shards from "./shards";
 
 type VersionedFileKey = `${string}::${number}`;
 
+const versioningConfig: Record<
+  ProjectFormatType,
+  { satisfies: SatisfiesFnType; validateRange: validateRangeFnType }
+> = {
+  gemfile: { satisfies: gemSatisfies, validateRange: utilsValidateRange },
+  gemspec: { satisfies: gemSatisfies, validateRange: utilsValidateRange },
+  "github-actions-workflow": {
+    satisfies: utilsSatisfies,
+    validateRange: utilsValidateRange,
+  },
+  pyproject: { satisfies: pypiSatisfies, validateRange: pypiValidateRange },
+  "pip-requirements": {
+    satisfies: pypiSatisfies,
+    validateRange: pypiValidateRange,
+  },
+  pep723: { satisfies: pypiSatisfies, validateRange: pypiValidateRange },
+  shards: { satisfies: pypiSatisfies, validateRange: pypiValidateRange },
+};
+
+const parsers: Record<
+  ProjectFormatType,
+  (doc: vscode.TextDocument) => ProjectType
+> = {
+  "pip-requirements": requirements.parseProject,
+  pyproject: pyproject.parseProject,
+  pep723: pep723.parseProject,
+  gemfile: gemfile.parseProject,
+  gemspec: gemspec.parseProject,
+  "github-actions-workflow": actions.parseProject,
+  shards: shards.parseProject,
+};
+
 async function createClient(
   context: vscode.ExtensionContext,
   project: ProjectType,
@@ -63,47 +95,11 @@ async function createClient(
       gitHubPersonalAccessToken,
     });
   }
-  if (project.format === "shards") {
-    return new GitHubClient(project.source, {
-      preserveVersionPrefix: true,
-      gitHubPersonalAccessToken,
-    });
-  }
-
-  throw new Error("Unsupported format");
-}
-
-function getSatisfiesFn(project: ProjectType): SatisfiesFnType {
-  switch (project.format) {
-    case "gemfile":
-    case "gemspec":
-      return gemSatisfies;
-    case "github-actions-workflow":
-      return utilsSatisfies;
-    case "pyproject":
-    case "pip-requirements":
-    case "pep723":
-    case "shards":
-      return pypiSatisfies;
-    default:
-      throw new Error("Unsupported format");
-  }
-}
-
-function getValidateRangeFn(project: ProjectType): validateRangeFnType {
-  switch (project.format) {
-    case "gemfile":
-    case "gemspec":
-    case "github-actions-workflow":
-      return utilsValidateRange;
-    case "pyproject":
-    case "pip-requirements":
-    case "pep723":
-    case "shards":
-      return pypiValidateRange;
-    default:
-      throw new Error("Unsupported format");
-  }
+  // shards
+  return new GitHubClient(project.source, {
+    preserveVersionPrefix: true,
+    gitHubPersonalAccessToken,
+  });
 }
 
 export class ProjectService {
@@ -116,8 +112,9 @@ export class ProjectService {
     private project: ProjectType,
     public dependencies: [DependencyType, vscode.Range][],
   ) {
-    this.satisfies = getSatisfiesFn(project);
-    this.validateRange = getValidateRangeFn(project);
+    const config = versioningConfig[project.format];
+    this.satisfies = config.satisfies;
+    this.validateRange = config.validateRange;
   }
 
   public getDependencyByPosition(
@@ -169,36 +166,8 @@ export class ProjectParser {
   public parse(document: vscode.TextDocument): ProjectService {
     const cacheKey: VersionedFileKey = `${document.uri.toString(true)}::${document.version}`;
 
-    const project = (() => {
-      if (this.cache.has(cacheKey)) {
-        return this.cache.get(cacheKey)!;
-      }
-      if (this.projectFormatType === "pip-requirements") {
-        return requirements.parseProject(document);
-      }
-      if (this.projectFormatType === "pyproject") {
-        return pyproject.parseProject(document);
-      }
-      if (this.projectFormatType === "pep723") {
-        return pep723.parseProject(document);
-      }
-      if (this.projectFormatType === "gemfile") {
-        return gemfile.parseProject(document);
-      }
-      if (this.projectFormatType === "gemspec") {
-        return gemspec.parseProject(document);
-      }
-      if (this.projectFormatType === "github-actions-workflow") {
-        return actions.parseProject(document);
-      }
-      if (this.projectFormatType === "shards") {
-        return shards.parseProject(document);
-      }
-    })();
-
-    if (!project) {
-      throw new Error("Unsupported project format");
-    }
+    const project =
+      this.cache.get(cacheKey) ?? parsers[this.projectFormatType](document);
 
     Logger.debug(`Project detected: ${project.format}`, {
       detailedFormat: project.detailedFormat,
