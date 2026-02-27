@@ -33,13 +33,9 @@ export function formatWithExistingLeading(
   { replaceLt }: { replaceLt: boolean } = { replaceLt: true },
 ) {
   const leading = parseLeading(existingVersion);
-
-  const hasLeading: boolean = (() => {
-    if (leading) {
-      return semverLeadingChars.includes(leading.trim());
-    }
-    return false;
-  })();
+  const hasLeading = leading
+    ? semverLeadingChars.includes(leading.trim())
+    : false;
 
   if (!hasLeading) {
     return newVersion;
@@ -68,16 +64,9 @@ export function preCoerce(version: string) {
   }
 
   const release = parsed!.release.join(".");
+  const preAliases: Record<string, string> = { a: "alpha", b: "beta" };
   const pre = (parsed?.pre || [])
-    .map((x) => {
-      if (x === "a") {
-        return "alpha";
-      }
-      if (x === "b") {
-        return "beta";
-      }
-      return x;
-    })
+    .map((x) => preAliases[x as string] ?? x)
     .join(".");
 
   if (pre === "") {
@@ -164,13 +153,8 @@ export function satisfies(
     return false;
   }
 
-  const coerced = ((): string => {
-    const c = semver.coerce(version, { includePrerelease: true });
-    if (c) {
-      return c.toString();
-    }
-    return version;
-  })();
+  const coerced =
+    semver.coerce(version, { includePrerelease: true })?.toString() ?? version;
 
   return semver.satisfies(coerced, specifier);
 }

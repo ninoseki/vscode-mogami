@@ -16,14 +16,34 @@ class PyprojectTOMLVisitor extends TOMLVisitor {
     super.enterNode(node);
 
     if (node.type === "TOMLTable") {
-      this.potentiallyRegisterPoetryDependency(node);
-      this.potentiallyRegisterPixiDependency(node);
+      this.potentiallyRegisterToolDependency(
+        node,
+        "poetry",
+        ["dependencies", "dev-dependencies"],
+        "group",
+      );
+      this.potentiallyRegisterToolDependency(
+        node,
+        "pixi",
+        ["dependencies"],
+        "feature",
+      );
       return;
     }
 
     if (node.type === "TOMLKeyValue") {
-      this.potentiallyRegisterPoetryDependency(node);
-      this.potentiallyRegisterPixiDependency(node);
+      this.potentiallyRegisterToolDependency(
+        node,
+        "poetry",
+        ["dependencies", "dev-dependencies"],
+        "group",
+      );
+      this.potentiallyRegisterToolDependency(
+        node,
+        "pixi",
+        ["dependencies"],
+        "feature",
+      );
       if (!this.source) {
         this.potentiallyRegisterPoetrySource(node);
       }
@@ -37,95 +57,43 @@ class PyprojectTOMLVisitor extends TOMLVisitor {
     }
   }
 
-  private potentiallyRegisterPoetryDependency(
+  private potentiallyRegisterToolDependency(
     node: TOMLTable | TOMLKeyValue,
+    tool: string,
+    basicDepKeys: string[],
+    groupKey: string,
   ): void {
-    if (this.pathStack[0] === "tool" && this.pathStack[1] === "poetry") {
-      const projectName: string | undefined = (() => {
-        if (
-          ["dependencies", "dev-dependencies"].includes(
-            this.pathStack[2] as string,
-          ) &&
-          this.pathStack.length === 4 &&
-          typeof this.pathStack[3] === "string"
-        ) {
-          // Basic dependencies and legacy dev dependencies
-          return this.pathStack[3];
-        }
-        if (
-          this.pathStack[2] === "group" &&
-          this.pathStack[4] === "dependencies" &&
-          this.pathStack.length === 6 &&
-          typeof this.pathStack[5] === "string"
-        ) {
-          // Dependency group
-          return this.pathStack[5];
-        }
-      })();
+    if (this.pathStack[0] !== "tool" || this.pathStack[1] !== tool) return;
 
-      if (projectName) {
-        if (!this.detailedFormat) {
-          this.detailedFormat = "poetry";
-        }
-
-        this.dependencies.push([
-          {
-            name: projectName,
-            type: "ProjectName",
-          },
-          [
-            node.loc.start.line - 1,
-            node.loc.start.column,
-            node.loc.end.line - 1,
-            node.loc.end.column,
-          ],
-        ]);
-      }
+    let projectName: string | undefined;
+    if (
+      basicDepKeys.includes(this.pathStack[2] as string) &&
+      this.pathStack.length === 4 &&
+      typeof this.pathStack[3] === "string"
+    ) {
+      // Basic dependencies and legacy dev dependencies
+      projectName = this.pathStack[3];
+    } else if (
+      this.pathStack[2] === groupKey &&
+      this.pathStack[4] === "dependencies" &&
+      this.pathStack.length === 6 &&
+      typeof this.pathStack[5] === "string"
+    ) {
+      // Dependency group
+      projectName = this.pathStack[5];
     }
-  }
 
-  private potentiallyRegisterPixiDependency(
-    node: TOMLTable | TOMLKeyValue,
-  ): void {
-    if (this.pathStack[0] === "tool" && this.pathStack[1] === "pixi") {
-      const projectName: string | undefined = (() => {
-        if (
-          (this.pathStack[2] as string) === "dependencies" &&
-          this.pathStack.length === 4 &&
-          typeof this.pathStack[3] === "string"
-        ) {
-          // Basic dependencies and legacy dev dependencies
-          return this.pathStack[3];
-        }
-        if (
-          this.pathStack[2] === "feature" &&
-          this.pathStack[4] === "dependencies" &&
-          this.pathStack.length === 6 &&
-          typeof this.pathStack[5] === "string"
-        ) {
-          // Dependency group
-          return this.pathStack[5];
-        }
-      })();
-
-      if (projectName) {
-        if (!this.detailedFormat) {
-          this.detailedFormat = "pixi";
-        }
-
-        this.dependencies.push([
-          {
-            name: projectName,
-            type: "ProjectName",
-          },
-          [
-            node.loc.start.line - 1,
-            node.loc.start.column,
-            node.loc.end.line - 1,
-            node.loc.end.column,
-          ],
-        ]);
-      }
+    if (projectName) {
+      this.detailedFormat ??= tool;
+      this.dependencies.push([
+        { name: projectName, type: "ProjectName" },
+        [
+          node.loc.start.line - 1,
+          node.loc.start.column,
+          node.loc.end.line - 1,
+          node.loc.end.column,
+        ],
+      ]);
     }
   }
 
@@ -145,34 +113,21 @@ class PyprojectTOMLVisitor extends TOMLVisitor {
   }
 
   private potentiallyRegisterUvDependency(node: TOMLArray): void {
-    const isUnderConstraintDependencies =
-      this.pathStack.length === 3 &&
-      this.pathStack[0] === "tool" &&
-      this.pathStack[1] === "uv" &&
-      this.pathStack[2] === "constraint-dependencies";
-    const isUnderDevDependencies =
-      this.pathStack.length === 3 &&
-      this.pathStack[0] === "tool" &&
-      this.pathStack[1] === "uv" &&
-      this.pathStack[2] === "dev-dependencies";
-    const isUnderOverrideDependencies =
-      this.pathStack.length === 3 &&
-      this.pathStack[0] === "tool" &&
-      this.pathStack[1] === "uv" &&
-      this.pathStack[2] === "override-dependencies";
-
+    const uvDeps = [
+      "constraint-dependencies",
+      "dev-dependencies",
+      "override-dependencies",
+    ];
     if (
-      !isUnderConstraintDependencies &&
-      !isUnderDevDependencies &&
-      !isUnderOverrideDependencies
+      this.pathStack.length !== 3 ||
+      this.pathStack[0] !== "tool" ||
+      this.pathStack[1] !== "uv" ||
+      !uvDeps.includes(this.pathStack[2] as string)
     ) {
       return;
     }
 
-    if (!this.detailedFormat) {
-      this.detailedFormat = "uv";
-    }
-
+    this.detailedFormat ??= "uv";
     this.registerElementsAsDependencies(node.elements);
   }
 
