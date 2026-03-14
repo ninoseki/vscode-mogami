@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode'
 
 export class Selector {
   constructor(
@@ -8,8 +8,8 @@ export class Selector {
 
   public hasPattern(document: vscode.TextDocument): boolean {
     if (!this.documentPattern) {
-      return true;
+      return true
     }
-    return this.documentPattern.test(document.getText());
+    return this.documentPattern.test(document.getText())
   }
 }

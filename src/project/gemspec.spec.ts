@@ -1,10 +1,10 @@
-import type { TextDocumentLikeType } from "@/schemas";
+import type { TextDocumentLikeType } from '@/schemas'
 
-import { parseProject } from "./gemspec";
+import { parseProject } from './gemspec'
 
-export function makeTextDocumentLike(lines: string[]): TextDocumentLikeType {
+function makeTextDocumentLike(lines: string[]): TextDocumentLikeType {
   return {
-    getText: vi.fn(() => lines.join("\n")),
+    getText: vi.fn(() => lines.join('\n')),
     lineAt: vi.fn((line) => ({
       text: lines[line],
       range: {
@@ -13,57 +13,57 @@ export function makeTextDocumentLike(lines: string[]): TextDocumentLikeType {
       },
     })),
     lineCount: lines.length,
-  };
+  }
 }
 
-describe("parseProject", () => {
-  it("should extract dependencies", () => {
+describe('parseProject', () => {
+  it('should extract dependencies', () => {
     const document = makeTextDocumentLike([
       '  spec.add_development_dependency "bundler", "~> 2.0"',
       'spec.add_dependency "addressable", "~> 2.8"',
       'spec.add_development_dependency "bundler"',
       'spec.add_development_dependency "bundler", "~> 2.0", "< 3.0"',
-    ]);
+    ])
 
-    const result = parseProject(document);
+    const result = parseProject(document)
 
     expect(result.dependencies).toEqual([
       [
         {
-          name: "bundler",
-          specifierRequirements: ["~> 2.0"],
-          specifier: "~> 2.0",
-          type: "ProjectName",
+          name: 'bundler',
+          specifierRequirements: ['~> 2.0'],
+          specifier: '~> 2.0',
+          type: 'ProjectName',
         },
         [0, 0, 0, 51],
       ],
       [
         {
-          name: "addressable",
-          specifierRequirements: ["~> 2.8"],
-          specifier: "~> 2.8",
-          type: "ProjectName",
+          name: 'addressable',
+          specifierRequirements: ['~> 2.8'],
+          specifier: '~> 2.8',
+          type: 'ProjectName',
         },
         [1, 0, 1, 41],
       ],
       [
         {
-          name: "bundler",
+          name: 'bundler',
           specifierRequirements: undefined,
           specifier: undefined,
-          type: "ProjectName",
+          type: 'ProjectName',
         },
         [2, 0, 2, 39],
       ],
       [
         {
-          name: "bundler",
-          specifierRequirements: ["~> 2.0", "< 3.0"],
-          specifier: "< 3.0",
-          type: "ProjectName",
+          name: 'bundler',
+          specifierRequirements: ['~> 2.0', '< 3.0'],
+          specifier: '< 3.0',
+          type: 'ProjectName',
         },
         [3, 0, 3, 58],
       ],
-    ]);
-  });
-});
+    ])
+  })
+})

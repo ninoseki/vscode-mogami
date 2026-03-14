@@ -1,18 +1,16 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode'
 
-import { ExtensionComponent } from "@/extensionComponent";
-import { ProjectParser } from "@/project";
-import { ProjectFormatType } from "@/schemas";
-import { Selector } from "@/selector";
+import { ExtensionComponent } from '@/extensionComponent'
+import { ProjectParser } from '@/project'
+import { ProjectFormatType } from '@/schemas'
+import { Selector } from '@/selector'
 
 export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
-  private _onDidChangeConfiguration: vscode.EventEmitter<void> =
-    new vscode.EventEmitter<void>();
+  private _onDidChangeConfiguration: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
 
-  public readonly onDidChangeCodeLenses: vscode.Event<void> =
-    this._onDidChangeConfiguration.event;
+  public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeConfiguration.event
 
-  private projectParser: ProjectParser | undefined;
+  private projectParser: ProjectParser | undefined
 
   constructor(
     private context: vscode.ExtensionContext,
@@ -20,16 +18,16 @@ export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
     private projectFormat: ProjectFormatType,
   ) {
     vscode.workspace.onDidChangeConfiguration(() => {
-      this._onDidChangeConfiguration.fire();
-    });
+      this._onDidChangeConfiguration.fire()
+    })
   }
 
   private async getProjectParser(): Promise<ProjectParser> {
     if (this.projectParser) {
-      return this.projectParser;
+      return this.projectParser
     }
-    this.projectParser = new ProjectParser(this.context, this.projectFormat);
-    return this.projectParser;
+    this.projectParser = new ProjectParser(this.context, this.projectFormat)
+    return this.projectParser
   }
 
   public async provideHover(
@@ -37,38 +35,33 @@ export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
     position: vscode.Position,
   ): Promise<vscode.Hover | undefined> {
     if (!this.selector.hasPattern(document)) {
-      return;
+      return
     }
 
-    const parser = await this.getProjectParser();
-    const service = parser.parse(document);
-    const got = service.getDependencyByPosition(position);
+    const parser = await this.getProjectParser()
+    const service = parser.parse(document)
+    const got = service.getDependencyByPosition(position)
     if (!got) {
-      return;
+      return
     }
-    const dependency = got[0];
-    const range = got[1];
+    const dependency = got[0]
+    const range = got[1]
 
     try {
-      const pkg = await service.getPackage(dependency.name);
-      const sections = [
-        pkg.summary,
-        `Latest version: ${pkg.version}`,
-        pkg.url,
-      ].filter((i): i is Exclude<typeof i, undefined> => i !== undefined);
-      const message = sections.join("\n\n");
-      return new vscode.Hover(message, range);
+      const pkg = await service.getPackage(dependency.name)
+      const sections = [pkg.summary, `Latest version: ${pkg.version}`, pkg.url].filter(
+        (i): i is Exclude<typeof i, undefined> => i !== undefined,
+      )
+      const message = sections.join('\n\n')
+      return new vscode.Hover(message, range)
     } catch {
-      return;
+      return
     }
   }
 
   public activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
-      vscode.languages.registerHoverProvider(
-        this.selector.documentSelector,
-        this,
-      ),
-    );
+      vscode.languages.registerHoverProvider(this.selector.documentSelector, this),
+    )
   }
 }

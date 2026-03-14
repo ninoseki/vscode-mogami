@@ -1,16 +1,16 @@
-import * as path from "path";
-import { defineConfig } from "vitest/config";
+import * as path from 'path'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
     globals: true,
     coverage: {
-      reporter: ["lcov", "text"],
+      reporter: ['lcov', 'text'],
     },
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      '@': path.resolve(__dirname, './src'),
     },
   },
-});
+})
