@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest'
 
+import { TextDocumentLikeType } from '@/schemas'
+
 import { parseMetadataBlock, parseProject } from './pep723'
-import { makeTextDocumentLike } from './pyproject.spec'
+
+function makeTextDocumentLike(lines: string[]): TextDocumentLikeType {
+  return {
+    getText: vi.fn(() => lines.join('\n')),
+    lineAt: vi.fn((line) => ({
+      text: lines[line],
+      range: {
+        start: { line, character: 0 },
+        end: { line, character: lines[line].length - 2 },
+      },
+    })),
+    lineCount: lines.length,
+  }
+}
 
 describe('parseMetadataBlock', () => {
   it('should extract basic metadata with requires-python and dependencies', () => {
