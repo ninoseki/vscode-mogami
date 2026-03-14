@@ -116,6 +116,7 @@ export const ProjectFormatSchema = z.enum([
   'gemfile',
   'gemspec',
   'github-actions-workflow',
+  'npm',
   'pep723',
   'pip-requirements',
   'pyproject',
