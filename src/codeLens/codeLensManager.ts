@@ -1,56 +1,49 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode'
 
-import { getConcurrency, getEnableCodeLens } from "@/configuration";
-import { projectFormatToSelector } from "@/constants";
-import { ExtensionComponent } from "@/extensionComponent";
+import { getConcurrency, getEnableCodeLens } from '@/configuration'
+import { projectFormatToSelector } from '@/constants'
+import { ExtensionComponent } from '@/extensionComponent'
 
-import { CodeLensProvider } from "./codeLensProvider";
-import { CodeLensState } from "./codeLensState";
-import { OnActiveTextEditorChange } from "./events/onActiveTextEditorChange";
-import { OnHideClick } from "./events/onHideClick";
-import { OnShowClick } from "./events/onShowClick";
-import { OnUpdateDependencyClick } from "./events/onUpdateDependencyClick";
+import { CodeLensProvider } from './codeLensProvider'
+import { CodeLensState } from './codeLensState'
+import { OnActiveTextEditorChange } from './events/onActiveTextEditorChange'
+import { OnHideClick } from './events/onHideClick'
+import { OnShowClick } from './events/onShowClick'
+import { OnUpdateDependencyClick } from './events/onUpdateDependencyClick'
 
 export class CodeLensManager implements ExtensionComponent {
-  codeLensProviders: CodeLensProvider[];
+  codeLensProviders: CodeLensProvider[]
 
   constructor() {
-    this.codeLensProviders = [];
+    this.codeLensProviders = []
   }
 
   public async activate(context: vscode.ExtensionContext) {
-    const enableCodeLens = getEnableCodeLens();
+    const enableCodeLens = getEnableCodeLens()
 
     if (!enableCodeLens) {
-      return;
+      return
     }
 
-    const state = new CodeLensState();
-    await state.applyDefaults();
+    const state = new CodeLensState()
+    await state.applyDefaults()
 
-    const concurrency = getConcurrency();
+    const concurrency = getConcurrency()
 
     this.codeLensProviders = Array.from(projectFormatToSelector).map(
       ([projectFormat, selector]) => {
-        const name = `${projectFormat}-CodeLensProvider`;
-        return new CodeLensProvider(
-          context,
-          selector,
-          projectFormat,
-          concurrency,
-          state,
-          name,
-        );
+        const name = `${projectFormat}-CodeLensProvider`
+        return new CodeLensProvider(context, selector, projectFormat, concurrency, state, name)
       },
-    );
+    )
 
     this.codeLensProviders.forEach((provider) => {
-      provider.activate(context);
-    });
+      provider.activate(context)
+    })
 
-    new OnShowClick(this.codeLensProviders, state);
-    new OnHideClick(this.codeLensProviders, state);
-    new OnActiveTextEditorChange(this.codeLensProviders, state);
-    new OnUpdateDependencyClick();
+    new OnShowClick(this.codeLensProviders, state)
+    new OnHideClick(this.codeLensProviders, state)
+    new OnActiveTextEditorChange(this.codeLensProviders, state)
+    new OnUpdateDependencyClick()
   }
 }

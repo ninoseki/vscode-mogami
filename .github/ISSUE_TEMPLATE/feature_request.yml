@@ -1,6 +1,6 @@
 name: 🚀 New feature proposal
 description: Propose a new feature
-labels: ["enhancement: pending triage"]
+labels: ['enhancement: pending triage']
 body:
   - type: markdown
     attributes:

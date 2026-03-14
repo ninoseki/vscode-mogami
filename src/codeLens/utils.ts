@@ -1,73 +1,66 @@
 // split from codeLensFactory.ts to make them testable
 // (using "vscode" package makes it difficult to test with vitest)
-import { isAxiosError } from "axios";
-import { Result } from "neverthrow";
-import semver from "semver";
+import { isAxiosError } from 'axios'
+import { Result } from 'neverthrow'
+import semver from 'semver'
 
-import { OnUpdateDependencyClickCommand } from "@/constants";
-import type {
-  DependencyType,
-  PackageType,
-  SatisfiesFnType,
-  validateRangeFnType,
-} from "@/schemas";
-import { eq, maxSatisfying } from "@/versioning/utils";
+import { OnUpdateDependencyClickCommand } from '@/constants'
+import type { DependencyType, PackageType, SatisfiesFnType, validateRangeFnType } from '@/schemas'
+import { eq, maxSatisfying } from '@/versioning/utils'
 
 export interface PackageSuggestion {
-  title: string;
-  command: string;
-  replaceable?: boolean;
+  title: string
+  command: string
+  replaceable?: boolean
 }
 
 function createErrorSuggestion(err: unknown): PackageSuggestion {
-  const symbol = "🔴";
+  const symbol = '🔴'
   const message: string = (() => {
     if (isAxiosError(err)) {
       switch (err.response?.status) {
         case 400:
-          return `400 bad request`;
+          return `400 bad request`
         case 401:
-          return `401 not authorized`;
+          return `401 not authorized`
         case 403:
-          return `403 forbidden`;
+          return `403 forbidden`
         case 404:
-          return `package not found`;
+          return `package not found`
         case 500:
-          return `internal server error`;
+          return `internal server error`
       }
     }
     if (err instanceof Error) {
-      return err.message;
+      return err.message
     }
-    return `something went wrong`;
-  })();
+    return `something went wrong`
+  })()
   return {
     title: `${symbol} ${message}`,
-    command: "",
-  };
+    command: '',
+  }
 }
 
 function createFixedSuggestion(dependency: DependencyType): PackageSuggestion {
-  return { title: `🟡 fixed ${dependency.specifier}`, command: "" };
+  return { title: `🟡 fixed ${dependency.specifier}`, command: '' }
 }
 
 function createLatestSuggestion(pkg: PackageType): PackageSuggestion {
-  return { title: `🟢 latest ${pkg.version}`, command: "" };
+  return { title: `🟢 latest ${pkg.version}`, command: '' }
 }
 
 function createLatestSatisfiesSuggestion(pkg: PackageType): PackageSuggestion {
-  return { title: `🟡 satisfies latest ${pkg.version}`, command: "" };
+  return { title: `🟡 satisfies latest ${pkg.version}`, command: '' }
 }
 
-function createSatisfiesSuggestion(
-  satisfiesVersion: string,
-): PackageSuggestion {
-  return { title: `🟡 satisfies ${satisfiesVersion}`, command: "" };
+function createSatisfiesSuggestion(satisfiesVersion: string): PackageSuggestion {
+  return { title: `🟡 satisfies ${satisfiesVersion}`, command: '' }
 }
 
 function createUpdatableSuggestion(pkg: PackageType): PackageSuggestion {
-  const title = `↑ latest ${pkg.version}`;
-  return { title, command: OnUpdateDependencyClickCommand, replaceable: true };
+  const title = `↑ latest ${pkg.version}`
+  return { title, command: OnUpdateDependencyClickCommand, replaceable: true }
 }
 
 export function createPackageSuggestions({
@@ -76,56 +69,56 @@ export function createPackageSuggestions({
   satisfies,
   validateRange,
 }: {
-  dependency: DependencyType;
-  pkgResult: Result<PackageType, unknown>;
-  satisfies: SatisfiesFnType;
-  validateRange: validateRangeFnType;
+  dependency: DependencyType
+  pkgResult: Result<PackageType, unknown>
+  satisfies: SatisfiesFnType
+  validateRange: validateRangeFnType
 }): PackageSuggestion[] {
   if (pkgResult.isErr()) {
-    return [createErrorSuggestion(pkgResult.error)];
+    return [createErrorSuggestion(pkgResult.error)]
   }
 
-  const suggestions: PackageSuggestion[] = [];
-  const pkg = pkgResult.value;
+  const suggestions: PackageSuggestion[] = []
+  const pkg = pkgResult.value
 
   const checkIsLatest = (): boolean => {
     if (dependency.specifier) {
       // check alias equality (if alias is available)
       if (pkg.alias === dependency.specifier) {
-        return true;
+        return true
       }
 
       // check semantic versioning equality
-      return eq(pkg.version, dependency.specifier);
+      return eq(pkg.version, dependency.specifier)
     }
     // consider it's the latest version if no specifier is provided
-    return true;
-  };
+    return true
+  }
 
-  const isLatest = checkIsLatest();
-  const isFixedSpecifier: boolean = semver.valid(dependency.specifier) !== null;
-  const isRangeSpecifier: boolean = validateRange(dependency);
+  const isLatest = checkIsLatest()
+  const isFixedSpecifier: boolean = semver.valid(dependency.specifier) !== null
+  const isRangeSpecifier: boolean = validateRange(dependency)
   const satisfiesVersion = maxSatisfying({
     pkg,
     dependency,
     satisfies,
-  });
+  })
 
   if (isLatest) {
-    suggestions.push(createLatestSuggestion(pkg));
+    suggestions.push(createLatestSuggestion(pkg))
   } else if (isFixedSpecifier) {
-    suggestions.push(createFixedSuggestion(dependency));
+    suggestions.push(createFixedSuggestion(dependency))
   } else if (isRangeSpecifier && satisfiesVersion) {
     if (satisfiesVersion === pkg.version) {
-      suggestions.push(createLatestSatisfiesSuggestion(pkg));
+      suggestions.push(createLatestSatisfiesSuggestion(pkg))
     } else {
-      suggestions.push(createSatisfiesSuggestion(satisfiesVersion));
+      suggestions.push(createSatisfiesSuggestion(satisfiesVersion))
     }
   }
 
   if (!isLatest) {
-    suggestions.push(createUpdatableSuggestion(pkg));
+    suggestions.push(createUpdatableSuggestion(pkg))
   }
 
-  return suggestions;
+  return suggestions
 }

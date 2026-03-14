@@ -1,13 +1,13 @@
-import { Result } from "neverthrow";
-import { CodeLens, Range, Uri } from "vscode";
+import { Result } from 'neverthrow'
+import { CodeLens, Range, Uri } from 'vscode'
 
-import { DependencyType, PackageType } from "@/schemas";
+import { DependencyType, PackageType } from '@/schemas'
 
 export class SuggestionCodeLens extends CodeLens {
-  replaceRange?: Range;
-  pkgResult: Result<PackageType, unknown>;
-  dependency: DependencyType;
-  documentUrl: Uri;
+  replaceRange?: Range
+  pkgResult: Result<PackageType, unknown>
+  dependency: DependencyType
+  documentUrl: Uri
 
   constructor(
     commandRange: Range,
@@ -17,19 +17,19 @@ export class SuggestionCodeLens extends CodeLens {
       pkgResult,
       dependency,
     }: {
-      replaceRange?: Range;
-      documentUrl: Uri;
-      pkgResult: Result<PackageType, unknown>;
-      dependency: DependencyType;
+      replaceRange?: Range
+      documentUrl: Uri
+      pkgResult: Result<PackageType, unknown>
+      dependency: DependencyType
     },
   ) {
-    super(commandRange);
-    this.replaceRange = replaceRange;
-    this.documentUrl = documentUrl;
-    this.pkgResult = pkgResult;
-    this.dependency = dependency;
+    super(commandRange)
+    this.replaceRange = replaceRange
+    this.documentUrl = documentUrl
+    this.pkgResult = pkgResult
+    this.dependency = dependency
 
-    this.command = undefined;
+    this.command = undefined
   }
 
   setCommand(title: string, command: string, args?: Array<unknown>) {
@@ -37,7 +37,7 @@ export class SuggestionCodeLens extends CodeLens {
       title,
       command,
       arguments: args,
-    };
-    return this;
+    }
+    return this
   }
 }

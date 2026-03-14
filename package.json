@@ -1,36 +1,95 @@
 {
   "name": "vscode-mogami",
   "displayName": "Mogami",
+  "version": "0.0.0",
   "description": "A VS Code extension for checking the latest version of each dependency",
+  "categories": [
+    "Other",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "gem",
+    "pyproject",
+    "python",
+    "ruby"
+  ],
+  "author": "Manabu Niseki",
   "repository": {
     "type": "git",
     "url": "https://github.com/ninoseki/vscode-mogami.git"
   },
-  "version": "0.0.0",
-  "author": "Manabu Niseki",
   "publisher": "ninoseki",
-  "engines": {
-    "vscode": "^1.80.0"
+  "main": "./dist/extension.js",
+  "scripts": {
+    "build": "rollup -c rollup.config.ts --configPlugin typescript",
+    "dev": "NODE_ENV=development rollup -c rollup.config.ts --configPlugin typescript",
+    "watch": "rollup -c rollup.config.ts --configPlugin typescript --watch",
+    "coverage": "vitest run --coverage",
+    "lint": "run-s lint:*",
+    "lint:oxlint": "oxlint . --fix",
+    "lint:eslint": "eslint . --fix --cache",
+    "format": "oxfmt src/",
+    "package": "vsce package",
+    "prepare": "husky",
+    "publish": "vsce publish",
+    "test": "vitest",
+    "vscode:prepublish": "NODE_ENV=production rollup -c rollup.config.ts --configPlugin typescript"
   },
-  "keywords": [
-    "pyproject",
-    "python",
-    "gem",
-    "ruby"
-  ],
-  "categories": [
-    "Programming Languages",
-    "Other"
-  ],
-  "activationEvents": [
-    "onLanguage:python",
-    "workspaceContains:**/.github/workflows/*.{yaml,yml}",
-    "workspaceContains:**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt,constraints.txt}",
-    "workspaceContains:**/*.gemspec",
-    "workspaceContains:**/Gemfile",
-    "workspaceContains:**/pyproject.toml",
-    "workspaceContains:**/shard.yml"
-  ],
+  "dependencies": {
+    "@renovatebot/pep440": "^4.2.2",
+    "@renovatebot/ruby-semver": "^4.1.2",
+    "axios": "^1.13.6",
+    "axios-cache-interceptor": "^1.12.0",
+    "camelcase-keys": "^10.0.2",
+    "compare-versions": "^6.1.1",
+    "linkedom": "^0.18.12",
+    "lru-cache": "^11.2.7",
+    "neverthrow": "^8.2.0",
+    "p-map": "^7.0.4",
+    "radash": "^12.1.1",
+    "semver": "^7.7.4",
+    "toml-eslint-parser": "^1.0.3",
+    "url-join": "^5.0.0",
+    "winston-transport-vscode": "^0.1.0",
+    "yaml-eslint-parser": "^2.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@ninoseki/eslint-plugin-neverthrow": "^0.1.0",
+    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/node": "^24.10.15",
+    "@types/semver": "^7.7.1",
+    "@types/vscode": "^1.80.0",
+    "@vitest/coverage-v8": "^4.1.0",
+    "@vitest/eslint-plugin": "^1.6.12",
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^10.0.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-oxlint": "^1.55.0",
+    "eslint-plugin-regexp": "^3.1.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "husky": "^9.1.7",
+    "jiti": "^2.6.1",
+    "lint-staged": "^16.4.0",
+    "npm-run-all2": "^8.0.4",
+    "oxfmt": "^0.40.0",
+    "oxlint": "^1.55.0",
+    "rollup": "^4.59.0",
+    "rollup-plugin-esbuild": "^6.2.1",
+    "type-fest": "^5.4.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.0",
+    "vitest": "^4.1.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "npx oxlint --fix",
+      "npx oxfmt"
+    ]
+  },
   "contributes": {
     "commands": [
       {
@@ -120,71 +179,17 @@
       }
     }
   },
-  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:python",
+    "workspaceContains:**/*.gemspec",
+    "workspaceContains:**/.github/workflows/*.{yaml,yml}",
+    "workspaceContains:**/Gemfile",
+    "workspaceContains:**/pyproject.toml",
+    "workspaceContains:**/shard.yml",
+    "workspaceContains:**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt,constraints.txt}"
+  ],
   "icon": "./images/icon.png",
-  "scripts": {
-    "build": "rollup -c rollup.config.ts --configPlugin typescript",
-    "dev": "NODE_ENV=development rollup -c rollup.config.ts --configPlugin typescript",
-    "watch": "rollup -c rollup.config.ts --configPlugin typescript --watch",
-    "coverage": "vitest run --coverage",
-    "lint": "eslint src --fix",
-    "format": "prettier --write src",
-    "package": "vsce package",
-    "prepare": "husky",
-    "publish": "vsce publish",
-    "test": "vitest",
-    "vscode:prepublish": "NODE_ENV=production rollup -c rollup.config.ts --configPlugin typescript"
-  },
-  "lint-staged": {
-    "*.ts": [
-      "npm run lint",
-      "npm run format"
-    ]
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "@ninoseki/eslint-plugin-neverthrow": "^0.0.1",
-    "@rollup/plugin-commonjs": "^29.0.0",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-typescript": "^12.3.0",
-    "@types/node": "^22.19.1",
-    "@types/semver": "^7.7.1",
-    "@types/vscode": "^1.80.0",
-    "@vitest/coverage-v8": "^4.0.17",
-    "@vitest/eslint-plugin": "^1.6.6",
-    "@vscode/vsce": "^3.7.1",
-    "eslint": "^9.39.2",
-    "eslint-plugin-prettier": "^5.5.5",
-    "eslint-plugin-regexp": "^2.10.0",
-    "eslint-plugin-simple-import-sort": "^12.1.1",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
-    "prettier": "^3.8.0",
-    "rollup": "^4.55.1",
-    "rollup-plugin-esbuild": "^6.2.1",
-    "type-fest": "^5.4.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.0",
-    "vitest": "^4.0.17"
-  },
-  "dependencies": {
-    "@renovatebot/pep440": "^4.2.1",
-    "@renovatebot/ruby-semver": "^4.1.2",
-    "axios": "^1.13.2",
-    "axios-cache-interceptor": "^1.11.3",
-    "camelcase-keys": "^10.0.1",
-    "compare-versions": "^6.1.1",
-    "linkedom": "^0.18.12",
-    "lru-cache": "^11.2.4",
-    "neverthrow": "^8.2.0",
-    "p-map": "^7.0.4",
-    "radash": "^12.1.1",
-    "semver": "^7.7.3",
-    "toml-eslint-parser": "^1.0.3",
-    "url-join": "^5.0.0",
-    "winston-transport-vscode": "^0.1.0",
-    "yaml-eslint-parser": "^2.0.0",
-    "zod": "^4.3.5"
+  "engines": {
+    "vscode": "^1.80.0"
   }
 }

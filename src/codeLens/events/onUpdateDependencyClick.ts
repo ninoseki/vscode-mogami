@@ -1,40 +1,36 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode'
 
-import { SuggestionCodeLens } from "@/codeLens/suggestionCodeLens";
-import { OnUpdateDependencyClickCommand } from "@/constants";
-import { formatWithExistingLeading } from "@/versioning/utils";
+import { SuggestionCodeLens } from '@/codeLens/suggestionCodeLens'
+import { OnUpdateDependencyClickCommand } from '@/constants'
+import { formatWithExistingLeading } from '@/versioning/utils'
 
 export class OnUpdateDependencyClick {
-  disposable: vscode.Disposable;
+  disposable: vscode.Disposable
 
   constructor() {
     this.disposable = vscode.commands.registerCommand(
       OnUpdateDependencyClickCommand,
       this.execute,
       this,
-    );
+    )
   }
 
   async execute(codeLens: SuggestionCodeLens): Promise<void> {
-    if (
-      !codeLens.replaceRange ||
-      !codeLens.dependency.specifier ||
-      codeLens.pkgResult.isErr()
-    ) {
-      return;
+    if (!codeLens.replaceRange || !codeLens.dependency.specifier || codeLens.pkgResult.isErr()) {
+      return
     }
 
-    const pkg = codeLens.pkgResult.value;
-    const edit = new vscode.WorkspaceEdit();
+    const pkg = codeLens.pkgResult.value
+    const edit = new vscode.WorkspaceEdit()
     edit.replace(
       codeLens.documentUrl,
       codeLens.replaceRange,
       formatWithExistingLeading(codeLens.dependency.specifier, pkg.version),
-    );
-    await vscode.workspace.applyEdit(edit);
+    )
+    await vscode.workspace.applyEdit(edit)
   }
 
   async dispose() {
-    await this.disposable.dispose();
+    await this.disposable.dispose()
   }
 }

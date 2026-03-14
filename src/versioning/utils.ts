@@ -1,30 +1,20 @@
-import { parse } from "@renovatebot/pep440/lib/version";
-import { compareVersions, validate } from "compare-versions";
-import semver from "semver";
+import { parse } from '@renovatebot/pep440/lib/version'
+import { compareVersions, validate } from 'compare-versions'
+import semver from 'semver'
 
-import { DependencyType, PackageType, SatisfiesFnType } from "@/schemas";
+import { DependencyType, PackageType, SatisfiesFnType } from '@/schemas'
 
 // Forked from https://gitlab.com/versionlens/vscode-versionlens/
 // eslint-disable-next-line regexp/no-super-linear-backtracking
-export const extractSymbolFromVersionRegex = /^(\D*).*$/;
+export const extractSymbolFromVersionRegex = /^(\D*).*$/
 
-export const semverLeadingChars = [
-  "^",
-  "~",
-  "<",
-  "<=",
-  ">",
-  ">=",
-  "~>",
-  "==",
-  "~=",
-];
+export const semverLeadingChars = ['^', '~', '<', '<=', '>', '>=', '~>', '==', '~=']
 
-const leadingCharsRegex = /^[\^~><=]+/;
+const leadingCharsRegex = /^[\^~><=]+/
 
 function parseLeading(version: string): string | null {
-  const regExResult = extractSymbolFromVersionRegex.exec(version);
-  return regExResult && regExResult[1];
+  const regExResult = extractSymbolFromVersionRegex.exec(version)
+  return regExResult && regExResult[1]
 }
 
 export function formatWithExistingLeading(
@@ -32,101 +22,97 @@ export function formatWithExistingLeading(
   newVersion: string,
   { replaceLt }: { replaceLt: boolean } = { replaceLt: true },
 ) {
-  const leading = parseLeading(existingVersion);
-  const hasLeading = leading
-    ? semverLeadingChars.includes(leading.trim())
-    : false;
+  const leading = parseLeading(existingVersion)
+  const hasLeading = leading ? semverLeadingChars.includes(leading.trim()) : false
 
   if (!hasLeading) {
-    return newVersion;
+    return newVersion
   }
 
-  const hasLt = leading?.trim() === "<";
+  const hasLt = leading?.trim() === '<'
 
   if (hasLt && replaceLt) {
-    const rest = leading?.replace("<", "");
-    return `<=${rest}${newVersion}`;
+    const rest = leading?.replace('<', '')
+    return `<=${rest}${newVersion}`
   }
 
-  return `${leading}${newVersion}`;
+  return `${leading}${newVersion}`
 }
 
 export function removeLeading(version: string) {
-  return version.trim().replace(leadingCharsRegex, "").trim();
+  return version.trim().replace(leadingCharsRegex, '').trim()
 }
 
 export function preCoerce(version: string) {
   // convert non-standard pre-release to semver pre-release
   // e.g. 7.2.0.beta2 -> 7.2.0-beta.2
-  const parsed = parse(version);
+  const parsed = parse(version)
   if (!parsed?.release) {
-    return version;
+    return version
   }
 
-  const release = parsed!.release.join(".");
-  const preAliases: Record<string, string> = { a: "alpha", b: "beta" };
-  const pre = (parsed?.pre || [])
-    .map((x) => preAliases[x as string] ?? x)
-    .join(".");
+  const release = parsed!.release.join('.')
+  const preAliases: Record<string, string> = { a: 'alpha', b: 'beta' }
+  const pre = (parsed?.pre || []).map((x) => preAliases[x as string] ?? x).join('.')
 
-  if (pre === "") {
-    return release;
+  if (pre === '') {
+    return release
   }
 
-  return [release, pre].join("-");
+  return [release, pre].join('-')
 }
 
 export function _coerce(version: string) {
   // force coerce version. should be only used by eq & compare
   return semver.coerce(preCoerce(version) || version, {
     includePrerelease: true,
-  });
+  })
 }
 
 export function coerceUnlessValid(version: string) {
-  const parsed = semver.parse(version);
+  const parsed = semver.parse(version)
   if (parsed) {
-    return parsed;
+    return parsed
   }
 
-  return _coerce(version);
+  return _coerce(version)
 }
 
 export function eq(v1: string, v2?: string): boolean {
   if (!v2) {
-    return false;
+    return false
   }
 
   // remove leading charts (version specifier) & use compare-version for non-semver version comparison
   // (e.g. activemodel 7.1.3.4)
-  const rv1 = removeLeading(v1);
-  const rv2 = removeLeading(v2);
+  const rv1 = removeLeading(v1)
+  const rv2 = removeLeading(v2)
   if (validate(rv1) && validate(rv2)) {
-    return compareVersions(rv1, rv2) === 0;
+    return compareVersions(rv1, rv2) === 0
   }
 
-  const cv1 = coerceUnlessValid(v1);
-  const cv2 = coerceUnlessValid(v2);
+  const cv1 = coerceUnlessValid(v1)
+  const cv2 = coerceUnlessValid(v2)
 
   if (!cv1 || !cv2) {
-    return false;
+    return false
   }
 
-  return semver.eq(cv1, cv2);
+  return semver.eq(cv1, cv2)
 }
 
 export function compare(v1: string, v2: string): number {
   // use compare-version for non-semver version comparison
   if (validate(v1) && validate(v2)) {
-    return compareVersions(v1, v2);
+    return compareVersions(v1, v2)
   }
 
-  const cv1 = coerceUnlessValid(v1);
-  const cv2 = coerceUnlessValid(v2);
+  const cv1 = coerceUnlessValid(v1)
+  const cv2 = coerceUnlessValid(v2)
   if (!cv1 || !cv2) {
-    return v1.localeCompare(v2);
+    return v1.localeCompare(v2)
   }
-  return cv1.compare(cv2);
+  return cv1.compare(cv2)
 }
 
 export function maxSatisfying({
@@ -134,58 +120,52 @@ export function maxSatisfying({
   dependency,
   satisfies,
 }: {
-  pkg: PackageType;
-  dependency: DependencyType;
-  satisfies: SatisfiesFnType;
+  pkg: PackageType
+  dependency: DependencyType
+  satisfies: SatisfiesFnType
 }): string | undefined {
   return pkg.versions
     .sort(compare)
     .reverse()
-    .find((v) => satisfies(v, dependency));
+    .find((v) => satisfies(v, dependency))
 }
 
-export function satisfies(
-  version: string,
-  dependency: DependencyType,
-): boolean {
-  const { specifier } = dependency;
+export function satisfies(version: string, dependency: DependencyType): boolean {
+  const { specifier } = dependency
   if (!specifier) {
-    return false;
+    return false
   }
 
-  const coerced =
-    semver.coerce(version, { includePrerelease: true })?.toString() ?? version;
+  const coerced = semver.coerce(version, { includePrerelease: true })?.toString() ?? version
 
-  return semver.satisfies(coerced, specifier);
+  return semver.satisfies(coerced, specifier)
 }
 
 export function isPrerelease(v: string): boolean {
   // return null if the version is a prerelease version
   if (semver.prerelease(v, { loose: true }) !== null) {
-    return true;
+    return true
   }
-  return !/^\d[.\d]+$/.test(v);
+  return !/^\d[.\d]+$/.test(v)
 }
 
 export function validateRange(dependency: DependencyType): boolean {
   const hasNothingOrStrictEqualLeading = (constraint: string): boolean => {
-    const leading = parseLeading(constraint);
-    return [null, "", "=="].includes(leading);
-  };
+    const leading = parseLeading(constraint)
+    return [null, '', '=='].includes(leading)
+  }
 
   if (dependency.specifierRequirements) {
-    return !dependency.specifierRequirements.some(
-      hasNothingOrStrictEqualLeading,
-    );
+    return !dependency.specifierRequirements.some(hasNothingOrStrictEqualLeading)
   }
 
   if (!dependency.specifier) {
-    return false;
+    return false
   }
 
   if (hasNothingOrStrictEqualLeading(dependency.specifier)) {
-    return false;
+    return false
   }
 
-  return semver.validRange(dependency.specifier) !== null;
+  return semver.validRange(dependency.specifier) !== null
 }

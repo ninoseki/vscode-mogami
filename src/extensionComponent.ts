@@ -1,5 +1,5 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode'
 
 export interface ExtensionComponent {
-  activate(context?: vscode.ExtensionContext): unknown;
+  activate(context?: vscode.ExtensionContext): unknown
 }
