@@ -45,6 +45,9 @@ export const OnHideClickCommand = `${ExtID}.${OnHideClickKey}`
 export const OnShowClickKey = `icons.show`
 export const OnShowClickCommand = `${ExtID}.${OnShowClickKey}`
 
+export const OnShowingProgressKey = `icons.showingProgress`
+export const OnShowingProgressCommand = `${ExtID}.${OnShowingProgressKey}`
+
 export const ProviderActiveStateKey = `${ExtID}.providerActive`
 export const ProviderBusyStateKey = `${ExtID}.providerBusy`
 export const ShowStateKey = `${ExtID}.show`

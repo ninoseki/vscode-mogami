@@ -1,4 +1,3 @@
-import { ResultAsync } from 'neverthrow'
 import * as vscode from 'vscode'
 
 import { ExtensionComponent } from '@/extensionComponent'
@@ -55,17 +54,16 @@ export class CodeLensProvider implements vscode.CodeLensProvider, ExtensionCompo
 
     const projectParser = await this.getProjectParser()
 
-    const promise = async () => {
+    await this.state.setProviderBusy()
+
+    try {
       const service = projectParser.parse(document)
-      return await createCodeLenses(document, service, {
-        concurrency: this.concurrency,
-      })
+      return await createCodeLenses(document, service, { concurrency: this.concurrency })
+    } catch {
+      return []
+    } finally {
+      await this.state.clearProviderBusy()
     }
-    const result = ResultAsync.fromPromise(promise(), (e) => e as Error)
-
-    await this.state.clearProviderBusy()
-
-    return result.unwrapOr([])
   }
 
   public isActive(): boolean {

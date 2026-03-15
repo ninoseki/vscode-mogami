@@ -133,17 +133,17 @@
         {
           "command": "vscode-mogami.icons.showingProgress",
           "when": "vscode-mogami.providerBusy === true && vscode-mogami.providerActive && !textCompareEditorVisible",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
           "command": "vscode-mogami.icons.hide",
           "when": "vscode-mogami.providerBusy === false && vscode-mogami.providerActive && vscode-mogami.show === true && !textCompareEditorVisible",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
           "command": "vscode-mogami.icons.show",
           "when": "vscode-mogami.providerBusy === false && vscode-mogami.providerActive && vscode-mogami.show === false && !textCompareEditorVisible",
-          "group": "navigation"
+          "group": "navigation@1"
         }
       ]
     },
