@@ -6,6 +6,7 @@ import type { DependencyType, ProjectType, RawRangeType, TextDocumentLikeType } 
 const nonRegistryPrefixes = [
   'workspace:',
   'catalog:',
+  'npm:',
   'file:',
   'link:',
   'portal:',
@@ -26,39 +27,9 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-/**
- * Parse an `npm:` alias specifier into the real package name and version.
- * e.g. "npm:typescript@^2.3.4"  → { name: "typescript", specifier: "^2.3.4" }
- * e.g. "npm:@scope/pkg@^1.0.0"  → { name: "@scope/pkg", specifier: "^1.0.0" }
- * e.g. "npm:typescript"         → { name: "typescript", specifier: "*" }
- */
-function parseNpmAlias(specifier: string): { name: string; specifier: string } | undefined {
-  if (!specifier.startsWith('npm:')) return undefined
-  const rest = specifier.slice(4)
-  // Skip the leading @ for scoped packages when searching for the version separator
-  const atIndex = rest.indexOf('@', rest.startsWith('@') ? 1 : 0)
-  if (atIndex < 0) {
-    return { name: rest, specifier: '*' }
-  }
-  return { name: rest.slice(0, atIndex), specifier: rest.slice(atIndex + 1) }
-}
-
-/**
- * Strip a pnpm/npm override selector from a dependency key.
- * e.g. "typescript@npm:typescript" → "typescript"
- * e.g. "semver@^5.0.0"            → "semver"
- * e.g. "@scope/pkg@^1.0.0"        → "@scope/pkg"
- */
-function stripOverrideSelector(name: string): string {
-  const atIndex = name.indexOf('@', 1) // skip leading @ for scoped packages
-  return atIndex > 0 ? name.slice(0, atIndex) : name
-}
-
 interface DepEntry {
   name: string
   specifier: string
-  /** Original JSON key used to locate the entry in the file */
-  fileKey: string
 }
 
 // A flat map of package name → version string
@@ -96,9 +67,9 @@ const PackageJsonSchema = z.object({
  */
 function collectOverrides(obj: OverridesRecord): DepEntry[] {
   const result: DepEntry[] = []
-  for (const [rawKey, value] of Object.entries(obj)) {
+  for (const [name, value] of Object.entries(obj)) {
     if (typeof value === 'string') {
-      result.push({ name: stripOverrideSelector(rawKey), specifier: value, fileKey: rawKey })
+      result.push({ name, specifier: value })
     } else {
       result.push(...collectOverrides(value))
     }
@@ -114,7 +85,7 @@ function collectDepsMap(sections: (Record<string, string> | undefined | null)[])
   for (const section of sections) {
     if (!section) continue
     for (const [name, specifier] of Object.entries(section)) {
-      result.push({ name, specifier, fileKey: name })
+      result.push({ name, specifier })
     }
   }
   return result
@@ -142,20 +113,11 @@ export function parseProject(document: TextDocumentLikeType): ProjectType {
 
   const addEntries = (entries: DepEntry[]) => {
     for (const entry of entries) {
-      // Resolve npm: aliases → real package name + version specifier
-      const alias = parseNpmAlias(entry.specifier)
-      const resolvedName = alias ? alias.name : entry.name
-      const resolvedSpecifier = alias ? alias.specifier : entry.specifier
-
-      if (!isRegistrySpecifier(resolvedSpecifier)) {
+      if (!isRegistrySpecifier(entry.specifier)) {
         continue
       }
-      if (!allDeps.has(resolvedName)) {
-        allDeps.set(resolvedName, {
-          name: resolvedName,
-          specifier: resolvedSpecifier,
-          fileKey: entry.fileKey,
-        })
+      if (!allDeps.has(entry.name)) {
+        allDeps.set(entry.name, entry)
       }
     }
   }
@@ -192,16 +154,7 @@ export function parseProject(document: TextDocumentLikeType): ProjectType {
   }
 
   const dependencies: [DependencyType, RawRangeType][] = []
-
-  // Build a lookup from fileKey → DepEntry for efficient line scanning
-  const byFileKey = new Map<string, DepEntry>()
-  for (const entry of allDeps.values()) {
-    if (!byFileKey.has(entry.fileKey)) {
-      byFileKey.set(entry.fileKey, entry)
-    }
-  }
-
-  const remaining = new Map(byFileKey)
+  const remaining = new Map(allDeps)
 
   for (let line = 0; line < document.lineCount; line++) {
     if (remaining.size === 0) {
@@ -210,10 +163,10 @@ export function parseProject(document: TextDocumentLikeType): ProjectType {
 
     const { text: lineText, range } = document.lineAt(line)
 
-    for (const [fileKey, entry] of remaining) {
-      const regexp = new RegExp(`^\\s*"${escapeRegExp(fileKey)}"\\s*:\\s*"([^"]*)"`)
+    for (const [name, entry] of remaining) {
+      const regexp = new RegExp(`^\\s*"${escapeRegExp(name)}"\\s*:\\s*"([^"]*)"`)
       if (regexp.test(lineText)) {
-        remaining.delete(fileKey)
+        remaining.delete(name)
         dependencies.push([
           { name: entry.name, specifier: entry.specifier },
           [range.start.line, range.start.character, range.end.line, range.end.character],
