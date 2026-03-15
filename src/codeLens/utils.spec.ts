@@ -66,6 +66,27 @@ describe('createPackageSuggestions', () => {
         },
       ] as PackageSuggestion[],
     ],
+    // outdated & range specifier (satisfies version equals pinned version, no bump)
+    [
+      { name: 'foo', specifier: '^1.1.0' } as DependencyType,
+      {
+        name: 'foo',
+        version: '2.0.0',
+        versions: ['2.0.0', '1.1.0', '1.0.0'],
+      } as PackageType,
+      satisfies,
+      [
+        {
+          command: '',
+          title: '🟡 satisfies 1.1.0',
+        },
+        {
+          command: 'vscode-mogami.suggestions.updateDependencyClick',
+          replaceable: true,
+          title: '↑ latest 2.0.0',
+        },
+      ] as PackageSuggestion[],
+    ],
     // outdated & range specifier (un-satisfies & has newer version)
     [
       { name: 'foo', specifier: '>=1.0.0 <2.0.0' } as DependencyType,
@@ -84,6 +105,11 @@ describe('createPackageSuggestions', () => {
           command: 'vscode-mogami.suggestions.updateDependencyClick',
           replaceable: true,
           title: '↑ latest 2.0.0',
+        },
+        {
+          command: 'vscode-mogami.suggestions.bumpDependencyClick',
+          replaceable: true,
+          title: '↑ bump 1.1.0',
         },
       ] as PackageSuggestion[],
     ],
