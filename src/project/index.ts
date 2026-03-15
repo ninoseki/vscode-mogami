@@ -7,6 +7,7 @@ import { Logger } from '@/logger'
 import { AnacondaClient } from '@/package/anaconda'
 import { GemClient } from '@/package/gem'
 import { GitHubClient } from '@/package/github'
+import { NpmClient } from '@/package/npm'
 import { PyPIClient } from '@/package/pypi'
 import type {
   DependencyType,
@@ -28,6 +29,7 @@ import {
 import * as actions from './actions'
 import * as gemfile from './gemfile'
 import * as gemspec from './gemspec'
+import * as npm from './npm'
 import * as pep723 from './pep723'
 import * as pyproject from './pyproject'
 import * as requirements from './requirements'
@@ -45,6 +47,7 @@ const versioningConfig: Record<
     satisfies: utilsSatisfies,
     validateRange: utilsValidateRange,
   },
+  npm: { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
   pyproject: { satisfies: pypiSatisfies, validateRange: pypiValidateRange },
   'pip-requirements': {
     satisfies: pypiSatisfies,
@@ -61,6 +64,7 @@ const parsers: Record<ProjectFormatType, (doc: vscode.TextDocument) => ProjectTy
   gemfile: gemfile.parseProject,
   gemspec: gemspec.parseProject,
   'github-actions-workflow': actions.parseProject,
+  npm: npm.parseProject,
   shards: shards.parseProject,
 }
 
@@ -70,6 +74,9 @@ async function createClient(
 ): Promise<PackageClientType> {
   if (project.format === 'gemfile' || project.format === 'gemspec') {
     return new GemClient(project.source)
+  }
+  if (project.format === 'npm') {
+    return new NpmClient(project.source)
   }
   if (project.format === 'pyproject' && project.detailedFormat === 'pixi') {
     return new AnacondaClient(project.source)

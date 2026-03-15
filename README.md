@@ -21,6 +21,8 @@ A VS Code extension for checking the latest version of each dependency.
 - Ruby:
   - `Gemfile`
   - `*.gemspec`
+- Node.js:
+  - `package.json`
 - GitHub Actions:
   - `.github/workflows/*.{yml,yaml}`
 - Crystal Shards:

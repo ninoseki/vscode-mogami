@@ -9,6 +9,7 @@
   ],
   "keywords": [
     "gem",
+    "npm",
     "pyproject",
     "python",
     "ruby"
@@ -184,6 +185,7 @@
     "workspaceContains:**/*.gemspec",
     "workspaceContains:**/.github/workflows/*.{yaml,yml}",
     "workspaceContains:**/Gemfile",
+    "workspaceContains:**/package.json",
     "workspaceContains:**/pyproject.toml",
     "workspaceContains:**/shard.yml",
     "workspaceContains:**/{requirements.txt,requirements-*.txt,*-requirements.txt,*.requirements.txt,constraints.txt}"
