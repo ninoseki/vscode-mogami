@@ -4,7 +4,7 @@ import { isAxiosError } from 'axios'
 import { Result } from 'neverthrow'
 import semver from 'semver'
 
-import { OnUpdateDependencyClickCommand } from '@/constants'
+import { OnBumpDependencyClickCommand, OnUpdateDependencyClickCommand } from '@/constants'
 import type { DependencyType, PackageType, SatisfiesFnType, validateRangeFnType } from '@/schemas'
 import { eq, maxSatisfying } from '@/versioning/utils'
 
@@ -63,6 +63,14 @@ function createUpdatableSuggestion(pkg: PackageType): PackageSuggestion {
   return { title, command: OnUpdateDependencyClickCommand, replaceable: true }
 }
 
+function createBumpSuggestion(satisfiesVersion: string): PackageSuggestion {
+  return {
+    title: `↑ bump ${satisfiesVersion}`,
+    command: OnBumpDependencyClickCommand,
+    replaceable: true,
+  }
+}
+
 export function createPackageSuggestions({
   dependency,
   pkgResult,
@@ -103,6 +111,9 @@ export function createPackageSuggestions({
     dependency,
     satisfies,
   })
+  const isSatisfying: boolean =
+    satisfiesVersion !== undefined &&
+    (satisfiesVersion === pkg.version || eq(satisfiesVersion, dependency.specifier))
 
   if (isLatest) {
     suggestions.push(createLatestSuggestion(pkg))
@@ -118,6 +129,10 @@ export function createPackageSuggestions({
 
   if (!isLatest) {
     suggestions.push(createUpdatableSuggestion(pkg))
+  }
+
+  if (isRangeSpecifier && satisfiesVersion && !isSatisfying) {
+    suggestions.push(createBumpSuggestion(satisfiesVersion))
   }
 
   return suggestions

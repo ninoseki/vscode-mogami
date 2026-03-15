@@ -39,6 +39,9 @@ export const OnClearCacheCommand = `${ExtID}.${OnClearCacheKey}`
 export const OnUpdateDependencyClickKey = 'suggestions.updateDependencyClick'
 export const OnUpdateDependencyClickCommand = `${ExtID}.${OnUpdateDependencyClickKey}`
 
+export const OnBumpDependencyClickKey = 'suggestions.bumpDependencyClick'
+export const OnBumpDependencyClickCommand = `${ExtID}.${OnBumpDependencyClickKey}`
+
 export const OnHideClickKey = `icons.hide`
 export const OnHideClickCommand = `${ExtID}.${OnHideClickKey}`
 
