@@ -1,10 +1,28 @@
 import camelcaseKeys from 'camelcase-keys'
 import semver from 'semver'
 import urlJoin from 'url-join'
+import z from 'zod'
 
-import { GitHubReleaseSchema, GitHubTagSchema, PackageType } from '@/schemas'
+import { PackageType } from '@/schemas'
 
 import { AbstractPackageClient } from './abstractClient'
+
+const GitHubTagObjectSchema = z.object({
+  sha: z.string(),
+})
+
+export const GitHubTagSchema = z.object({
+  object: GitHubTagObjectSchema,
+})
+
+export type GitHubTagType = z.infer<typeof GitHubTagSchema>
+
+export const GitHubReleaseSchema = z.object({
+  tagName: z.string(),
+})
+
+export type GitHubReleaseType = z.infer<typeof GitHubReleaseSchema>
+
 export class GitHubClient extends AbstractPackageClient {
   private gitHubPersonalAccessToken: string | undefined = undefined
   private preserveVersionPrefix: boolean
@@ -62,6 +80,7 @@ export class GitHubClient extends AbstractPackageClient {
       version,
       versions: [version],
       alias: tag.object.sha,
+      format: 'github-actions-workflow',
     }
   }
 }

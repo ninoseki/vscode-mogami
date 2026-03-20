@@ -5,11 +5,32 @@ import { unique } from 'radash'
 import semver from 'semver'
 import urlJoin from 'url-join'
 import { ZodError } from 'zod'
+import { z } from 'zod'
 
-import { PackageType, PypiPackageSchema } from '@/schemas'
+import { PackageType } from '@/schemas'
 import { compare } from '@/versioning/utils'
 
 import { AbstractPackageClient } from './abstractClient'
+
+export const PypiInfoSchema = z.object({
+  name: z.string(),
+  summary: z.string().nullish(),
+  homePage: z.string().nullish(),
+  packageUrl: z.string().nullish(),
+  projectUrl: z.string().nullish(),
+  version: z.string(),
+})
+
+export const PypiPackageReleaseSchema = z.object({
+  yanked: z.boolean(),
+})
+
+export const PypiPackageSchema = z.object({
+  info: PypiInfoSchema,
+  releases: z.record(z.string(), z.array(PypiPackageReleaseSchema)),
+})
+
+export type PypiPackageType = z.infer<typeof PypiPackageSchema>
 
 export function parse(res: AxiosResponse): PackageType {
   const { releases, info } = res.data

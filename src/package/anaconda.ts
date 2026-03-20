@@ -1,10 +1,22 @@
 import { AxiosResponse } from 'axios'
 import camelcaseKeys from 'camelcase-keys'
 import urlJoin from 'url-join'
+import { z } from 'zod'
 
-import { AnacondaPackageSchema, PackageType } from '@/schemas'
+import { PackageType } from '@/schemas'
 
 import { AbstractPackageClient } from './abstractClient'
+
+export const AnacondaPackageSchema = z.object({
+  name: z.string(),
+  summary: z.string().nullish(),
+  home: z.string().nullish(),
+  url: z.string().nullish(),
+  latestVersion: z.string(),
+  versions: z.array(z.string()),
+})
+
+export type AnacondaPackageType = z.infer<typeof AnacondaPackageSchema>
 
 export function parse(res: AxiosResponse) {
   const parsed = AnacondaPackageSchema.parse(camelcaseKeys(res.data))
