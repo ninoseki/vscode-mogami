@@ -1,74 +1,16 @@
 import * as vscode from 'vscode'
 import { z } from 'zod'
 
-export const PypiInfoSchema = z.object({
-  name: z.string(),
-  summary: z.string().nullish(),
-  homePage: z.string().nullish(),
-  packageUrl: z.string().nullish(),
-  projectUrl: z.string().nullish(),
-  version: z.string(),
-})
-
-export const PypiPackageReleaseSchema = z.object({
-  yanked: z.boolean(),
-})
-
-export const PypiPackageSchema = z.object({
-  info: PypiInfoSchema,
-  releases: z.record(z.string(), z.array(PypiPackageReleaseSchema)),
-})
-
-export type PypiPackageType = z.infer<typeof PypiPackageSchema>
-
-export const AnacondaPackageSchema = z.object({
-  name: z.string(),
-  summary: z.string().nullish(),
-  home: z.string().nullish(),
-  url: z.string().nullish(),
-  latestVersion: z.string(),
-  versions: z.array(z.string()),
-})
-
-export type AnacondaPackageType = z.infer<typeof AnacondaPackageSchema>
-
-export const GemVersionSchema = z.object({
-  number: z.string(),
-})
-
-export const GemVersionsSchema = z.array(GemVersionSchema)
-
-export type GemVersionsType = z.infer<typeof GemVersionsSchema>
-
-export const GemSchema = z.object({
-  version: z.string(),
-  info: z.string(),
-  homepageUri: z.string(),
-})
-
-export const GemPackageSchema = z.object({
-  name: z.string(),
-  requirements: z.string().nullish(),
-})
-
-export type GemType = z.infer<typeof GemSchema>
-export type GemPackageType = z.infer<typeof GemPackageSchema>
-
-const GitHubTagObjectSchema = z.object({
-  sha: z.string(),
-})
-
-export const GitHubTagSchema = z.object({
-  object: GitHubTagObjectSchema,
-})
-
-export type GitHubTagType = z.infer<typeof GitHubTagSchema>
-
-export const GitHubReleaseSchema = z.object({
-  tagName: z.string(),
-})
-
-export type GitHubReleaseType = z.infer<typeof GitHubReleaseSchema>
+export const ProjectFormatSchema = z.enum([
+  'gemfile',
+  'gemspec',
+  'github-actions-workflow',
+  'npm',
+  'pep723',
+  'pip-requirements',
+  'pyproject',
+  'shards',
+])
 
 export const PackageSchema = z.object({
   name: z.string(),
@@ -77,6 +19,7 @@ export const PackageSchema = z.object({
   versions: z.array(z.string()),
   summary: z.string().nullish(),
   url: z.string().optional(),
+  format: ProjectFormatSchema.optional(),
 })
 
 export type PackageType = z.infer<typeof PackageSchema>
@@ -111,17 +54,6 @@ export interface TextDocumentLikeType {
   lineAt(line: number): { text: string; range: RangeLikeType }
   getText(range?: RangeLikeType | RawRangeType): string
 }
-
-export const ProjectFormatSchema = z.enum([
-  'gemfile',
-  'gemspec',
-  'github-actions-workflow',
-  'npm',
-  'pep723',
-  'pip-requirements',
-  'pyproject',
-  'shards',
-])
 
 export type ProjectFormatType = z.infer<typeof ProjectFormatSchema>
 

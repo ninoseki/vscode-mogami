@@ -137,7 +137,8 @@ export class ProjectService {
 
   public async getPackage(name: string): Promise<PackageType> {
     const client = await this.getClient()
-    return await client.get(name)
+    const pkg = await client.get(name)
+    return { ...pkg, format: this.project.format }
   }
 
   async getAllPackageResults({ concurrency }: { concurrency: number }) {
@@ -145,8 +146,13 @@ export class ProjectService {
     //       thus wrap it with ResultAsync (to show an error in CodeLens)
     const names = this.dependencies.map(([dep]) => dep.name)
     const client = await this.getClient()
+    const format = this.project.format
     const results = names.map(
-      (name) => () => ResultAsync.fromPromise(client.get(name), (e: unknown) => e),
+      (name) => () =>
+        ResultAsync.fromPromise(
+          client.get(name).then((pkg) => ({ ...pkg, format })),
+          (e: unknown) => e,
+        ),
     )
     return await pmap(results, async (t) => await t(), { concurrency })
   }
