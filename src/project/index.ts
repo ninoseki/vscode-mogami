@@ -31,6 +31,7 @@ import * as gemfile from './gemfile'
 import * as gemspec from './gemspec'
 import * as npm from './npm'
 import * as pep723 from './pep723'
+import * as preCommit from './preCommit'
 import * as pyproject from './pyproject'
 import * as requirements from './requirements'
 import * as shards from './shards'
@@ -49,6 +50,7 @@ const versioningConfig: Record<
   },
   npm: { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
   pyproject: { satisfies: pypiSatisfies, validateRange: pypiValidateRange },
+  'pre-commit-config': { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
   'pip-requirements': {
     satisfies: pypiSatisfies,
     validateRange: pypiValidateRange,
@@ -61,6 +63,7 @@ const parsers: Record<ProjectFormatType, (doc: vscode.TextDocument) => ProjectTy
   'pip-requirements': requirements.parseProject,
   pyproject: pyproject.parseProject,
   pep723: pep723.parseProject,
+  'pre-commit-config': preCommit.parseProject,
   gemfile: gemfile.parseProject,
   gemspec: gemspec.parseProject,
   'github-actions-workflow': actions.parseProject,
@@ -96,7 +99,8 @@ async function createClient(
       gitHubPersonalAccessToken,
     })
   }
-  // shards
+
+  // shards and pre-commit configs
   return new GitHubClient(project.source, {
     preserveVersionPrefix: true,
     gitHubPersonalAccessToken,

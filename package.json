@@ -184,6 +184,7 @@
     "onLanguage:python",
     "workspaceContains:**/*.gemspec",
     "workspaceContains:**/.github/workflows/*.{yaml,yml}",
+    "workspaceContains:**/.pre-commit-config.{yaml,yml}",
     "workspaceContains:**/Gemfile",
     "workspaceContains:**/package.json",
     "workspaceContains:**/pyproject.toml",
