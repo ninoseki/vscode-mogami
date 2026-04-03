@@ -11,7 +11,7 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
-      - run: npm install
+      - run: npm ci
       - run: npm run coverage
       - uses: coverallsapp/github-action@5cbfd81b66ca5d10c19b062c04de0199c215fb6e # v2.3.7
         continue-on-error: true
@@ -25,5 +25,5 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
-      - run: npm install
+      - run: npm ci
       - run: NODE_ENV=production npm run lint
