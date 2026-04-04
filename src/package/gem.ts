@@ -41,17 +41,17 @@ export class GemClient extends AbstractPackageClient {
   }
 
   async getGemVersions(name: string): Promise<GemVersionsType> {
-    const res = await this.client.get(
+    const data = await this.fetchJson(
       urlJoin(this.source.toString(), '/api/v1/versions/', `${name}.json`),
     )
-    return GemVersionsSchema.parse(res.data)
+    return GemVersionsSchema.parse(data)
   }
 
   async getGem(name: string): Promise<PackageType> {
-    const res = await this.client.get(
+    const data = await this.fetchJson(
       urlJoin(this.source.toString(), '/api/v1/gems/', `${name}.json`),
     )
-    const parsed = GemSchema.parse(camelcaseKeys(res.data, { deep: true }))
+    const parsed = GemSchema.parse(camelcaseKeys(data as object, { deep: true }))
     return {
       name,
       version: parsed.version,

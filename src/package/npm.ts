@@ -24,10 +24,10 @@ export class NpmClient extends AbstractPackageClient {
 
   async get(name: string): Promise<PackageType> {
     const url = urlJoin(this.source.toString(), name)
-    const res = await this.client.get(url, {
+    const data = await this.fetchJson(url, {
       headers: { Accept: 'application/vnd.npm.install-v1+json' },
     })
-    const parsed = NpmPackageSchema.parse(res.data)
+    const parsed = NpmPackageSchema.parse(data)
     const distTags = parsed['dist-tags']
     const latestTaggedVersion = distTags.latest
 

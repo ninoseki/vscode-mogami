@@ -45,27 +45,25 @@ export class GitHubClient extends AbstractPackageClient {
   }
 
   async get(name: string): Promise<PackageType> {
-    const headers = (() => {
-      if (this.gitHubPersonalAccessToken) {
-        return { authorization: `Bearer ${this.gitHubPersonalAccessToken}` }
-      }
-      return {}
-    })()
+    const headers: Record<string, string> = {}
+    if (this.gitHubPersonalAccessToken) {
+      headers.authorization = `Bearer ${this.gitHubPersonalAccessToken}`
+    }
 
     const getLatestRelease = async () => {
-      const res = await this.client.get(
+      const data = await this.fetchJson(
         urlJoin(this.source.toString(), 'repos', name, 'releases', 'latest'),
         { headers },
       )
-      return GitHubReleaseSchema.parse(camelcaseKeys(res.data, { deep: true }))
+      return GitHubReleaseSchema.parse(camelcaseKeys(data as object, { deep: true }))
     }
 
     const getTag = async (tagName: string) => {
-      const res = await this.client.get(
+      const data = await this.fetchJson(
         urlJoin(this.source.toString(), 'repos', name, 'git', 'refs', 'tags', tagName),
         { headers },
       )
-      return GitHubTagSchema.parse(res.data)
+      return GitHubTagSchema.parse(data)
     }
 
     const release = await getLatestRelease()
