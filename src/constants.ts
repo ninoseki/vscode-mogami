@@ -7,6 +7,10 @@ export const projectFormatToSelector = new Map<ProjectFormatType, Selector>([
     'github-actions-workflow',
     new Selector([{ pattern: '**/.github/workflows/*.{yml,yaml}', scheme: 'file' }]),
   ],
+  [
+    'pre-commit-config',
+    new Selector({ pattern: '**/.pre-commit-config.{yml,yaml}', scheme: 'file' }),
+  ],
   ['gemspec', new Selector({ pattern: '**/*.gemspec', scheme: 'file' })],
   ['gemfile', new Selector({ pattern: '**/Gemfile', scheme: 'file' })],
   [

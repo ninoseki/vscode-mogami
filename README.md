@@ -25,6 +25,8 @@ A VS Code extension for checking the latest version of each dependency.
   - `package.json`
 - GitHub Actions:
   - `.github/workflows/*.{yml,yaml}`
+- pre-commit:
+  - `.pre-commit-config.{yml,yaml}`: `repos[].repo`, `repos[].rev` (GitHub repositories only)
 - Crystal Shards:
   - `shard.yml`
 

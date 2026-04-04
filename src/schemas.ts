@@ -7,6 +7,7 @@ export const ProjectFormatSchema = z.enum([
   'github-actions-workflow',
   'npm',
   'pep723',
+  'pre-commit-config',
   'pip-requirements',
   'pyproject',
   'shards',
