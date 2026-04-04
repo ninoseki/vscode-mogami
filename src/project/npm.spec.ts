@@ -1,11 +1,11 @@
-import type { TextDocumentLikeType } from '@/schemas'
+import type { RangeLikeType, TextDocumentLikeType } from '@/schemas'
 
 import { parseProject } from './npm'
 
 function makeTextDocumentLike(lines: string[]): TextDocumentLikeType {
   return {
-    getText: vi.fn(() => lines.join('\n')),
-    lineAt: vi.fn((line) => ({
+    getText: vi.fn<() => string>(() => lines.join('\n')),
+    lineAt: vi.fn<(line: number) => { text: string; range: RangeLikeType }>((line) => ({
       text: lines[line],
       range: {
         start: { line, character: 0 },
