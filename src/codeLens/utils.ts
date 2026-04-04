@@ -1,10 +1,10 @@
 // split from codeLensFactory.ts to make them testable
 // (using "vscode" package makes it difficult to test with vitest)
-import { isAxiosError } from 'axios'
 import { Result } from 'neverthrow'
 import semver from 'semver'
 
 import { OnBumpDependencyClickCommand, OnUpdateDependencyClickCommand } from '@/constants'
+import { isHttpError } from '@/httpError'
 import type { DependencyType, PackageType, SatisfiesFnType, validateRangeFnType } from '@/schemas'
 import { eq, maxSatisfying } from '@/versioning/utils'
 
@@ -17,7 +17,7 @@ export interface PackageSuggestion {
 function createErrorSuggestion(err: unknown): PackageSuggestion {
   const symbol = '🔴'
   const message: string = (() => {
-    if (isAxiosError(err)) {
+    if (isHttpError(err)) {
       switch (err.response?.status) {
         case 400:
           return `400 bad request`

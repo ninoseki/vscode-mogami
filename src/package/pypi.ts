@@ -1,4 +1,3 @@
-import { AxiosResponse } from 'axios'
 import camelcaseKeys from 'camelcase-keys'
 import { parseHTML } from 'linkedom'
 import { unique } from 'radash'
@@ -32,8 +31,8 @@ export const PypiPackageSchema = z.object({
 
 export type PypiPackageType = z.infer<typeof PypiPackageSchema>
 
-export function parse(res: AxiosResponse): PackageType {
-  const { releases, info } = res.data
+export function parse(data: unknown): PackageType {
+  const { releases, info } = data as { releases: unknown; info: object }
   const parsed = PypiPackageSchema.parse({
     info: camelcaseKeys(info, { deep: true }),
     releases,
@@ -62,7 +61,7 @@ export function parse(res: AxiosResponse): PackageType {
   }
 }
 
-export function parseSimple(res: AxiosResponse, name: string): PackageType {
+export function parseSimple(text: string, name: string): PackageType {
   const underScoreName = name.replace(/-/g, '_')
   // TODO: not 100% sure whether this trick has 100% coverage
   const regex = new RegExp(`^(${underScoreName}|${name})-(?<version>[^-]+)(\\.tar\\.gz$|-py)`, 'i')
@@ -79,7 +78,7 @@ export function parseSimple(res: AxiosResponse, name: string): PackageType {
     return version
   }
 
-  const { document } = parseHTML(res.data as string)
+  const { document } = parseHTML(text)
   const elements = [...document.querySelectorAll('a')]
 
   const values = elements
@@ -109,26 +108,23 @@ export class PyPIClient extends AbstractPackageClient {
 
   async get(name: string): Promise<PackageType> {
     const isSimple = this.source.pathname.includes('/simple')
-    const jsonUrl = isSimple
+    const url = isSimple
       ? urlJoin(this.source.toString(), name, '/')
       : urlJoin(this.source.toString(), name, 'json')
 
-    const res = await this.client.get(jsonUrl)
+    const text = await this.fetchText(url)
+
     try {
-      const result = parse(res)
+      const result = parse(JSON.parse(text))
       return this.normalizePackage(result)
     } catch (err) {
-      // if it's zod error, try simple parse
-      if (err instanceof ZodError) {
-        // continue to simple parse
-      } else {
-        // throw logic error
+      if (!(err instanceof ZodError) && !(err instanceof SyntaxError)) {
         throw err
       }
     }
 
     try {
-      const result = parseSimple(res, name)
+      const result = parseSimple(text, name)
       return this.normalizePackage(result)
     } catch {
       throw new Error('Failed to parse PyPI API response')

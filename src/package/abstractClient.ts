@@ -1,28 +1,21 @@
-import axios from 'axios'
-import { AxiosCacheInstance, setupCache } from 'axios-cache-interceptor'
-
 import { getShowPrerelease, getUsePrivateSource } from '@/configuration'
 import { PackageClientType, PackageType } from '@/schemas'
 import { compare, isPrerelease } from '@/versioning/utils'
 
-import { cache, clearCache } from './cache'
+import { clearCache as doClearCache } from './cache'
+import { cachedFetch } from './fetchCache'
+
+export { HttpError, isHttpError } from '@/httpError'
+
+const DEFAULT_TIMEOUT_MS = 30_000
 
 export abstract class AbstractPackageClient implements PackageClientType {
-  client: AxiosCacheInstance
-
   private usePrivateSource: boolean
   private showPrerelease: boolean
   private primarySource: URL
   private privateSource?: URL
 
   constructor(primarySource: string, privateSource?: string) {
-    this.client = setupCache(axios.create(), {
-      storage: cache,
-      // ignore header based cache control to cache Ruby Gem API responses
-      // (ref. https://axios-cache-interceptor.js.org/config#headerinterpreter)
-      headerInterpreter: () => 'not enough headers',
-    })
-
     this.primarySource = new URL(primarySource)
     if (privateSource) {
       this.privateSource = new URL(privateSource)
@@ -37,6 +30,24 @@ export abstract class AbstractPackageClient implements PackageClientType {
       return this.privateSource
     }
     return this.primarySource
+  }
+
+  protected async fetchJson(
+    url: string,
+    options: { headers?: Record<string, string> } = {},
+  ): Promise<unknown> {
+    return cachedFetch(url, {
+      headers: options.headers,
+      responseType: 'json',
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+    })
+  }
+
+  protected async fetchText(url: string): Promise<string> {
+    return cachedFetch(url, {
+      responseType: 'text',
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+    }) as Promise<string>
   }
 
   abstract get(name: string): Promise<PackageType>
@@ -56,6 +67,6 @@ export abstract class AbstractPackageClient implements PackageClientType {
   }
 
   clearCache() {
-    clearCache()
+    doClearCache()
   }
 }
