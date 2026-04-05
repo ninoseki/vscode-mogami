@@ -1,5 +1,4 @@
 import camelcaseKeys from 'camelcase-keys'
-import semver from 'semver'
 import urlJoin from 'url-join'
 import z from 'zod'
 
@@ -25,23 +24,17 @@ export type GitHubReleaseType = z.infer<typeof GitHubReleaseSchema>
 
 export class GitHubClient extends AbstractPackageClient {
   private gitHubPersonalAccessToken: string | undefined = undefined
-  private preserveVersionPrefix: boolean
 
   constructor(
     privateSource?: string,
     {
-      preserveVersionPrefix,
       gitHubPersonalAccessToken,
     }: {
-      preserveVersionPrefix: boolean
       gitHubPersonalAccessToken?: string
-    } = {
-      preserveVersionPrefix: true,
-    },
+    } = {},
   ) {
     super('https://api.github.com', privateSource)
     this.gitHubPersonalAccessToken = gitHubPersonalAccessToken
-    this.preserveVersionPrefix = preserveVersionPrefix
   }
 
   async get(name: string): Promise<PackageType> {
@@ -68,11 +61,8 @@ export class GitHubClient extends AbstractPackageClient {
 
     const release = await getLatestRelease()
     const tag = await getTag(release.tagName)
-    const coerceOrOriginal = (tagName: string): string =>
-      // apply coerce if preserveVersionPrefix is true
-      this.preserveVersionPrefix ? semver.coerce(tagName)?.version || tagName : tagName
+    const version = release.tagName
 
-    const version = coerceOrOriginal(release.tagName)
     return {
       name,
       version,
