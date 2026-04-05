@@ -23,7 +23,9 @@ export class OnUpdateDependencyClick {
     const pkg = codeLens.pkgResult.value
     const edit = new vscode.WorkspaceEdit()
 
-    if (pkg.format === 'github-actions-workflow' && pkg.alias) {
+    const isGitHubActionsWorkflowOrPreCommit =
+      pkg.format === 'github-actions-workflow' || pkg.format === 'pre-commit-config'
+    if (isGitHubActionsWorkflowOrPreCommit && pkg.alias) {
       // GitHub Actions: replace specifier (and any existing comment) with SHA256 alias and tag as comment
       const document = await vscode.workspace.openTextDocument(codeLens.documentUrl)
       const lineText = document.lineAt(codeLens.replaceRange.start.line).text
