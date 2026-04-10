@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { TextDocumentLikeType } from '@/schemas'
+import type { RangeLikeType, TextDocumentLikeType } from '@/schemas'
 
 import { parseMetadataBlock, parseProject } from './pep723'
 
 function makeTextDocumentLike(lines: string[]): TextDocumentLikeType {
   return {
-    getText: vi.fn(() => lines.join('\n')),
-    lineAt: vi.fn((line) => ({
+    getText: vi.fn<() => string>(() => lines.join('\n')),
+    lineAt: vi.fn<(line: number) => { text: string; range: RangeLikeType }>((line) => ({
       text: lines[line],
       range: {
         start: { line, character: 0 },

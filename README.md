@@ -26,7 +26,7 @@ A VS Code extension for checking the latest version of each dependency.
 - GitHub Actions:
   - `.github/workflows/*.{yml,yaml}`
 - pre-commit:
-  - `.pre-commit-config.{yml,yaml}`: `repos[].repo`, `repos[].rev` (GitHub repositories only)
+  - `.pre-commit-config.{yml,yaml}`: `repos[].repo`, `repos[].rev`
 - Crystal Shards:
   - `shard.yml`
 
@@ -56,6 +56,10 @@ The following cases are not supported yet:
 ### Crystal Shards
 
 A `github` attributed dependency is supported. `gitlab`, `bitbucket`, etc. are not supported.
+
+### Pre-commit
+
+As with Crystal Shards, only GitHub repositories are supported.
 
 ## Configuration
 

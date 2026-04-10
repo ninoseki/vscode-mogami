@@ -95,14 +95,12 @@ async function createClient(
   const gitHubPersonalAccessToken = await getGitHubPersonalAccessToken(context)
   if (project.format === 'github-actions-workflow') {
     return new GitHubClient(project.source, {
-      preserveVersionPrefix: false,
       gitHubPersonalAccessToken,
     })
   }
 
   // shards and pre-commit configs
   return new GitHubClient(project.source, {
-    preserveVersionPrefix: true,
     gitHubPersonalAccessToken,
   })
 }

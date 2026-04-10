@@ -1,4 +1,3 @@
-import { AxiosResponse } from 'axios'
 import camelcaseKeys from 'camelcase-keys'
 import urlJoin from 'url-join'
 import { z } from 'zod'
@@ -18,8 +17,8 @@ export const AnacondaPackageSchema = z.object({
 
 export type AnacondaPackageType = z.infer<typeof AnacondaPackageSchema>
 
-export function parse(res: AxiosResponse) {
-  const parsed = AnacondaPackageSchema.parse(camelcaseKeys(res.data))
+export function parse(data: unknown) {
+  const parsed = AnacondaPackageSchema.parse(camelcaseKeys(data as object))
   return {
     name: parsed.name,
     version: parsed.latestVersion,
@@ -36,9 +35,9 @@ export class AnacondaClient extends AbstractPackageClient {
   }
 
   async get(name: string): Promise<PackageType> {
-    const res = await this.client.get(urlJoin(this.source.toString(), name))
+    const data = await this.fetchJson(urlJoin(this.source.toString(), name))
     try {
-      const result = parse(res)
+      const result = parse(data)
       return this.normalizePackage(result)
     } catch {
       throw new Error('Failed to parse Anaconda API response')
