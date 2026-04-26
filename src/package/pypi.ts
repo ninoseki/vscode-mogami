@@ -1,12 +1,11 @@
 import camelcaseKeys from 'camelcase-keys'
 import { parseHTML } from 'linkedom'
-import { unique } from 'radash'
 import semver from 'semver'
-import urlJoin from 'url-join'
 import { ZodError } from 'zod'
 import { z } from 'zod'
 
 import { PackageType } from '@/schemas'
+import { uniqWith, urlJoin } from '@/utils'
 import { compare } from '@/versioning/utils'
 
 import { AbstractPackageClient } from './abstractClient'
@@ -92,7 +91,7 @@ export function parseSimple(text: string, name: string): PackageType {
     // coerce in the filter to support version like 0.6
     .filter((version) => semver.valid(semver.coerce(version)) !== null)
 
-  const uniqueSortedVersions = unique(versions).sort(compare)
+  const uniqueSortedVersions = uniqWith(versions, (a, b) => a === b).sort(compare)
   const version = uniqueSortedVersions[uniqueSortedVersions.length - 1]
   if (!version) {
     throw new Error('Failed to parse simple API response')
