@@ -1,8 +1,8 @@
 import camelcaseKeys from 'camelcase-keys'
-import urlJoin from 'url-join'
 import z from 'zod'
 
 import { PackageType } from '@/schemas'
+import { urlJoin } from '@/utils'
 
 import { AbstractPackageClient } from './abstractClient'
 
