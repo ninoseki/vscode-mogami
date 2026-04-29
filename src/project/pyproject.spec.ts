@@ -293,6 +293,23 @@ describe('parseProject with Pixi', () => {
   })
 })
 
+describe('parseProject with build-system', () => {
+  it('should extract requirements from requires', () => {
+    const document = makeTextDocumentLike([
+      '[build-system]',
+      'requires = ["hatchling", "setuptools>=61"]',
+      'build-backend = "hatchling.build"',
+    ])
+
+    const result = parseProject(document)
+
+    expect(result.dependencies).toEqual([
+      [{ name: 'hatchling', type: 'ProjectName' }, [1, 12, 1, 23]],
+      [{ name: 'setuptools', specifier: '>=61', type: 'ProjectName' }, [1, 25, 1, 41]],
+    ])
+  })
+})
+
 describe('parseProject with git versioning', () => {
   // TODO: consider how to deal with git versioning well...
   it('should NOT extract requirements', () => {
