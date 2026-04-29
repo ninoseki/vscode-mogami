@@ -44,7 +44,19 @@ class PyprojectTOMLVisitor extends TOMLVisitor {
       this.potentiallyRegisterPep631Dependency(node)
       this.potentiallyRegisterPep735Dependency(node)
       this.potentiallyRegisterUvDependency(node)
+      this.potentiallyRegisterPep518Dependency(node)
     }
+  }
+
+  private potentiallyRegisterPep518Dependency(node: TOMLArray): void {
+    const isUnderBuildSystemRequires =
+      this.pathStack.length === 2 &&
+      this.pathStack[0] === 'build-system' &&
+      this.pathStack[1] === 'requires'
+    if (!isUnderBuildSystemRequires) {
+      return
+    }
+    this.registerElementsAsDependencies(node.elements)
   }
 
   private potentiallyRegisterToolDependency(
