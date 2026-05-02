@@ -1,8 +1,7 @@
-import { z } from 'zod'
+import { findNodeAtLocation, type Node as JsonNode, parseTree, type Segment } from 'jsonc-parser'
 
 import type { DependencyType, ProjectType, RawRangeType, TextDocumentLikeType } from '@/schemas'
 
-// Specifiers that don't refer to a registry package
 const nonRegistryPrefixes = [
   'workspace:',
   'catalog:',
@@ -23,158 +22,130 @@ function isRegistrySpecifier(specifier: string): boolean {
   return !nonRegistryPrefixes.some((prefix) => specifier.startsWith(prefix))
 }
 
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
+const FLAT_DEP_PATHS: Segment[][] = [
+  ['dependencies'],
+  ['devDependencies'],
+  ['peerDependencies'],
+  ['optionalDependencies'],
+  ['jspm', 'dependencies'],
+  ['jspm', 'devDependencies'],
+  ['jspm', 'peerDependencies'],
+  ['jspm', 'optionalDependencies'],
+]
+
+const OVERRIDE_ROOTS: Segment[][] = [['overrides'], ['pnpm', 'overrides']]
 
 interface DepEntry {
   name: string
   specifier: string
+  range: RawRangeType
 }
 
-// A flat map of package name → version string
-const DepsMapSchema = z.record(z.string(), z.string()).optional().catch(undefined)
+class LineMap {
+  private readonly lineStarts: number[]
 
-// Overrides values can be a version string or a nested selector object
-type OverridesRecord = { [key: string]: string | OverridesRecord }
-const OverridesRecordSchema: z.ZodType<OverridesRecord> = z.lazy(() =>
-  z.record(z.string(), z.union([z.string(), OverridesRecordSchema])),
-)
-const OverridesSchema = OverridesRecordSchema.optional().catch(undefined)
+  constructor(text: string) {
+    const starts = [0]
+    for (let i = 0; i < text.length; i++) {
+      if (text.charCodeAt(i) === 10 /* \n */) {
+        starts.push(i + 1)
+      }
+    }
+    this.lineStarts = starts
+  }
 
-const PackageJsonSchema = z.object({
-  dependencies: DepsMapSchema,
-  devDependencies: DepsMapSchema,
-  peerDependencies: DepsMapSchema,
-  optionalDependencies: DepsMapSchema,
-  overrides: OverridesSchema,
-  pnpm: z.object({ overrides: OverridesSchema }).optional().catch(undefined),
-  jspm: z
-    .object({
-      dependencies: DepsMapSchema,
-      devDependencies: DepsMapSchema,
-      peerDependencies: DepsMapSchema,
-      optionalDependencies: DepsMapSchema,
+  positionAt(offset: number): [number, number] {
+    let lo = 0
+    let hi = this.lineStarts.length - 1
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >>> 1
+      if (this.lineStarts[mid] <= offset) {
+        lo = mid
+      } else {
+        hi = mid - 1
+      }
+    }
+    return [lo, offset - this.lineStarts[lo]]
+  }
+}
+
+function nodeRange(node: JsonNode, lines: LineMap): RawRangeType {
+  const [sl, sc] = lines.positionAt(node.offset)
+  const [el, ec] = lines.positionAt(node.offset + node.length)
+  return [sl, sc, el, ec]
+}
+
+function collectFlatDeps(section: JsonNode, lines: LineMap): DepEntry[] {
+  if (section.type !== 'object' || !section.children) return []
+  const out: DepEntry[] = []
+  for (const prop of section.children) {
+    if (prop.type !== 'property' || !prop.children || prop.children.length < 2) continue
+    const [keyNode, valueNode] = prop.children
+    if (keyNode.type !== 'string' || valueNode.type !== 'string') continue
+    out.push({
+      name: keyNode.value as string,
+      specifier: valueNode.value as string,
+      range: nodeRange(prop, lines),
     })
-    .optional()
-    .catch(undefined),
-  publishConfig: z.object({ registry: z.string().optional() }).optional().catch(undefined),
-})
-
-/**
- * Recursively collect DepEntry items from an overrides-style object.
- * Object values (nested selectors) are traversed; only string values are emitted.
- */
-function collectOverrides(obj: OverridesRecord): DepEntry[] {
-  const result: DepEntry[] = []
-  for (const [name, value] of Object.entries(obj)) {
-    if (typeof value === 'string') {
-      result.push({ name, specifier: value })
-    } else {
-      result.push(...collectOverrides(value))
-    }
   }
-  return result
+  return out
 }
 
-/**
- * Collect DepEntry items from a list of already-parsed dep sections.
- */
-function collectDepsMap(sections: (Record<string, string> | undefined | null)[]): DepEntry[] {
-  const result: DepEntry[] = []
-  for (const section of sections) {
-    if (!section) continue
-    for (const [name, specifier] of Object.entries(section)) {
-      result.push({ name, specifier })
+function collectOverrides(section: JsonNode, lines: LineMap): DepEntry[] {
+  if (section.type !== 'object' || !section.children) return []
+  const out: DepEntry[] = []
+  for (const prop of section.children) {
+    if (prop.type !== 'property' || !prop.children || prop.children.length < 2) continue
+    const [keyNode, valueNode] = prop.children
+    if (keyNode.type !== 'string') continue
+    if (valueNode.type === 'string') {
+      out.push({
+        name: keyNode.value as string,
+        specifier: valueNode.value as string,
+        range: nodeRange(prop, lines),
+      })
+    } else if (valueNode.type === 'object') {
+      out.push(...collectOverrides(valueNode, lines))
     }
   }
-  return result
+  return out
 }
 
 export function parseProject(document: TextDocumentLikeType): ProjectType {
   const text = document.getText()
-
-  const json: unknown = (() => {
-    try {
-      return JSON.parse(text)
-    } catch {
-      return undefined
-    }
-  })()
-
-  const result = PackageJsonSchema.safeParse(json)
-  if (!result.success) {
-    return { format: 'npm', dependencies: [] }
-  }
-  const pkg = result.data
-
-  // Collect all candidate entries; first one for each resolved name wins
-  const allDeps = new Map<string, DepEntry>() // keyed by resolved name for dedup
-
-  const addEntries = (entries: DepEntry[]) => {
-    for (const entry of entries) {
-      if (!isRegistrySpecifier(entry.specifier)) {
-        continue
-      }
-      if (!allDeps.has(entry.name)) {
-        allDeps.set(entry.name, entry)
-      }
-    }
-  }
-
-  addEntries(
-    collectDepsMap([
-      pkg.dependencies,
-      pkg.devDependencies,
-      pkg.peerDependencies,
-      pkg.optionalDependencies,
-    ]),
-  )
-
-  if (pkg.overrides) {
-    addEntries(collectOverrides(pkg.overrides))
-  }
-  if (pkg.pnpm?.overrides) {
-    addEntries(collectOverrides(pkg.pnpm.overrides))
-  }
-
-  if (pkg.jspm) {
-    addEntries(
-      collectDepsMap([
-        pkg.jspm.dependencies,
-        pkg.jspm.devDependencies,
-        pkg.jspm.peerDependencies,
-        pkg.jspm.optionalDependencies,
-      ]),
-    )
-  }
-
-  if (allDeps.size === 0) {
+  const root = parseTree(text)
+  if (!root || root.type !== 'object') {
     return { format: 'npm', dependencies: [] }
   }
 
+  const lines = new LineMap(text)
+  const seen = new Set<string>()
   const dependencies: [DependencyType, RawRangeType][] = []
-  const remaining = new Map(allDeps)
 
-  for (let line = 0; line < document.lineCount; line++) {
-    if (remaining.size === 0) {
-      break
-    }
-
-    const { text: lineText, range } = document.lineAt(line)
-
-    for (const [name, entry] of remaining) {
-      const regexp = new RegExp(`^\\s*"${escapeRegExp(name)}"\\s*:\\s*"([^"]*)"`)
-      if (regexp.test(lineText)) {
-        remaining.delete(name)
-        dependencies.push([
-          { name: entry.name, specifier: entry.specifier },
-          [range.start.line, range.start.character, range.end.line, range.end.character],
-        ])
-        break
-      }
+  const add = (entries: DepEntry[]) => {
+    for (const entry of entries) {
+      if (!isRegistrySpecifier(entry.specifier)) continue
+      if (seen.has(entry.name)) continue
+      seen.add(entry.name)
+      dependencies.push([{ name: entry.name, specifier: entry.specifier }, entry.range])
     }
   }
 
-  return { format: 'npm', dependencies, source: pkg.publishConfig?.registry }
+  for (const path of FLAT_DEP_PATHS) {
+    const node = findNodeAtLocation(root, path)
+    if (node) add(collectFlatDeps(node, lines))
+  }
+
+  for (const path of OVERRIDE_ROOTS) {
+    const node = findNodeAtLocation(root, path)
+    if (node) add(collectOverrides(node, lines))
+  }
+
+  const registryNode = findNodeAtLocation(root, ['publishConfig', 'registry'])
+  const source =
+    registryNode?.type === 'string' && typeof registryNode.value === 'string'
+      ? registryNode.value
+      : undefined
+
+  return { format: 'npm', dependencies, source }
 }
