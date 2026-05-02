@@ -177,4 +177,50 @@ describe('parseProject', () => {
     const [, range] = result.dependencies[0]
     expect(range[0]).toBe(2) // line index of the react dependency
   })
+
+  it('should not match keys in non-dependency sections (e.g. scripts)', () => {
+    const document = makeTextDocumentLike([
+      '{',
+      '  "scripts": {',
+      '    "type-check": "vue-tsc --noEmit"',
+      '  },',
+      '  "devDependencies": {',
+      '    "type-check": "^0.4.0"',
+      '  }',
+      '}',
+    ])
+
+    const result = parseProject(document)
+
+    expect(result.dependencies).toHaveLength(1)
+    const [dep, range] = result.dependencies[0]
+    expect(dep.name).toBe('type-check')
+    expect(dep.specifier).toBe('^0.4.0')
+    // must point at the devDependencies entry (line 5), not the scripts entry (line 2)
+    expect(range[0]).toBe(5)
+  })
+
+  it('should not match keys in lint-staged or engines sections', () => {
+    const document = makeTextDocumentLike([
+      '{',
+      '  "lint-staged": {',
+      '    "typescript": "echo hi"',
+      '  },',
+      '  "engines": {',
+      '    "node": "^18.0.0"',
+      '  },',
+      '  "dependencies": {',
+      '    "typescript": "^5.0.0"',
+      '  }',
+      '}',
+    ])
+
+    const result = parseProject(document)
+
+    expect(result.dependencies).toHaveLength(1)
+    const [dep, range] = result.dependencies[0]
+    expect(dep.name).toBe('typescript')
+    expect(dep.specifier).toBe('^5.0.0')
+    expect(range[0]).toBe(8)
+  })
 })
