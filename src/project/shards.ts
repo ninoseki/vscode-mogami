@@ -1,85 +1,79 @@
-import { type AST, parseYAML, traverseNodes } from 'yaml-eslint-parser'
-
-type YAMLMapping = AST.YAMLMapping
-type YAMLNode = AST.YAMLNode
-type YAMLPair = AST.YAMLPair
-type YAMLScalar = AST.YAMLScalar
-type Visitor = Parameters<typeof traverseNodes>[1]
+import { isMap, isScalar, LineCounter, parseDocument, type YAMLMap } from 'yaml'
 
 import type { DependencyType, ProjectType, RawRangeType, TextDocumentLikeType } from '@/schemas'
 
-class ShardsYAMLVisitor implements Visitor {
-  public dependencies: [DependencyType, RawRangeType][] = []
-  public source: string | undefined = undefined
-
-  public enterNode(node: YAMLNode) {
-    const { key } = node as YAMLPair
-    if (key?.type !== 'YAMLScalar') {
-      return
-    }
-
-    if (
-      key.value === 'dependencies' ||
-      (key.value === 'development_dependencies' && node.type === 'YAMLPair')
-    ) {
-      this.parseDependency(node as YAMLPair)
+function findStringValueByKey(map: YAMLMap, keyName: string): string | undefined {
+  for (const item of map.items) {
+    if (isScalar(item.key) && item.key.value === keyName && isScalar(item.value)) {
+      const value = item.value.value
+      if (typeof value === 'string') {
+        return value
+      }
     }
   }
+  return undefined
+}
 
-  public leaveNode(): void {}
-
-  private parseDependency(node: YAMLPair): void {
-    const value = node.value as YAMLMapping
-
-    const mapped = value.pairs.map((pair) => {
-      if (pair.value?.type !== 'YAMLMapping') {
-        return
-      }
-      const pairs = pair.value.pairs
-
-      const findByValue = (pair: YAMLPair, value: string): boolean => {
-        if (pair.value?.type !== 'YAMLScalar') {
-          return false
-        }
-        return (pair.key as YAMLScalar).value === value
-      }
-
-      const namePair = pairs.find((pair) => findByValue(pair, 'github'))
-      const name = (namePair?.value as YAMLScalar)?.value
-
-      const versionPair = pairs.find((pair) => findByValue(pair, 'version'))
-      const version = (versionPair?.value as YAMLScalar)?.value
-
-      if (namePair && versionPair && name && version) {
-        return [
-          {
-            name: name.toString(),
-            specifier: version.toString(),
-            type: 'ProjectName',
-          },
-          [
-            pair.loc.start.line - 1,
-            pair.loc.start.column,
-            pair.loc.end.line - 1,
-            pair.loc.end.column,
-          ],
-        ] as [DependencyType, RawRangeType]
-      }
-    })
-
-    this.dependencies.push(
-      ...mapped.filter((i): i is Exclude<typeof i, undefined> => i !== undefined),
-    )
+function trimEndOffset(source: string, offset: number): number {
+  let end = offset
+  while (end > 0 && /\s/.test(source[end - 1])) {
+    end--
   }
+  return end
 }
 
 export function parseProject(document: TextDocumentLikeType): ProjectType {
-  const visitor = new ShardsYAMLVisitor()
-  traverseNodes(parseYAML(document.getText()), visitor)
-  const { dependencies } = visitor
+  const source = document.getText()
+  const lineCounter = new LineCounter()
+  const doc = parseDocument(source, { lineCounter })
+  const dependencies: [DependencyType, RawRangeType][] = []
+
+  if (!isMap(doc.contents)) {
+    return { dependencies, format: 'shards' }
+  }
+
+  for (const topPair of doc.contents.items) {
+    if (!isScalar(topPair.key)) {
+      continue
+    }
+    const topKey = topPair.key.value
+    if (topKey !== 'dependencies' && topKey !== 'development_dependencies') {
+      continue
+    }
+    if (!isMap(topPair.value)) {
+      continue
+    }
+
+    for (const depPair of topPair.value.items) {
+      if (!isScalar(depPair.key) || !depPair.key.range) {
+        continue
+      }
+      if (!isMap(depPair.value) || !depPair.value.range) {
+        continue
+      }
+
+      const name = findStringValueByKey(depPair.value, 'github')
+      const version = findStringValueByKey(depPair.value, 'version')
+      if (!name || !version) {
+        continue
+      }
+
+      const start = lineCounter.linePos(depPair.key.range[0])
+      const end = lineCounter.linePos(trimEndOffset(source, depPair.value.range[1]))
+
+      dependencies.push([
+        {
+          name: name.toString(),
+          specifier: version.toString(),
+          type: 'ProjectName',
+        },
+        [start.line - 1, start.col - 1, end.line - 1, end.col - 1],
+      ])
+    }
+  }
+
   return {
-    dependencies: dependencies,
+    dependencies,
     format: 'shards',
-    source: visitor.source,
   }
 }

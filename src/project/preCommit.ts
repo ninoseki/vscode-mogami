@@ -1,10 +1,4 @@
-import { type AST, parseYAML, traverseNodes } from 'yaml-eslint-parser'
-
-type YAMLMapping = AST.YAMLMapping
-type YAMLNode = AST.YAMLNode
-type YAMLPair = AST.YAMLPair
-type YAMLSequence = AST.YAMLSequence
-type Visitor = Parameters<typeof traverseNodes>[1]
+import { isMap, isScalar, isSeq, LineCounter, parseDocument, type YAMLMap } from 'yaml'
 
 import type { DependencyType, ProjectType, RawRangeType, TextDocumentLikeType } from '@/schemas'
 
@@ -47,39 +41,46 @@ function parseRepoName(raw: string): string | undefined {
   }
 }
 
-function findStringValueByKey(mapping: YAMLMapping, keyName: string): string | undefined {
-  const pair = mapping.pairs.find((pair) => {
-    return pair.key?.type === 'YAMLScalar' && pair.key.value === keyName
-  })
-
-  if (pair?.value?.type !== 'YAMLScalar' || typeof pair.value.value !== 'string') {
-    return undefined
+function findStringValueByKey(map: YAMLMap, keyName: string): string | undefined {
+  for (const item of map.items) {
+    if (isScalar(item.key) && item.key.value === keyName && isScalar(item.value)) {
+      const value = item.value.value
+      if (typeof value === 'string') {
+        return value
+      }
+    }
   }
-
-  return pair.value.value
+  return undefined
 }
 
-class PreCommitYAMLVisitor implements Visitor {
-  public dependencies: [DependencyType, RawRangeType][] = []
+function trimEndOffset(source: string, offset: number): number {
+  let end = offset
+  while (end > 0 && /\s/.test(source[end - 1])) {
+    end--
+  }
+  return end
+}
 
-  public enterNode(node: YAMLNode): void {
-    const pair = node as YAMLPair
-    if (pair.type !== 'YAMLPair' || pair.key?.type !== 'YAMLScalar' || pair.key.value !== 'repos') {
-      return
-    }
+export function parseProject(document: TextDocumentLikeType): ProjectType {
+  const source = document.getText()
+  const lineCounter = new LineCounter()
+  const doc = parseDocument(source, { lineCounter })
+  const dependencies: [DependencyType, RawRangeType][] = []
 
-    if (pair.value?.type !== 'YAMLSequence') {
-      return
-    }
-
-    this.parseRepos(pair.value)
+  if (!isMap(doc.contents)) {
+    return { dependencies, format: 'pre-commit-config' }
   }
 
-  public leaveNode(): void {}
+  for (const topPair of doc.contents.items) {
+    if (!isScalar(topPair.key) || topPair.key.value !== 'repos') {
+      continue
+    }
+    if (!isSeq(topPair.value)) {
+      continue
+    }
 
-  private parseRepos(repos: YAMLSequence): void {
-    for (const entry of repos.entries) {
-      if (entry?.type !== 'YAMLMapping') {
+    for (const entry of topPair.value.items) {
+      if (!isMap(entry) || !entry.range) {
         continue
       }
 
@@ -94,25 +95,15 @@ class PreCommitYAMLVisitor implements Visitor {
         continue
       }
 
-      this.dependencies.push([
+      const start = lineCounter.linePos(entry.range[0])
+      const end = lineCounter.linePos(trimEndOffset(source, entry.range[1]))
+
+      dependencies.push([
         { name, specifier: rev, type: 'ProjectName' },
-        [
-          entry.loc.start.line - 1,
-          entry.loc.start.column,
-          entry.loc.end.line - 1,
-          entry.loc.end.column,
-        ],
+        [start.line - 1, start.col - 1, end.line - 1, end.col - 1],
       ])
     }
   }
-}
 
-export function parseProject(document: TextDocumentLikeType): ProjectType {
-  const visitor = new PreCommitYAMLVisitor()
-  traverseNodes(parseYAML(document.getText()), visitor)
-
-  return {
-    dependencies: visitor.dependencies,
-    format: 'pre-commit-config',
-  }
+  return { dependencies, format: 'pre-commit-config' }
 }
