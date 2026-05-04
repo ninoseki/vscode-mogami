@@ -1,48 +1,85 @@
+import { isMap, isScalar, isSeq, LineCounter, type Node, parseDocument } from 'yaml'
+
 import type { DependencyType, ProjectType, RawRangeType, TextDocumentLikeType } from '@/schemas'
 
-export const regex = /uses:\s?(?<name>[\w\-\\/]+)@(?<specifier>.+)/
+function normalizeSpecifier(specifier: string): string | undefined {
+  const withoutComment = specifier.split('#')[0].trim()
+  return withoutComment === '' ? undefined : withoutComment
+}
 
-export function parseLineAsDependency(line: string): DependencyType | undefined {
-  const matches = regex.exec(line)
-
-  if (!matches) {
+function parseUsesValue(value: string): DependencyType | undefined {
+  const atIndex = value.indexOf('@')
+  if (atIndex === -1) {
     return undefined
   }
 
-  const name = matches.groups?.name
-  const specifier = matches.groups?.specifier
+  const name = value.slice(0, atIndex).trim()
   if (!name) {
     return undefined
   }
 
-  const normalizeSpecifier = (specifier?: string) => {
-    if (!specifier) {
-      return undefined
-    }
-    const withoutComment = specifier.split('#')[0]
-    return withoutComment.trim()
-  }
-  const normalizedSpecifier = normalizeSpecifier(specifier)
+  const specifier = normalizeSpecifier(value.slice(atIndex + 1))
+  return { name, specifier, type: 'ProjectName' }
+}
 
-  return { name, specifier: normalizedSpecifier, type: 'ProjectName' }
+function trimEndOffset(source: string, offset: number): number {
+  let end = offset
+  while (end > 0 && /\s/.test(source[end - 1])) {
+    end--
+  }
+  return end
+}
+
+function visit(
+  node: Node | null | undefined,
+  source: string,
+  lineCounter: LineCounter,
+  dependencies: [DependencyType, RawRangeType][],
+): void {
+  if (!node) {
+    return
+  }
+
+  if (isMap(node)) {
+    for (const pair of node.items) {
+      if (
+        isScalar(pair.key) &&
+        pair.key.value === 'uses' &&
+        isScalar(pair.value) &&
+        typeof pair.value.value === 'string' &&
+        pair.key.range &&
+        pair.value.range
+      ) {
+        const dependency = parseUsesValue(pair.value.value)
+        if (dependency) {
+          const start = lineCounter.linePos(pair.key.range[0])
+          const end = lineCounter.linePos(trimEndOffset(source, pair.value.range[1]))
+          dependencies.push([
+            dependency,
+            [start.line - 1, start.col - 1, end.line - 1, end.col - 1],
+          ])
+        }
+        continue
+      }
+      visit(pair.value as Node, source, lineCounter, dependencies)
+    }
+    return
+  }
+
+  if (isSeq(node)) {
+    for (const item of node.items) {
+      visit(item as Node, source, lineCounter, dependencies)
+    }
+  }
 }
 
 export function parseProject(document: TextDocumentLikeType): ProjectType {
+  const source = document.getText()
+  const lineCounter = new LineCounter()
+  const doc = parseDocument(source, { lineCounter })
   const dependencies: [DependencyType, RawRangeType][] = []
 
-  for (let line = 0; line < document.lineCount; line++) {
-    const { text, range } = document.lineAt(line)
-
-    const dependency = parseLineAsDependency(text)
-    if (!dependency) {
-      continue
-    }
-
-    dependencies.push([
-      dependency,
-      [range.start.line, range.start.character, range.end.line, range.end.character],
-    ])
-  }
+  visit(doc.contents as Node, source, lineCounter, dependencies)
 
   return {
     dependencies,
