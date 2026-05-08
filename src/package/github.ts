@@ -1,8 +1,8 @@
-import camelcaseKeys from 'camelcase-keys'
 import z from 'zod'
 
 import { PackageType } from '@/schemas'
 import { urlJoin } from '@/utils'
+import { coerceUnlessValid, compare, isPrerelease } from '@/versioning/utils'
 
 import { AbstractPackageClient } from './abstractClient'
 
@@ -14,13 +14,13 @@ export const GitHubTagSchema = z.object({
   object: GitHubTagObjectSchema,
 })
 
-export type GitHubTagType = z.infer<typeof GitHubTagSchema>
-
 export const GitHubReleaseSchema = z.object({
-  tagName: z.string(),
+  name: z.string(),
 })
 
 export type GitHubReleaseType = z.infer<typeof GitHubReleaseSchema>
+
+export const GitHubReleasesSchema = z.array(GitHubReleaseSchema)
 
 export class GitHubClient extends AbstractPackageClient {
   private gitHubPersonalAccessToken: string | undefined = undefined
@@ -50,10 +50,25 @@ export class GitHubClient extends AbstractPackageClient {
 
     const getLatestRelease = async () => {
       const data = await this.fetchJson(
-        urlJoin(this.source.toString(), 'repos', repo, 'releases', 'latest'),
-        { headers },
+        urlJoin(this.source.toString(), 'repos', repo, 'releases'),
+        {
+          headers,
+        },
       )
-      return GitHubReleaseSchema.parse(camelcaseKeys(data as object, { deep: true }))
+
+      const releases = GitHubReleasesSchema.parse(data)
+      const filtered = this.showPrerelease
+        ? releases
+        : releases.filter((release) => {
+            const coerced = coerceUnlessValid(release.name)?.toString() ?? release.name
+            return !isPrerelease(coerced)
+          })
+      if (filtered.length === 0) {
+        throw new Error('No valid versions found')
+      }
+
+      const sorted = filtered.sort((a, b) => compare(a.name, b.name))
+      return sorted[sorted.length - 1]
     }
 
     const getTag = async (tagName: string) => {
@@ -64,13 +79,13 @@ export class GitHubClient extends AbstractPackageClient {
       return GitHubTagSchema.parse(data)
     }
 
-    const release = await getLatestRelease()
-    const tag = await getTag(release.tagName)
-    const version = release.tagName
+    const latest = await getLatestRelease()
+    const tag = await getTag(latest.name)
+    const version = latest.name
 
     return {
       name,
-      version,
+      version: version,
       versions: [version],
       alias: tag.object.sha,
       format: 'github-actions-workflow',
