@@ -29,9 +29,16 @@ describe('GitHubClient', () => {
   })
 
   it('picks the highest released version and resolves its tag SHA', async () => {
-    const fetchMock = mockFetchSequence([{ name: 'v2' }, { name: 'v4' }, { name: 'v3' }], {
-      object: { sha: 'abc123' },
-    })
+    const fetchMock = mockFetchSequence(
+      [
+        { tag_name: 'v2', prerelease: false },
+        { tag_name: 'v4', prerelease: false },
+        { tag_name: 'v3', prerelease: false },
+      ],
+      {
+        sha: 'abc123',
+      },
+    )
 
     const client = new GitHubClient()
     const pkg = await client.get('actions/checkout')
@@ -53,7 +60,7 @@ describe('GitHubClient', () => {
   })
 
   it('uses only owner/repo when the action references a sub-path', async () => {
-    const fetchMock = mockFetchSequence([{ name: 'v4', prerelease: false }], { sha: 'def456' })
+    const fetchMock = mockFetchSequence([{ tag_name: 'v4', prerelease: false }], { sha: 'def456' })
 
     const client = new GitHubClient()
     const pkg = await client.get('github/codeql-action/init')
@@ -80,10 +87,10 @@ describe('GitHubClient', () => {
     // action version.
     mockFetchSequence(
       [
-        { name: 'codeql-bundle-v2.25.4', prerelease: false },
-        { name: 'v4.35.4', prerelease: false },
-        { name: 'v4.35.3', prerelease: false },
-        { name: 'v3.29.0', prerelease: false },
+        { tag_name: 'codeql-bundle-v2.25.4', prerelease: false },
+        { tag_name: 'v4.35.4', prerelease: false },
+        { tag_name: 'v4.35.3', prerelease: false },
+        { tag_name: 'v3.29.0', prerelease: false },
       ],
       { sha: 'v4354sha' },
     )
