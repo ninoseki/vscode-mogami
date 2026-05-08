@@ -28,10 +28,16 @@ describe('GitHubClient', () => {
     vi.unstubAllGlobals()
   })
 
-  it('fetches release and tag for a simple owner/repo action', async () => {
+  it('picks the highest released version and resolves its tag SHA', async () => {
     const fetchMock = mockFetchSequence(
-      { tag_name: 'v4' },
-      { object: { sha: 'abc123' } },
+      [
+        { tag_name: 'v2', prerelease: false },
+        { tag_name: 'v4', prerelease: false },
+        { tag_name: 'v3', prerelease: false },
+      ],
+      {
+        sha: 'abc123',
+      },
     )
 
     const client = new GitHubClient()
@@ -44,19 +50,17 @@ describe('GitHubClient', () => {
       alias: 'abc123',
       format: 'github-actions-workflow',
     })
+    expect(fetchMock.mock.calls).toHaveLength(2)
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://api.github.com/repos/actions/checkout/releases/latest',
+      'https://api.github.com/repos/actions/checkout/releases',
     )
     expect(fetchMock.mock.calls[1][0]).toBe(
-      'https://api.github.com/repos/actions/checkout/git/refs/tags/v4',
+      'https://api.github.com/repos/actions/checkout/commits/v4',
     )
   })
 
   it('uses only owner/repo when the action references a sub-path', async () => {
-    const fetchMock = mockFetchSequence(
-      { tag_name: 'v4' },
-      { object: { sha: 'def456' } },
-    )
+    const fetchMock = mockFetchSequence([{ tag_name: 'v4', prerelease: false }], { sha: 'def456' })
 
     const client = new GitHubClient()
     const pkg = await client.get('github/codeql-action/init')
@@ -69,10 +73,32 @@ describe('GitHubClient', () => {
       format: 'github-actions-workflow',
     })
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://api.github.com/repos/github/codeql-action/releases/latest',
+      'https://api.github.com/repos/github/codeql-action/releases',
     )
     expect(fetchMock.mock.calls[1][0]).toBe(
-      'https://api.github.com/repos/github/codeql-action/git/refs/tags/v4',
+      'https://api.github.com/repos/github/codeql-action/commits/v4',
     )
+  })
+
+  it('ignores release lines that are not action versions (codeql-action)', async () => {
+    // Mirrors github/codeql-action's release list: action releases (vX.Y.Z)
+    // coexist with parallel codeql-bundle-* releases. The "latest release"
+    // endpoint may surface the bundle, but listing+sorting picks the highest
+    // action version.
+    mockFetchSequence(
+      [
+        { tag_name: 'codeql-bundle-v2.25.4', prerelease: false },
+        { tag_name: 'v4.35.4', prerelease: false },
+        { tag_name: 'v4.35.3', prerelease: false },
+        { tag_name: 'v3.29.0', prerelease: false },
+      ],
+      { sha: 'v4354sha' },
+    )
+
+    const client = new GitHubClient()
+    const pkg = await client.get('github/codeql-action/init')
+
+    expect(pkg.version).toBe('v4.35.4')
+    expect(pkg.alias).toBe('v4354sha')
   })
 })

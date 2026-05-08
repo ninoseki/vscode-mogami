@@ -1,26 +1,23 @@
-import camelcaseKeys from 'camelcase-keys'
 import z from 'zod'
 
 import { PackageType } from '@/schemas'
 import { urlJoin } from '@/utils'
+import { compare } from '@/versioning/utils'
 
 import { AbstractPackageClient } from './abstractClient'
 
-const GitHubTagObjectSchema = z.object({
+export const GitHubCommitSchema = z.object({
   sha: z.string(),
 })
 
-export const GitHubTagSchema = z.object({
-  object: GitHubTagObjectSchema,
-})
-
-export type GitHubTagType = z.infer<typeof GitHubTagSchema>
-
 export const GitHubReleaseSchema = z.object({
-  tagName: z.string(),
+  tag_name: z.string(),
+  prerelease: z.boolean(),
 })
 
 export type GitHubReleaseType = z.infer<typeof GitHubReleaseSchema>
+
+export const GitHubReleasesSchema = z.array(GitHubReleaseSchema)
 
 export class GitHubClient extends AbstractPackageClient {
   private gitHubPersonalAccessToken: string | undefined = undefined
@@ -50,29 +47,43 @@ export class GitHubClient extends AbstractPackageClient {
 
     const getLatestRelease = async () => {
       const data = await this.fetchJson(
-        urlJoin(this.source.toString(), 'repos', repo, 'releases', 'latest'),
-        { headers },
+        urlJoin(this.source.toString(), 'repos', repo, 'releases'),
+        {
+          headers,
+        },
       )
-      return GitHubReleaseSchema.parse(camelcaseKeys(data as object, { deep: true }))
+
+      const releases = GitHubReleasesSchema.parse(data)
+      const filtered = this.showPrerelease
+        ? releases
+        : releases.filter((release) => {
+            return !release.prerelease
+          })
+      if (filtered.length === 0) {
+        throw new Error('No valid versions found')
+      }
+
+      const sorted = filtered.sort((a, b) => compare(a.tag_name, b.tag_name))
+      return sorted[sorted.length - 1]
     }
 
-    const getTag = async (tagName: string) => {
+    const getCommit = async (tagName: string) => {
       const data = await this.fetchJson(
-        urlJoin(this.source.toString(), 'repos', repo, 'git', 'refs', 'tags', tagName),
+        urlJoin(this.source.toString(), 'repos', repo, 'commits', tagName),
         { headers },
       )
-      return GitHubTagSchema.parse(data)
+      return GitHubCommitSchema.parse(data)
     }
 
-    const release = await getLatestRelease()
-    const tag = await getTag(release.tagName)
-    const version = release.tagName
+    const latest = await getLatestRelease()
+    const commit = await getCommit(latest.tag_name)
+    const version = latest.tag_name
 
     return {
       name,
-      version,
+      version: version,
       versions: [version],
-      alias: tag.object.sha,
+      alias: commit.sha,
       format: 'github-actions-workflow',
     }
   }

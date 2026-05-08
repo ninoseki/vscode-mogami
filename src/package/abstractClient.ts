@@ -11,7 +11,7 @@ const DEFAULT_TIMEOUT_MS = 30_000
 
 export abstract class AbstractPackageClient implements PackageClientType {
   private usePrivateSource: boolean
-  private showPrerelease: boolean
+  protected showPrerelease: boolean
   private primarySource: URL
   private privateSource?: URL
 
