@@ -16,7 +16,7 @@ function mockFetchSequence(...bodies: unknown[]) {
       headers: new Headers(),
       json: () => Promise.resolve(body),
       text: () => Promise.resolve(JSON.stringify(body)),
-    })
+    } as Response)
   }
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
