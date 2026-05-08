@@ -48,12 +48,12 @@ describe('GitHubClient', () => {
       'https://api.github.com/repos/actions/checkout/releases',
     )
     expect(fetchMock.mock.calls[1][0]).toBe(
-      'https://api.github.com/repos/actions/checkout/git/refs/tags/v4',
+      'https://api.github.com/repos/actions/checkout/commits/v4',
     )
   })
 
   it('uses only owner/repo when the action references a sub-path', async () => {
-    const fetchMock = mockFetchSequence([{ name: 'v4' }], { object: { sha: 'def456' } })
+    const fetchMock = mockFetchSequence([{ name: 'v4', prerelease: false }], { sha: 'def456' })
 
     const client = new GitHubClient()
     const pkg = await client.get('github/codeql-action/init')
@@ -69,7 +69,7 @@ describe('GitHubClient', () => {
       'https://api.github.com/repos/github/codeql-action/releases',
     )
     expect(fetchMock.mock.calls[1][0]).toBe(
-      'https://api.github.com/repos/github/codeql-action/git/refs/tags/v4',
+      'https://api.github.com/repos/github/codeql-action/commits/v4',
     )
   })
 
@@ -80,12 +80,12 @@ describe('GitHubClient', () => {
     // action version.
     mockFetchSequence(
       [
-        { name: 'codeql-bundle-v2.25.4' },
-        { name: 'v4.35.4' },
-        { name: 'v4.35.3' },
-        { name: 'v3.29.0' },
+        { name: 'codeql-bundle-v2.25.4', prerelease: false },
+        { name: 'v4.35.4', prerelease: false },
+        { name: 'v4.35.3', prerelease: false },
+        { name: 'v3.29.0', prerelease: false },
       ],
-      { object: { sha: 'v4354sha' } },
+      { sha: 'v4354sha' },
     )
 
     const client = new GitHubClient()

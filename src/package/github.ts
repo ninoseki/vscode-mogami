@@ -2,20 +2,17 @@ import z from 'zod'
 
 import { PackageType } from '@/schemas'
 import { urlJoin } from '@/utils'
-import { coerceUnlessValid, compare, isPrerelease } from '@/versioning/utils'
+import { compare } from '@/versioning/utils'
 
 import { AbstractPackageClient } from './abstractClient'
 
-const GitHubTagObjectSchema = z.object({
+export const GitHubCommitSchema = z.object({
   sha: z.string(),
 })
 
-export const GitHubTagSchema = z.object({
-  object: GitHubTagObjectSchema,
-})
-
 export const GitHubReleaseSchema = z.object({
-  name: z.string(),
+  tag_name: z.string(),
+  prerelease: z.boolean(),
 })
 
 export type GitHubReleaseType = z.infer<typeof GitHubReleaseSchema>
@@ -60,34 +57,33 @@ export class GitHubClient extends AbstractPackageClient {
       const filtered = this.showPrerelease
         ? releases
         : releases.filter((release) => {
-            const coerced = coerceUnlessValid(release.name)?.toString() ?? release.name
-            return !isPrerelease(coerced)
+            return !release.prerelease
           })
       if (filtered.length === 0) {
         throw new Error('No valid versions found')
       }
 
-      const sorted = filtered.sort((a, b) => compare(a.name, b.name))
+      const sorted = filtered.sort((a, b) => compare(a.tag_name, b.tag_name))
       return sorted[sorted.length - 1]
     }
 
-    const getTag = async (tagName: string) => {
+    const getCommit = async (tagName: string) => {
       const data = await this.fetchJson(
-        urlJoin(this.source.toString(), 'repos', repo, 'git', 'refs', 'tags', tagName),
+        urlJoin(this.source.toString(), 'repos', repo, 'commits', tagName),
         { headers },
       )
-      return GitHubTagSchema.parse(data)
+      return GitHubCommitSchema.parse(data)
     }
 
     const latest = await getLatestRelease()
-    const tag = await getTag(latest.name)
-    const version = latest.name
+    const commit = await getCommit(latest.tag_name)
+    const version = latest.tag_name
 
     return {
       name,
       version: version,
       versions: [version],
-      alias: tag.object.sha,
+      alias: commit.sha,
       format: 'github-actions-workflow',
     }
   }
