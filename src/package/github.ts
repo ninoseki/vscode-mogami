@@ -43,9 +43,14 @@ export class GitHubClient extends AbstractPackageClient {
       headers.authorization = `Bearer ${this.gitHubPersonalAccessToken}`
     }
 
+    // GitHub Actions can reference a sub-path within a repository
+    // (e.g. `github/codeql-action/init`), but the GitHub API only accepts
+    // the `owner/repo` portion.
+    const repo = name.split('/').slice(0, 2).join('/')
+
     const getLatestRelease = async () => {
       const data = await this.fetchJson(
-        urlJoin(this.source.toString(), 'repos', name, 'releases', 'latest'),
+        urlJoin(this.source.toString(), 'repos', repo, 'releases', 'latest'),
         { headers },
       )
       return GitHubReleaseSchema.parse(camelcaseKeys(data as object, { deep: true }))
@@ -53,7 +58,7 @@ export class GitHubClient extends AbstractPackageClient {
 
     const getTag = async (tagName: string) => {
       const data = await this.fetchJson(
-        urlJoin(this.source.toString(), 'repos', name, 'git', 'refs', 'tags', tagName),
+        urlJoin(this.source.toString(), 'repos', repo, 'git', 'refs', 'tags', tagName),
         { headers },
       )
       return GitHubTagSchema.parse(data)
