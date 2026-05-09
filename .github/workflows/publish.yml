@@ -17,7 +17,13 @@ jobs:
       - run: npm ci
       - name: Set version from a tag
         run: npm version --no-git-tag-version ${{ github.event.release.tag_name }}
+      - name: Package
+        run: npm run package
       - name: Release
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: npm run publish
+      - name: Upload VSIX to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.event.release.tag_name }} *.vsix
