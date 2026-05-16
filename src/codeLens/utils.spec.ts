@@ -87,6 +87,20 @@ describe('createPackageSuggestions', () => {
         },
       ] as PackageSuggestion[],
     ],
+    // current version is higher than the found "latest" (reject lower as latest)
+    [
+      { name: 'foo', specifier: '2.0.0' } as DependencyType,
+      { name: 'foo', version: '1.0.0', versions: ['1.0.0'] } as PackageType,
+      satisfies,
+      [{ title: '🟡 fixed 2.0.0', command: '' }] as PackageSuggestion[],
+    ],
+    // current version is higher than the found "latest" with a range specifier
+    [
+      { name: 'foo', specifier: '^2.0.0' } as DependencyType,
+      { name: 'foo', version: '1.0.0', versions: ['1.0.0'] } as PackageType,
+      satisfies,
+      [] as PackageSuggestion[],
+    ],
     // outdated & range specifier (un-satisfies & has newer version)
     [
       { name: 'foo', specifier: '>=1.0.0 <2.0.0' } as DependencyType,

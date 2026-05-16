@@ -28,8 +28,8 @@ import {
 } from '@/versioning/utils'
 
 import * as actions from './actions'
-import * as dockerCompose from './dockerCompose'
 import * as dockerfile from './docker'
+import * as dockerCompose from './dockerCompose'
 import * as gemfile from './gemfile'
 import * as gemspec from './gemspec'
 import * as npm from './npm'
