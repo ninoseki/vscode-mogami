@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import { z } from 'zod'
 
 export const ProjectFormatSchema = z.enum([
+  'docker-compose',
   'dockerfile',
   'gemfile',
   'gemspec',

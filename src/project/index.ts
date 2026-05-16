@@ -28,6 +28,7 @@ import {
 } from '@/versioning/utils'
 
 import * as actions from './actions'
+import * as dockerCompose from './dockerCompose'
 import * as dockerfile from './dockerfile'
 import * as gemfile from './gemfile'
 import * as gemspec from './gemspec'
@@ -44,6 +45,7 @@ const versioningConfig: Record<
   ProjectFormatType,
   { satisfies: SatisfiesFnType; validateRange: validateRangeFnType }
 > = {
+  'docker-compose': { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
   dockerfile: { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
   gemfile: { satisfies: gemSatisfies, validateRange: utilsValidateRange },
   gemspec: { satisfies: gemSatisfies, validateRange: utilsValidateRange },
@@ -63,6 +65,7 @@ const versioningConfig: Record<
 }
 
 const parsers: Record<ProjectFormatType, (doc: vscode.TextDocument) => ProjectType> = {
+  'docker-compose': dockerCompose.parseProject,
   dockerfile: dockerfile.parseProject,
   'pip-requirements': requirements.parseProject,
   pyproject: pyproject.parseProject,
@@ -79,7 +82,7 @@ async function createClient(
   context: vscode.ExtensionContext,
   project: ProjectType,
 ): Promise<PackageClientType> {
-  if (project.format === 'dockerfile') {
+  if (project.format === 'dockerfile' || project.format === 'docker-compose') {
     return new DockerClient(project.source)
   }
   if (project.format === 'gemfile' || project.format === 'gemspec') {

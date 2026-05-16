@@ -32,6 +32,7 @@ A VS Code extension for checking the latest version of each dependency.
   - `shard.yml`
 - Docker:
   - `Dockerfile`, `Dockerfile.*`, `*.Dockerfile`, `Containerfile`
+  - `compose.{yml,yaml}`, `compose.*.{yml,yaml}`, `docker-compose.{yml,yaml}`, `docker-compose.*.{yml,yaml}`
 
 ## Custom Source
 
