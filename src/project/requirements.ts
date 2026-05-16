@@ -2,9 +2,13 @@ import { RANGE_PATTERN } from '@renovatebot/pep440'
 
 import type { DependencyType, ProjectType, RawRangeType, TextDocumentLikeType } from '@/schemas'
 
-// Forked from https://github.com/renovatebot/renovate
+// Source: https://peps.python.org/pep-0508/
+// identifier ::= letterOrDigit identifier_end*
+//                identifier_end ::= letterOrDigit | (('-' | '_' | '.' )* letterOrDigit)
+// Canonical regex: ^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$  (case-insensitive)
 const packagePattern = '[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]'
-const extrasPattern = '(?:\\s*\\[[^\\]]+\\])?'
+const extraNamePattern = '[a-zA-Z0-9._-]+'
+const extrasPattern = `(?:\\s*\\[\\s*${extraNamePattern}(?:\\s*,\\s*${extraNamePattern})*\\s*\\])?`
 
 const rangePattern: string = RANGE_PATTERN
 const specifierPartPattern = `\\s*${rangePattern.replace(RegExp(/\?<\w+>/g), '?:')}`
