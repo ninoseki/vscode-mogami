@@ -30,6 +30,9 @@ A VS Code extension for checking the latest version of each dependency.
   - `.pre-commit-config.{yml,yaml}`: `repos[].repo`, `repos[].rev`
 - Crystal Shards:
   - `shard.yml`
+- Docker:
+  - `Dockerfile`, `Dockerfile.*`, `*.Dockerfile`, `Containerfile`
+  - `compose.{yml,yaml}`, `compose.*.{yml,yaml}`, `docker-compose.{yml,yaml}`, `docker-compose.*.{yml,yaml}`
 
 ## Custom Source
 

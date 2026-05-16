@@ -5,6 +5,7 @@ import vscode from 'vscode'
 
 import { Logger } from '@/logger'
 import { AnacondaClient } from '@/package/anaconda'
+import { DockerClient } from '@/package/docker'
 import { GemClient } from '@/package/gem'
 import { GitHubClient } from '@/package/github'
 import { NpmClient } from '@/package/npm'
@@ -27,6 +28,8 @@ import {
 } from '@/versioning/utils'
 
 import * as actions from './actions'
+import * as dockerCompose from './dockerCompose'
+import * as dockerfile from './dockerfile'
 import * as gemfile from './gemfile'
 import * as gemspec from './gemspec'
 import * as npm from './npm'
@@ -42,6 +45,8 @@ const versioningConfig: Record<
   ProjectFormatType,
   { satisfies: SatisfiesFnType; validateRange: validateRangeFnType }
 > = {
+  'docker-compose': { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
+  dockerfile: { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
   gemfile: { satisfies: gemSatisfies, validateRange: utilsValidateRange },
   gemspec: { satisfies: gemSatisfies, validateRange: utilsValidateRange },
   'github-actions-workflow': {
@@ -60,6 +65,8 @@ const versioningConfig: Record<
 }
 
 const parsers: Record<ProjectFormatType, (doc: vscode.TextDocument) => ProjectType> = {
+  'docker-compose': dockerCompose.parseProject,
+  dockerfile: dockerfile.parseProject,
   'pip-requirements': requirements.parseProject,
   pyproject: pyproject.parseProject,
   pep723: pep723.parseProject,
@@ -75,6 +82,9 @@ async function createClient(
   context: vscode.ExtensionContext,
   project: ProjectType,
 ): Promise<PackageClientType> {
+  if (project.format === 'dockerfile' || project.format === 'docker-compose') {
+    return new DockerClient(project.source)
+  }
   if (project.format === 'gemfile' || project.format === 'gemspec') {
     return new GemClient(project.source)
   }
@@ -137,24 +147,24 @@ export class ProjectService {
     return this.client
   }
 
-  public async getPackage(name: string): Promise<PackageType> {
+  public async getPackage(name: string, dependency?: DependencyType): Promise<PackageType> {
     const client = await this.getClient()
-    const pkg = await client.get(name)
+    const pkg = await client.get(name, dependency)
     return { ...pkg, format: this.project.format }
   }
 
   async getAllPackageResults({ concurrency }: { concurrency: number }) {
     // NOTE: client may have an error while fetching a package
     //       thus wrap it with ResultAsync (to show an error in CodeLens)
-    const names = this.dependencies.map(([dep]) => dep.name)
     const client = await this.getClient()
     const format = this.project.format
-    const results = names.map(
-      (name) => () =>
-        ResultAsync.fromPromise(
-          client.get(name).then((pkg) => ({ ...pkg, format })),
-          (e: unknown) => e,
-        ),
+    const results = this.dependencies.map(
+      ([dep]) =>
+        () =>
+          ResultAsync.fromPromise(
+            client.get(dep.name, dep).then((pkg) => ({ ...pkg, format })),
+            (e: unknown) => e,
+          ),
     )
     return await pmap(results, async (t) => await t(), { concurrency })
   }

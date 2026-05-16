@@ -2,6 +2,8 @@ import * as vscode from 'vscode'
 import { z } from 'zod'
 
 export const ProjectFormatSchema = z.enum([
+  'docker-compose',
+  'dockerfile',
   'gemfile',
   'gemspec',
   'github-actions-workflow',
@@ -77,6 +79,6 @@ export type SatisfiesFnType = (version: string, dependency: DependencyType) => b
 export type validateRangeFnType = (dependency: DependencyType) => boolean
 
 export interface PackageClientType {
-  get: (name: string) => Promise<PackageType>
+  get: (name: string, dependency?: DependencyType) => Promise<PackageType>
   clearCache: () => void
 }

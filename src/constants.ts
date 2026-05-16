@@ -4,6 +4,24 @@ import { Selector } from './selector'
 
 export const projectFormatToSelector = new Map<ProjectFormatType, Selector>([
   [
+    'docker-compose',
+    new Selector([
+      { pattern: '**/compose.{yml,yaml}', scheme: 'file' },
+      { pattern: '**/compose.*.{yml,yaml}', scheme: 'file' },
+      { pattern: '**/docker-compose.{yml,yaml}', scheme: 'file' },
+      { pattern: '**/docker-compose.*.{yml,yaml}', scheme: 'file' },
+    ]),
+  ],
+  [
+    'dockerfile',
+    new Selector([
+      { pattern: '**/Dockerfile', scheme: 'file' },
+      { pattern: '**/Dockerfile.*', scheme: 'file' },
+      { pattern: '**/*.Dockerfile', scheme: 'file' },
+      { pattern: '**/Containerfile', scheme: 'file' },
+    ]),
+  ],
+  [
     'github-actions-workflow',
     new Selector([{ pattern: '**/.github/workflows/*.{yml,yaml}', scheme: 'file' }]),
   ],
