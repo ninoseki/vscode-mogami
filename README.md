@@ -81,3 +81,11 @@ As with Crystal Shards, only GitHub repositories are supported.
 
 - [vscode-versionlens](https://gitlab.com/versionlens/vscode-versionlens)
 - [pypi-assistant](https://github.com/Twixes/pypi-assistant)
+
+## Acknowledgements
+
+Parts of this project were derived from:
+
+- [dependabot-core](https://github.com/dependabot/dependabot-core), licensed under the MIT License.
+- [pypi-assistant](https://github.com/Twixes/pypi-assistant) licensed under the MIT License.
+- [vscode-versionlens](https://gitlab.com/versionlens/vscode-versionlens) licensed under the ISC License.
