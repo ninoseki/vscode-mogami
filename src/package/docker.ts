@@ -9,6 +9,7 @@ import { compare } from '@/versioning/utils'
 import { AbstractPackageClient } from './abstractClient'
 
 const DOCKER_HUB_API = 'https://hub.docker.com/v2'
+const MAX_PAGINATION_ATTEMPTS = 5
 
 const DockerHubTagSchema = z.object({
   name: z.string(),
@@ -17,6 +18,7 @@ const DockerHubTagSchema = z.object({
 
 const DockerHubTagsSchema = z.object({
   results: z.array(DockerHubTagSchema),
+  next: z.string().nullish(),
 })
 
 // Matches the version core (e.g., "1.2.3", "v1.2", "18") together with an
@@ -92,9 +94,16 @@ export class DockerClient extends AbstractPackageClient {
   private async fetchTags(name: string): Promise<string[]> {
     const repo = libraryRepo(name)
     const base = urlJoin(this.source.toString(), '/repositories/', repo, '/tags/')
-    const url = `${base}?page_size=100&ordering=last_updated`
-    const data = await this.fetchJson(url)
-    const parsed = DockerHubTagsSchema.parse(data)
-    return parsed.results.map((r) => r.name)
+    const tags: string[] = []
+    let url: string | undefined = `${base}?page_size=100&ordering=last_updated`
+
+    for (let attempt = 0; attempt < MAX_PAGINATION_ATTEMPTS && url; attempt++) {
+      const data = await this.fetchJson(url)
+      const parsed = DockerHubTagsSchema.parse(data)
+      tags.push(...parsed.results.map((r) => r.name))
+      url = parsed.next ?? undefined
+    }
+
+    return tags
   }
 }
