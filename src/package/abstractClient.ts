@@ -1,5 +1,5 @@
 import { getShowPrerelease, getUsePrivateSource } from '@/configuration'
-import { PackageClientType, PackageType } from '@/schemas'
+import { DependencyType, PackageClientType, PackageType } from '@/schemas'
 import { compare, isPrerelease } from '@/versioning/utils'
 
 import { clearCache as doClearCache } from './cache'
@@ -50,7 +50,7 @@ export abstract class AbstractPackageClient implements PackageClientType {
     }) as Promise<string>
   }
 
-  abstract get(name: string): Promise<PackageType>
+  abstract get(name: string, dependency?: DependencyType): Promise<PackageType>
 
   protected normalizePackage(pkg: PackageType) {
     const versions = this.showPrerelease

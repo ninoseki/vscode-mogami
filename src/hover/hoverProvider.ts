@@ -48,7 +48,7 @@ export class HoverProvider implements vscode.HoverProvider, ExtensionComponent {
     const range = got[1]
 
     try {
-      const pkg = await service.getPackage(dependency.name)
+      const pkg = await service.getPackage(dependency.name, dependency)
       const sections = [pkg.summary, `Latest version: ${pkg.version}`, pkg.url].filter(
         (i): i is Exclude<typeof i, undefined> => i !== undefined,
       )

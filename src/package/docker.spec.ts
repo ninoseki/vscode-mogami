@@ -1,0 +1,117 @@
+import { clearCache } from './cache'
+import { DockerClient, parseTagShape, tagsAreComparable } from './docker'
+
+vi.mock('@/configuration', () => ({
+  getShowPrerelease: () => false,
+  getUsePrivateSource: () => false,
+}))
+
+function mockFetchOnce(body: unknown) {
+  const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    headers: new Headers(),
+    json: () => Promise.resolve(body),
+    text: () => Promise.resolve(JSON.stringify(body)),
+  } as Response)
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
+
+function tagsPayload(names: string[]) {
+  return { results: names.map((name) => ({ name, last_updated: '2024-01-01' })) }
+}
+
+describe('parseTagShape', () => {
+  it.each([
+    ['18', { prefix: '', version: '18', suffix: '' }],
+    ['18-alpine', { prefix: '', version: '18', suffix: '-alpine' }],
+    ['10.9.2-alpine', { prefix: '', version: '10.9.2', suffix: '-alpine' }],
+    ['v1.2.3', { prefix: 'v', version: '1.2.3', suffix: '' }],
+    ['jdk-11-alpine', { prefix: 'jdk-', version: '11', suffix: '-alpine' }],
+  ])('parses %s', (name, expected) => {
+    expect(parseTagShape(name)).toEqual(expected)
+  })
+
+  it('returns undefined for non-versioned tags', () => {
+    expect(parseTagShape('latest')).toBeUndefined()
+  })
+})
+
+describe('tagsAreComparable', () => {
+  it('returns true when prefix and suffix match', () => {
+    expect(
+      tagsAreComparable(
+        { prefix: '', version: '18', suffix: '-alpine' },
+        { prefix: '', version: '22', suffix: '-alpine' },
+      ),
+    ).toBe(true)
+  })
+
+  it('returns false when suffix differs', () => {
+    expect(
+      tagsAreComparable(
+        { prefix: '', version: '18', suffix: '-alpine' },
+        { prefix: '', version: '22', suffix: '-slim' },
+      ),
+    ).toBe(false)
+  })
+})
+
+describe('DockerClient', () => {
+  beforeEach(() => {
+    clearCache()
+    vi.unstubAllGlobals()
+  })
+
+  it('picks the highest tag matching the current tag pattern', async () => {
+    const fetchMock = mockFetchOnce(
+      tagsPayload([
+        '22-alpine',
+        '22-bookworm',
+        '20-alpine',
+        '18-alpine',
+        '22',
+        '20',
+        '18',
+        'latest',
+      ]),
+    )
+
+    const client = new DockerClient()
+    const pkg = await client.get('node', { name: 'node', specifier: '18-alpine' })
+
+    expect(pkg.name).toBe('node')
+    expect(pkg.version).toBe('22-alpine')
+    expect(pkg.versions).toEqual(['18-alpine', '20-alpine', '22-alpine'])
+    expect(pkg.format).toBe('dockerfile')
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://hub.docker.com/v2/repositories/library/node/tags/?page_size=100&ordering=last_updated',
+    )
+  })
+
+  it('uses the library namespace for unqualified image names', async () => {
+    const fetchMock = mockFetchOnce(tagsPayload(['22.04', '20.04', '18.04']))
+    const client = new DockerClient()
+    await client.get('ubuntu', { name: 'ubuntu', specifier: '22.04' })
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/repositories/library/ubuntu/tags/')
+  })
+
+  it('keeps the namespace for namespaced images', async () => {
+    const fetchMock = mockFetchOnce(tagsPayload(['2.0', '1.0']))
+    const client = new DockerClient()
+    await client.get('bitnami/postgresql', { name: 'bitnami/postgresql', specifier: '1.0' })
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/repositories/bitnami/postgresql/tags/')
+  })
+
+  it('throws when no compatible tag exists', async () => {
+    mockFetchOnce(tagsPayload(['22-slim', '20-slim']))
+    const client = new DockerClient()
+    await expect(client.get('node', { name: 'node', specifier: '18-alpine' })).rejects.toThrow(
+      /No matching tags/,
+    )
+  })
+})
