@@ -19,6 +19,22 @@ function mockFetchOnce(body: unknown) {
   return fetchMock
 }
 
+function mockFetchSequence(bodies: unknown[]) {
+  const fetchMock = vi.fn<typeof fetch>()
+  for (const body of bodies) {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers(),
+      json: () => Promise.resolve(body),
+      text: () => Promise.resolve(JSON.stringify(body)),
+    } as Response)
+  }
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
+
 function tagsPayload(names: string[]) {
   return { results: names.map((name) => ({ name, last_updated: '2024-01-01' })) }
 }
@@ -105,6 +121,22 @@ describe('DockerClient', () => {
     await client.get('bitnami/postgresql', { name: 'bitnami/postgresql', specifier: '1.0' })
 
     expect(fetchMock.mock.calls[0][0]).toContain('/repositories/bitnami/postgresql/tags/')
+  })
+
+  it('follows the next URL to paginate', async () => {
+    const next = 'https://hub.docker.com/v2/repositories/library/node/tags/?page=2'
+    const fetchMock = mockFetchSequence([
+      { ...tagsPayload(['18-alpine', '20-alpine']), next },
+      { ...tagsPayload(['22-alpine']), next: null },
+    ])
+
+    const client = new DockerClient()
+    const pkg = await client.get('node', { name: 'node', specifier: '18-alpine' })
+
+    expect(pkg.version).toBe('22-alpine')
+    expect(pkg.versions).toEqual(['18-alpine', '20-alpine', '22-alpine'])
+    expect(fetchMock.mock.calls.length).toBe(2)
+    expect(fetchMock.mock.calls[1][0]).toBe(next)
   })
 
   it('throws when no compatible tag exists', async () => {
