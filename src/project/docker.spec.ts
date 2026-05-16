@@ -1,6 +1,6 @@
 import type { RangeLikeType, TextDocumentLikeType } from '@/schemas'
 
-import { parseProject } from './dockerfile'
+import { parseProject } from './docker'
 
 function makeTextDocumentLike(lines: string[]): TextDocumentLikeType {
   return {
