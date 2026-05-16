@@ -6,7 +6,7 @@ import semver from 'semver'
 import { OnBumpDependencyClickCommand, OnUpdateDependencyClickCommand } from '@/constants'
 import { isHttpError } from '@/httpError'
 import type { DependencyType, PackageType, SatisfiesFnType, validateRangeFnType } from '@/schemas'
-import { eq, maxSatisfying } from '@/versioning/utils'
+import { compare, eq, maxSatisfying, removeLeading } from '@/versioning/utils'
 
 export interface PackageSuggestion {
   title: string
@@ -103,7 +103,16 @@ export function createPackageSuggestions({
     return true
   }
 
-  const isLatest = checkIsLatest()
+  const checkIsAhead = (): boolean => {
+    // reject a found "latest" that is lower than the current specifier
+    if (!dependency.specifier) return false
+    if (pkg.alias === dependency.specifier) return false
+    if (eq(pkg.version, dependency.specifier)) return false
+    return compare(pkg.version, removeLeading(dependency.specifier)) < 0
+  }
+
+  const isAhead = checkIsAhead()
+  const isLatest = !isAhead && checkIsLatest()
   const isFixedSpecifier: boolean = semver.valid(dependency.specifier) !== null
   const isRangeSpecifier: boolean = validateRange(dependency)
   const satisfiesVersion = maxSatisfying({
@@ -127,7 +136,7 @@ export function createPackageSuggestions({
     }
   }
 
-  if (!isLatest) {
+  if (!isLatest && !isAhead) {
     suggestions.push(createUpdatableSuggestion(pkg))
   }
 
