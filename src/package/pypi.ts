@@ -1,4 +1,3 @@
-import camelcaseKeys from 'camelcase-keys'
 import { parseHTML } from 'linkedom'
 import semver from 'semver'
 import { ZodError } from 'zod'
@@ -13,9 +12,9 @@ import { AbstractPackageClient } from './abstractClient'
 export const PypiInfoSchema = z.object({
   name: z.string(),
   summary: z.string().nullish(),
-  homePage: z.string().nullish(),
-  packageUrl: z.string().nullish(),
-  projectUrl: z.string().nullish(),
+  home_page: z.string().nullish(),
+  package_url: z.string().nullish(),
+  project_url: z.string().nullish(),
   version: z.string(),
 })
 
@@ -31,12 +30,8 @@ export const PypiPackageSchema = z.object({
 export type PypiPackageType = z.infer<typeof PypiPackageSchema>
 
 export function parse(data: unknown): PackageType {
-  const { releases, info } = data as { releases: unknown; info: object }
-  const parsed = PypiPackageSchema.parse({
-    info: camelcaseKeys(info, { deep: true }),
-    releases,
-  })
-  const url = [parsed.info.homePage, parsed.info.projectUrl, parsed.info.packageUrl].find(
+  const parsed = PypiPackageSchema.parse(data)
+  const url = [parsed.info.home_page, parsed.info.project_url, parsed.info.package_url].find(
     (url): url is Exclude<typeof url, null> => url !== null && url !== '',
   )
   const versions = Object.entries(parsed.releases)

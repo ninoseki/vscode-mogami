@@ -1,4 +1,3 @@
-import camelcaseKeys from 'camelcase-keys'
 import { z } from 'zod'
 
 import { PackageType } from '@/schemas'
@@ -17,7 +16,7 @@ export type GemVersionsType = z.infer<typeof GemVersionsSchema>
 export const GemSchema = z.object({
   version: z.string(),
   info: z.string(),
-  homepageUri: z.string(),
+  homepage_uri: z.string(),
 })
 
 export const GemPackageSchema = z.object({
@@ -51,12 +50,12 @@ export class GemClient extends AbstractPackageClient {
     const data = await this.fetchJson(
       urlJoin(this.source.toString(), '/api/v1/gems/', `${name}.json`),
     )
-    const parsed = GemSchema.parse(camelcaseKeys(data as object, { deep: true }))
+    const parsed = GemSchema.parse(data)
     return {
       name,
       version: parsed.version,
       summary: parsed.info,
-      url: parsed.homepageUri,
+      url: parsed.homepage_uri,
       versions: [],
     }
   }
