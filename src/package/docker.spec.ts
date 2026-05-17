@@ -1,5 +1,5 @@
 import { clearCache } from './cache'
-import { DockerClient, parseTagShape, tagsAreComparable } from './docker'
+import { DockerClient, isPrereleaseTag, parseTagShape, tagsAreComparable } from './docker'
 
 vi.mock('@/configuration', () => ({
   getShowPrerelease: () => false,
@@ -75,6 +75,39 @@ describe('tagsAreComparable', () => {
   })
 })
 
+describe('isPrereleaseTag', () => {
+  it.each([
+    '1.0.0-alpha',
+    '1.0.0-ALPHA',
+    '1.0.0-beta',
+    '1.0.0-rc',
+    '1.0.0-rc1',
+    '1.0.0-dev',
+    '1.0.0-preview',
+    'pre-1.0',
+    '1.0.0-nightly',
+    '1.0.0-snapshot',
+    '1.0.0-canary',
+    '1.0.0-unstable',
+    '3.15.0a2',
+    '1.0b1',
+    'alpha1',
+    'beta2',
+    'rc3',
+    '1.0.post1',
+    '1.0.dev0',
+  ])('flags %s as prerelease', (name) => {
+    expect(isPrereleaseTag(name)).toBe(true)
+  })
+
+  it.each(['1.0.0', '18', '18-alpine', '22-bookworm-slim', 'v1.2.3', '20.04', 'jdk-11-alpine'])(
+    'does not flag %s',
+    (name) => {
+      expect(isPrereleaseTag(name)).toBe(false)
+    },
+  )
+})
+
 describe('DockerClient', () => {
   beforeEach(() => {
     clearCache()
@@ -137,6 +170,23 @@ describe('DockerClient', () => {
     expect(pkg.versions).toEqual(['18-alpine', '20-alpine', '22-alpine'])
     expect(fetchMock.mock.calls.length).toBe(2)
     expect(fetchMock.mock.calls[1][0]).toBe(next)
+  })
+
+  it('filters prerelease tags by default', async () => {
+    mockFetchOnce(tagsPayload(['22-alpine', '20-alpine', '23-alpine-rc1', '24-alpine-beta']))
+    const client = new DockerClient()
+    const pkg = await client.get('node', { name: 'node', specifier: '20-alpine' })
+
+    expect(pkg.version).toBe('22-alpine')
+    expect(pkg.versions).toEqual(['20-alpine', '22-alpine'])
+  })
+
+  it('keeps prerelease tags when the current specifier is itself a prerelease', async () => {
+    mockFetchOnce(tagsPayload(['1.0.0-alpha', '2.0.0-alpha', '3.0.0-alpha']))
+    const client = new DockerClient()
+    const pkg = await client.get('foo', { name: 'foo', specifier: '1.0.0-alpha' })
+
+    expect(pkg.version).toBe('3.0.0-alpha')
   })
 
   it('throws when no compatible tag exists', async () => {
