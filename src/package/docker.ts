@@ -28,6 +28,27 @@ const DockerHubTagsSchema = z.object({
 // Comparable tags are those that share the same prefix and suffix.
 const TAG_PATTERN = /^(?<prefix>\D*)(?<version>\d+(?:[._]\d+)*)(?<suffix>\W.*)?$/
 
+const PRERELEASE_PATTERNS: RegExp[] = [
+  /alpha/i,
+  /beta/i,
+  /rc\d*/i,
+  /dev/i,
+  /preview/i,
+  /\bpre\b/i,
+  /nightly/i,
+  /snapshot/i,
+  /canary/i,
+  /unstable/i,
+  /\d+[a-z]\d*/,
+  /[a-z]+\d+$/,
+  /\.post\d+/i,
+  /\.dev\d+/i,
+]
+
+export function isPrereleaseTag(name: string): boolean {
+  return PRERELEASE_PATTERNS.some((p) => p.test(name))
+}
+
 interface TagShape {
   prefix: string
   version: string
@@ -69,12 +90,19 @@ export class DockerClient extends AbstractPackageClient {
 
     // Tags compatible with the current one (same prefix & suffix), or all tags
     // when we don't have a current tag to anchor on.
-    const candidates = currentShape
+    const shapeMatched = currentShape
       ? tags.filter((t) => {
           const shape = parseTagShape(t)
           return shape !== undefined && tagsAreComparable(shape, currentShape)
         })
       : tags
+
+    // Keep prerelease tags when the current specifier itself is a prerelease,
+    // otherwise drop them unless the user opted in via showPrerelease.
+    const keepPrereleases = this.showPrerelease || (specifier ? isPrereleaseTag(specifier) : false)
+    const candidates = keepPrereleases
+      ? shapeMatched
+      : shapeMatched.filter((t) => !isPrereleaseTag(t))
 
     if (candidates.length === 0) {
       throw new Error('No matching tags found')
