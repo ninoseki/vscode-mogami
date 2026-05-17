@@ -1,4 +1,3 @@
-import camelcaseKeys from 'camelcase-keys'
 import { z } from 'zod'
 
 import { PackageType } from '@/schemas'
@@ -11,17 +10,17 @@ export const AnacondaPackageSchema = z.object({
   summary: z.string().nullish(),
   home: z.string().nullish(),
   url: z.string().nullish(),
-  latestVersion: z.string(),
+  latest_version: z.string(),
   versions: z.array(z.string()),
 })
 
 export type AnacondaPackageType = z.infer<typeof AnacondaPackageSchema>
 
 export function parse(data: unknown) {
-  const parsed = AnacondaPackageSchema.parse(camelcaseKeys(data as object))
+  const parsed = AnacondaPackageSchema.parse(data)
   return {
     name: parsed.name,
-    version: parsed.latestVersion,
+    version: parsed.latest_version,
     summary: parsed.summary,
     versions: parsed.versions,
     url: parsed.url || parsed.home || undefined,

@@ -39,7 +39,6 @@
   "dependencies": {
     "@renovatebot/pep440": "^5.0.0",
     "@renovatebot/ruby-semver": "^5.0.0",
-    "camelcase-keys": "^10.0.2",
     "compare-versions": "^6.1.1",
     "dockerfile-ast": "^0.7.1",
     "jsonc-parser": "^3.3.1",
