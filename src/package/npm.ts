@@ -11,6 +11,7 @@ const NpmPackageSchema = z.object({
   description: z.string().nullish(),
   'dist-tags': z.object({ latest: z.string().optional() }).passthrough(),
   versions: z.record(z.string(), z.unknown()),
+  homepage: z.string().nullish(),
   repository: z
     .union([z.object({ url: z.string() }), z.string()])
     .optional()
@@ -23,10 +24,7 @@ export class NpmClient extends AbstractPackageClient {
   }
 
   async get(name: string): Promise<PackageType> {
-    const url = urlJoin(this.source.toString(), name)
-    const data = await this.fetchJson(url, {
-      headers: { Accept: 'application/vnd.npm.install-v1+json' },
-    })
+    const data = await this.fetchJson(urlJoin(this.source.toString(), name))
     const parsed = NpmPackageSchema.parse(data)
     const distTags = parsed['dist-tags']
     const latestTaggedVersion = distTags.latest
@@ -40,7 +38,9 @@ export class NpmClient extends AbstractPackageClient {
       versions = versions.filter((v) => compare(v, latestTaggedVersion) <= 0)
     }
 
-    const url_ = (() => {
+    const url = (() => {
+      if (parsed.homepage) return parsed.homepage
+
       const repo = parsed.repository
       if (!repo) return undefined
       if (typeof repo === 'string') return undefined
@@ -53,7 +53,7 @@ export class NpmClient extends AbstractPackageClient {
       version: latestTaggedVersion ?? versions[versions.length - 1] ?? '',
       summary: parsed.description ?? undefined,
       versions,
-      url: url_,
+      url,
     }
 
     return this.normalizePackage(pkg)
