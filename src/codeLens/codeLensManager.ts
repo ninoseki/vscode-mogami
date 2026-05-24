@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 
-import { getConcurrency, getEnableCodeLens } from '@/configuration'
-import { projectFormatToSelector } from '@/constants'
+import { getConcurrency, getDisabledCodeLensFormats, getEnableCodeLens } from '@/configuration'
+import { DisableCodeLensKey, ExtID, projectFormatToSelector } from '@/constants'
 import { ExtensionComponent } from '@/extensionComponent'
 
 import { CodeLensProvider } from './codeLensProvider'
@@ -31,17 +31,15 @@ export class CodeLensManager implements ExtensionComponent {
     await state.applyDefaults()
 
     const concurrency = getConcurrency()
+    this.register(context, concurrency, state)
 
-    this.codeLensProviders = Array.from(projectFormatToSelector).map(
-      ([projectFormat, selector]) => {
-        const name = `${projectFormat}-CodeLensProvider`
-        return new CodeLensProvider(context, selector, projectFormat, concurrency, state, name)
-      },
+    context.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration(`${ExtID}.${DisableCodeLensKey}`)) {
+          this.register(context, concurrency, state)
+        }
+      }),
     )
-
-    this.codeLensProviders.forEach((provider) => {
-      provider.activate(context)
-    })
 
     new OnShowingProgress()
     new OnShowClick(this.codeLensProviders, state)
@@ -49,5 +47,21 @@ export class CodeLensManager implements ExtensionComponent {
     new OnActiveTextEditorChange(this.codeLensProviders, state)
     new OnUpdateDependencyClick()
     new OnBumpDependencyClick()
+  }
+
+  private register(context: vscode.ExtensionContext, concurrency: number, state: CodeLensState) {
+    this.codeLensProviders.forEach((provider) => provider.dispose())
+    this.codeLensProviders.length = 0
+
+    const disabled = new Set(getDisabledCodeLensFormats())
+    const providers = Array.from(projectFormatToSelector)
+      .filter(([projectFormat]) => !disabled.has(projectFormat))
+      .map(([projectFormat, selector]) => {
+        const name = `${projectFormat}-CodeLensProvider`
+        return new CodeLensProvider(context, selector, projectFormat, concurrency, state, name)
+      })
+
+    providers.forEach((provider) => provider.activate(context))
+    this.codeLensProviders.push(...providers)
   }
 }
