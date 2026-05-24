@@ -67,15 +67,25 @@ As with Crystal Shards, only GitHub repositories are supported.
 
 ## Configuration
 
-| Key                              | Default | Desc.                                                              |
-| -------------------------------- | ------- | ------------------------------------------------------------------ |
-| `vscode-mogami.concurrency`      | 5       | Concurrency (a number of concurrent requests) to get package data. |
-| `vscode-mogami.enableCodeLens`   | `true`  | Whether to enable CodeLens or not.                                 |
-| `vscode-mogami.showPrerelease`   | `false` | Whether to show a prerelease version or not.                       |
-| `vscode-mogami.usePrivateSource` | `true`  | Whether to use a private source (repository) if it's set or not.   |
+| Key                              | Default | Desc.                                                                           |
+| -------------------------------- | ------- | ------------------------------------------------------------------------------- |
+| `vscode-mogami.concurrency`      | 5       | Concurrency (a number of concurrent requests) to get package data.              |
+| `vscode-mogami.enableCodeLens`   | `true`  | Whether to enable CodeLens or not.                                              |
+| `vscode-mogami.showPrerelease`   | `false` | Whether to show a prerelease version or not.                                    |
+| `vscode-mogami.usePrivateSource` | `true`  | Whether to use a private source (repository) if it's set or not.                |
+| `vscode-mogami.disableHover`     | `[]`    | Project formats for which the hover provider should be disabled (see below).    |
+| `vscode-mogami.disableCodeLens`  | `[]`    | Project formats for which the CodeLens provider should be disabled (see below). |
 
-> [!NOTE]
-> Mogami uses the GitHub REST API to get release data of GitHub Actions Workflow and Crystal Shards. The API may block you if you don't set a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). You can configure it via `Set GitHub Personal Access Token` command.
+### `disableHover/CodeLens`
+
+Use them to avoid conflicts when another extension already provides the same feature for a file.
+For example, set `"vscode-mogami.disableHover": ["npm"]` to stop hovers on `package.json` from competing with the built-in `vscode.npm` extension.
+
+Valid format names: `docker-compose`, `dockerfile`, `gemfile`, `gemspec`, `github-actions-workflow`, `npm`, `pep723` , `pre-commit-config`, `pip-requirements`, `pyproject`, `shards`.
+
+## Notes
+
+- Mogami uses the GitHub REST API to get release data of GitHub Actions Workflow and Crystal Shards. The API may block you if you don't set a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). You can configure it via `Set GitHub Personal Access Token` command.
 
 ## Alternatives
 

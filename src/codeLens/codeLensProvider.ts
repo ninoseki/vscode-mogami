@@ -14,6 +14,8 @@ export class CodeLensProvider implements vscode.CodeLensProvider, ExtensionCompo
   public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeCodeLenses.event
 
   private projectParser: ProjectParser | undefined
+  private registration: vscode.Disposable | undefined
+  private configListener: vscode.Disposable
 
   constructor(
     private context: vscode.ExtensionContext,
@@ -23,7 +25,7 @@ export class CodeLensProvider implements vscode.CodeLensProvider, ExtensionCompo
     private state: CodeLensState,
     public name?: string,
   ) {
-    vscode.workspace.onDidChangeConfiguration(() => {
+    this.configListener = vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire()
     })
   }
@@ -70,9 +72,17 @@ export class CodeLensProvider implements vscode.CodeLensProvider, ExtensionCompo
     return this.state.providerActive.value === this.name
   }
 
-  public activate(context: vscode.ExtensionContext) {
-    context.subscriptions.push(
-      vscode.languages.registerCodeLensProvider(this.selector.documentSelector, this),
+  public activate(_context: vscode.ExtensionContext) {
+    this.registration = vscode.languages.registerCodeLensProvider(
+      this.selector.documentSelector,
+      this,
     )
+  }
+
+  public dispose() {
+    this.registration?.dispose()
+    this.registration = undefined
+    this.configListener.dispose()
+    this._onDidChangeCodeLenses.dispose()
   }
 }

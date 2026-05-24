@@ -149,7 +149,51 @@
         "vscode-mogami.enableCodeLens": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to enable CodeLens or not."
+          "description": "Whether to enable CodeLens globally or not."
+        },
+        "vscode-mogami.disableHover": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string",
+            "enum": [
+              "docker-compose",
+              "dockerfile",
+              "gemfile",
+              "gemspec",
+              "github-actions-workflow",
+              "npm",
+              "pep723",
+              "pre-commit-config",
+              "pip-requirements",
+              "pyproject",
+              "shards"
+            ]
+          },
+          "uniqueItems": true,
+          "description": "Project formats for which the hover provider should be disabled. Useful when another extension already provides hover for that format (e.g. set to [\"npm\"] to avoid conflicting with vscode.npm on package.json)."
+        },
+        "vscode-mogami.disableCodeLens": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string",
+            "enum": [
+              "docker-compose",
+              "dockerfile",
+              "gemfile",
+              "gemspec",
+              "github-actions-workflow",
+              "npm",
+              "pep723",
+              "pre-commit-config",
+              "pip-requirements",
+              "pyproject",
+              "shards"
+            ]
+          },
+          "uniqueItems": true,
+          "description": "Project formats for which the CodeLens provider should be disabled."
         },
         "vscode-mogami.concurrency": {
           "type": "integer",
@@ -179,18 +223,18 @@
   },
   "activationEvents": [
     "onLanguage:python",
+    "workspaceContains:**/*.Dockerfile",
     "workspaceContains:**/*.gemspec",
     "workspaceContains:**/.github/workflows/*.{yaml,yml}",
     "workspaceContains:**/.pre-commit-config.{yaml,yml}",
     "workspaceContains:**/Containerfile",
     "workspaceContains:**/Dockerfile",
     "workspaceContains:**/Dockerfile.*",
-    "workspaceContains:**/*.Dockerfile",
-    "workspaceContains:**/compose.{yaml,yml}",
-    "workspaceContains:**/compose.*.{yaml,yml}",
-    "workspaceContains:**/docker-compose.{yaml,yml}",
-    "workspaceContains:**/docker-compose.*.{yaml,yml}",
     "workspaceContains:**/Gemfile",
+    "workspaceContains:**/compose.*.{yaml,yml}",
+    "workspaceContains:**/compose.{yaml,yml}",
+    "workspaceContains:**/docker-compose.*.{yaml,yml}",
+    "workspaceContains:**/docker-compose.{yaml,yml}",
     "workspaceContains:**/package.json",
     "workspaceContains:**/pyproject.toml",
     "workspaceContains:**/shard.yml",

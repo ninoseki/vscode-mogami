@@ -52,6 +52,8 @@ export const EnableCodeLensKey = 'enableCodeLens'
 export const ConcurrencyKey = 'concurrency'
 export const usePrivateSourceKey = 'usePrivateSource'
 export const showPrerelease = 'showPrerelease'
+export const DisableHoverKey = 'disableHover'
+export const DisableCodeLensKey = 'disableCodeLens'
 
 export const GitHubPersonalAccessTokenKey = 'gitHubPersonalAccessToken'
 
