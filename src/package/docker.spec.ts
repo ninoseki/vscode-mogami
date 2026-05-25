@@ -41,11 +41,12 @@ function tagsPayload(names: string[]) {
 
 describe('parseTagShape', () => {
   it.each([
-    ['18', { prefix: '', version: '18', suffix: '' }],
-    ['18-alpine', { prefix: '', version: '18', suffix: '-alpine' }],
-    ['10.9.2-alpine', { prefix: '', version: '10.9.2', suffix: '-alpine' }],
-    ['v1.2.3', { prefix: 'v', version: '1.2.3', suffix: '' }],
-    ['jdk-11-alpine', { prefix: 'jdk-', version: '11', suffix: '-alpine' }],
+    ['18', { prefix: '', version: '18', components: 1, suffix: '' }],
+    ['18-alpine', { prefix: '', version: '18', components: 1, suffix: '-alpine' }],
+    ['10.9.2-alpine', { prefix: '', version: '10.9.2', components: 3, suffix: '-alpine' }],
+    ['v1.2.3', { prefix: 'v', version: '1.2.3', components: 3, suffix: '' }],
+    ['jdk-11-alpine', { prefix: 'jdk-', version: '11', components: 1, suffix: '-alpine' }],
+    ['5091768', { prefix: '', version: '5091768', components: 1, suffix: '' }],
   ])('parses %s', (name, expected) => {
     expect(parseTagShape(name)).toEqual(expected)
   })
@@ -59,8 +60,8 @@ describe('tagsAreComparable', () => {
   it('returns true when prefix and suffix match', () => {
     expect(
       tagsAreComparable(
-        { prefix: '', version: '18', suffix: '-alpine' },
-        { prefix: '', version: '22', suffix: '-alpine' },
+        { prefix: '', version: '18', components: 1, suffix: '-alpine' },
+        { prefix: '', version: '22', components: 1, suffix: '-alpine' },
       ),
     ).toBe(true)
   })
@@ -68,10 +69,30 @@ describe('tagsAreComparable', () => {
   it('returns false when suffix differs', () => {
     expect(
       tagsAreComparable(
-        { prefix: '', version: '18', suffix: '-alpine' },
-        { prefix: '', version: '22', suffix: '-slim' },
+        { prefix: '', version: '18', components: 1, suffix: '-alpine' },
+        { prefix: '', version: '22', components: 1, suffix: '-slim' },
       ),
     ).toBe(false)
+  })
+
+  it('returns false when component counts differ on a multi-component anchor', () => {
+    // boxyhq/mock-saml ships sane "1.4.2" tags alongside opaque IDs like
+    // "5091768"; they share prefix/suffix but the IDs aren't real versions.
+    expect(
+      tagsAreComparable(
+        { prefix: '', version: '1.4.2', components: 3, suffix: '' },
+        { prefix: '', version: '5091768', components: 1, suffix: '' },
+      ),
+    ).toBe(false)
+  })
+
+  it('still matches two single-component tags (e.g. node:18 vs node:22)', () => {
+    expect(
+      tagsAreComparable(
+        { prefix: '', version: '18', components: 1, suffix: '' },
+        { prefix: '', version: '22', components: 1, suffix: '' },
+      ),
+    ).toBe(true)
   })
 })
 
@@ -187,6 +208,30 @@ describe('DockerClient', () => {
     const pkg = await client.get('foo', { name: 'foo', specifier: '1.0.0-alpha' })
 
     expect(pkg.version).toBe('3.0.0-alpha')
+  })
+
+  it('sorts single-component numeric tags numerically (98 < 99 < 100)', async () => {
+    mockFetchOnce(tagsPayload(['98', '99', '100']))
+    const client = new DockerClient()
+    const pkg = await client.get('foo', { name: 'foo', specifier: '99' })
+
+    expect(pkg.version).toBe('100')
+    expect(pkg.versions).toEqual(['98', '99', '100'])
+  })
+
+  it('ignores opaque single-component IDs when the anchor is multi-component', async () => {
+    // Mirrors boxyhq/mock-saml: real semver tags coexist with build-ID-style
+    // tags like "5091768" that share the empty prefix/suffix shape but aren't
+    // versions in the same scheme.
+    mockFetchOnce(tagsPayload(['1.4.2', '1.4.3', '1.5.0', '5091768']))
+    const client = new DockerClient()
+    const pkg = await client.get('boxyhq/mock-saml', {
+      name: 'boxyhq/mock-saml',
+      specifier: '1.4.2',
+    })
+
+    expect(pkg.version).toBe('1.5.0')
+    expect(pkg.versions).toEqual(['1.4.2', '1.4.3', '1.5.0'])
   })
 
   it('throws when no compatible tag exists', async () => {

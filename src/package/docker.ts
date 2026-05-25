@@ -52,6 +52,7 @@ export function isPrereleaseTag(name: string): boolean {
 interface TagShape {
   prefix: string
   version: string
+  components: number
   suffix: string
 }
 
@@ -60,15 +61,21 @@ export function parseTagShape(name: string): TagShape | undefined {
   if (!match || !match.groups) {
     return undefined
   }
+  const version = match.groups.version
   return {
-    prefix: match.groups.prefix ?? '',
-    version: match.groups.version,
-    suffix: match.groups.suffix ?? '',
+    prefix: match.groups.prefix || '',
+    version,
+    components: version.split(/[._]/).length,
+    suffix: match.groups.suffix || '',
   }
 }
 
 export function tagsAreComparable(a: TagShape, b: TagShape): boolean {
-  return a.prefix === b.prefix && a.suffix === b.suffix
+  if (a.prefix !== b.prefix || a.suffix !== b.suffix) return false
+  // When either side uses multi-component versioning (e.g. `1.4.2`) require the same component count.
+  // This stops opaque IDs like `5091768` (one component) from sorting above real versions like `1.4.2` (three).
+  if (a.components > 1 || b.components > 1) return a.components === b.components
+  return true
 }
 
 function libraryRepo(name: string): string {
