@@ -89,26 +89,32 @@ export function createPackageSuggestions({
   const suggestions: PackageSuggestion[] = []
   const pkg = pkgResult.value
 
-  const checkIsLatest = (): boolean => {
-    if (dependency.specifier) {
-      // check alias equality (if alias is available)
-      if (pkg.alias === dependency.specifier) {
-        return true
-      }
+  // Prefer the client-resolved version (e.g. SHA → tag) over the raw specifier
+  // so we can compare against pkg.version meaningfully.
+  const effectiveSpecifier = (() => {
+    if (!dependency.specifier) return undefined
+    const resolved = pkg.versionByAlias?.[dependency.specifier]
+    return resolved || dependency.specifier
+  })()
 
-      // check semantic versioning equality
-      return eq(pkg.version, dependency.specifier)
+  const checkIsLatest = (): boolean => {
+    // Alias equality must compare the raw specifier (e.g. a commit SHA) to pkg.alias
+    // never the resolved tag, since one SHA can be tagged multiple ways (e.g. `v4` and `v4.2.0`).
+    if (dependency.specifier && pkg.alias === dependency.specifier) {
+      return true
+    }
+    if (effectiveSpecifier) {
+      return eq(pkg.version, effectiveSpecifier)
     }
     // consider it's the latest version if no specifier is provided
     return true
   }
 
   const checkIsAhead = (): boolean => {
-    // reject a found "latest" that is lower than the current specifier
-    if (!dependency.specifier) return false
-    if (pkg.alias === dependency.specifier) return false
-    if (eq(pkg.version, dependency.specifier)) return false
-    return compare(pkg.version, removeLeading(dependency.specifier)) < 0
+    if (dependency.specifier && pkg.alias === dependency.specifier) return false
+    if (!effectiveSpecifier) return false
+    if (eq(pkg.version, effectiveSpecifier)) return false
+    return compare(pkg.version, removeLeading(effectiveSpecifier)) < 0
   }
 
   const isAhead = checkIsAhead()
