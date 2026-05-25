@@ -127,6 +127,72 @@ describe('createPackageSuggestions', () => {
         },
       ] as PackageSuggestion[],
     ],
+    // SHA-pinned with versionByAlias resolving to the latest tag
+    [
+      { name: 'actions/cache', specifier: 'a'.repeat(40) } as DependencyType,
+      {
+        name: 'actions/cache',
+        version: 'v5.0.5',
+        versions: ['v5.0.5'],
+        alias: 'a'.repeat(40),
+        versionByAlias: { ['a'.repeat(40)]: 'v5.0.5' },
+      } as PackageType,
+      satisfies,
+      [{ title: '🟢 latest v5.0.5', command: '' }] as PackageSuggestion[],
+    ],
+    // SHA-pinned to the latest, but versionByAlias records a moving major
+    // tag for the same SHA (e.g. `v4` shares the SHA with `v4.2.0`).
+    // Alias equality on the raw SHA must short-circuit to "latest".
+    [
+      { name: 'docker/login-action', specifier: 'a'.repeat(40) } as DependencyType,
+      {
+        name: 'docker/login-action',
+        version: 'v4.2.0',
+        versions: ['v4.2.0'],
+        alias: 'a'.repeat(40),
+        versionByAlias: { ['a'.repeat(40)]: 'v4' },
+      } as PackageType,
+      satisfies,
+      [{ title: '🟢 latest v4.2.0', command: '' }] as PackageSuggestion[],
+    ],
+    // SHA-pinned with versionByAlias resolving to an older tag
+    [
+      { name: 'actions/cache', specifier: 'c'.repeat(40) } as DependencyType,
+      {
+        name: 'actions/cache',
+        version: 'v5.0.5',
+        versions: ['v5.0.5'],
+        alias: 'b'.repeat(40),
+        versionByAlias: { ['b'.repeat(40)]: 'v5.0.5', ['c'.repeat(40)]: 'v5.0.4' },
+      } as PackageType,
+      satisfies,
+      [
+        {
+          command: 'vscode-mogami.suggestions.updateDependencyClick',
+          replaceable: true,
+          title: '↑ latest v5.0.5',
+        },
+      ] as PackageSuggestion[],
+    ],
+    // SHA-pinned but specifier missing from versionByAlias — treated as outdated
+    [
+      { name: 'actions/cache', specifier: 'e'.repeat(40) } as DependencyType,
+      {
+        name: 'actions/cache',
+        version: 'v5.0.5',
+        versions: ['v5.0.5'],
+        alias: 'd'.repeat(40),
+        versionByAlias: { ['d'.repeat(40)]: 'v5.0.5' },
+      } as PackageType,
+      satisfies,
+      [
+        {
+          command: 'vscode-mogami.suggestions.updateDependencyClick',
+          replaceable: true,
+          title: '↑ latest v5.0.5',
+        },
+      ] as PackageSuggestion[],
+    ],
   ])(
     'createPackageSuggestions(%s, %s, %s) === %s',
     (

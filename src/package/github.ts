@@ -19,6 +19,13 @@ export type GitHubReleaseType = z.infer<typeof GitHubReleaseSchema>
 
 export const GitHubReleasesSchema = z.array(GitHubReleaseSchema)
 
+export const GitHubTagSchema = z.object({
+  name: z.string(),
+  commit: z.object({ sha: z.string() }),
+})
+
+export const GitHubTagsSchema = z.array(GitHubTagSchema)
+
 export class GitHubClient extends AbstractPackageClient {
   private gitHubPersonalAccessToken: string | undefined = undefined
 
@@ -67,6 +74,14 @@ export class GitHubClient extends AbstractPackageClient {
       return sorted[sorted.length - 1]
     }
 
+    const getTags = async () => {
+      const data = await this.fetchJson(
+        urlJoin(this.source.toString(), 'repos', repo, 'tags') + '?per_page=100',
+        { headers },
+      )
+      return GitHubTagsSchema.parse(data)
+    }
+
     const getCommit = async (tagName: string) => {
       const data = await this.fetchJson(
         urlJoin(this.source.toString(), 'repos', repo, 'commits', tagName),
@@ -75,15 +90,24 @@ export class GitHubClient extends AbstractPackageClient {
       return GitHubCommitSchema.parse(data)
     }
 
-    const latest = await getLatestRelease()
-    const commit = await getCommit(latest.tag_name)
+    const [latest, tags] = await Promise.all([getLatestRelease(), getTags()])
     const version = latest.tag_name
+
+    const versionByAlias = Object.fromEntries(tags.map((tag) => [tag.commit.sha, tag.name]))
+    const aliasByVersion = new Map(tags.map((tag) => [tag.name, tag.commit.sha]))
+
+    // Fall back to /commits/{tag} only when the latest release isn't in the
+    // first 100 tags (rare — /tags is ordered newest-first).
+    const aliasFromTags = aliasByVersion.get(latest.tag_name)
+    const alias =
+      aliasFromTags === undefined ? (await getCommit(latest.tag_name)).sha : aliasFromTags
 
     return {
       name,
-      version: version,
+      version,
       versions: [version],
-      alias: commit.sha,
+      alias,
+      versionByAlias,
       format: 'github-actions-workflow',
     }
   }

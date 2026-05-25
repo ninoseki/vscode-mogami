@@ -19,6 +19,10 @@ export const PackageSchema = z.object({
   name: z.string(),
   version: z.string().describe('The latest version of the package'),
   alias: z.string().optional().describe('An alias of the the latest version'),
+  versionByAlias: z
+    .record(z.string(), z.string())
+    .optional()
+    .describe('A lookup map from an alias (e.g. a commit SHA) to its version'),
   versions: z.array(z.string()),
   summary: z.string().nullish(),
   url: z.string().optional(),
