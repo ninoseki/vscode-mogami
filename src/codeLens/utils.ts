@@ -98,9 +98,8 @@ export function createPackageSuggestions({
   })()
 
   const checkIsLatest = (): boolean => {
-    // Alias equality must compare the raw specifier (e.g. a commit SHA) to
-    // pkg.alias — never the resolved tag, since one SHA can be tagged
-    // multiple ways (e.g. `v4` and `v4.2.0`).
+    // Alias equality must compare the raw specifier (e.g. a commit SHA) to pkg.alias
+    // never the resolved tag, since one SHA can be tagged multiple ways (e.g. `v4` and `v4.2.0`).
     if (dependency.specifier && pkg.alias === dependency.specifier) {
       return true
     }
