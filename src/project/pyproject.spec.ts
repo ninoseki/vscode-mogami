@@ -218,6 +218,18 @@ describe('parseProject with uv', () => {
 
     expect(result.source).toEqual('https://example.com')
   })
+
+  it('should ignore explicit tool.uv.index', () => {
+    const document = makeTextDocumentLike([
+      '[[tool.uv.index]]',
+      "url = 'https://example.com'",
+      'explicit = true',
+    ])
+
+    const result = parseProject(document)
+
+    expect(result.source).toBeUndefined()
+  })
 })
 
 describe('parseProject with PEP 735', () => {

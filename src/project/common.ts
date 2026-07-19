@@ -14,10 +14,16 @@ export class TOMLVisitor implements Visitor {
   public pathStack: (string | number)[] = []
   public dependencies: [DependencyType, RawRangeType][] = []
   public source: string | undefined = undefined
+  private uvIndexSource: string | undefined = undefined
+  private uvIndexIsExplicit = false
 
   public enterNode(node: TOMLNode) {
     if (node.type === 'TOMLTable') {
       this.pathStack = node.resolvedKey.slice()
+      if (this.isUvIndex()) {
+        this.uvIndexSource = undefined
+        this.uvIndexIsExplicit = false
+      }
       return
     }
 
@@ -38,6 +44,15 @@ export class TOMLVisitor implements Visitor {
   public leaveNode(node: TOMLNode) {
     if (node.type === 'TOMLKeyValue') {
       this.pathStack.pop()
+      return
+    }
+
+    if (node.type === 'TOMLTable' && this.isUvIndex()) {
+      if (this.uvIndexSource && !this.uvIndexIsExplicit && !this.source) {
+        this.source = this.uvIndexSource
+      }
+      this.uvIndexSource = undefined
+      this.uvIndexIsExplicit = false
     }
   }
 
@@ -67,25 +82,26 @@ export class TOMLVisitor implements Visitor {
   private potentiallyRegisterUvSourceByIndex(node: TOMLKeyValue): void {
     // Check for "tool.uv.index.url"
 
-    if (
+    if (this.isUvIndex()) {
+      const key = node.key.keys[0]
+      if ('name' in key && key.name === 'url') {
+        if (node.value.type === 'TOMLValue' && typeof node.value.value === 'string') {
+          this.uvIndexSource = node.value.value
+        }
+      } else if ('name' in key && key.name === 'explicit') {
+        if (node.value.type === 'TOMLValue' && node.value.value === true) {
+          this.uvIndexIsExplicit = true
+        }
+      }
+    }
+  }
+
+  private isUvIndex(): boolean {
+    return (
       this.pathStack[0] === 'tool' &&
       this.pathStack[1] === 'uv' &&
       this.pathStack[2] === 'index'
-    ) {
-      const source: string | undefined = (() => {
-        const key = node.key.keys[0]
-        if ('name' in key && key.name === 'url') {
-          if (node.value.type === 'TOMLValue' && typeof node.value.value === 'string') {
-            return node.value.value
-          }
-        }
-
-        return undefined
-      })()
-      if (source && !this.source) {
-        this.source = source
-      }
-    }
+    )
   }
 
   private potentiallyRegisterUvSourceByIndexUrl(node: TOMLValue): void {
