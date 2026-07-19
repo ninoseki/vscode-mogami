@@ -33,10 +33,10 @@ import * as dockerCompose from './dockerCompose'
 import * as gemfile from './gemfile'
 import * as gemspec from './gemspec'
 import * as npm from './npm'
-import * as pep723 from './pep723'
+import * as pep723 from './python/pep723'
 import * as preCommit from './preCommit'
-import * as pyproject from './pyproject'
-import * as requirements from './requirements'
+import * as pyproject from './python/pyproject'
+import * as requirements from './python/requirements'
 import * as shards from './shards'
 
 type VersionedFileKey = `${string}::${number}`

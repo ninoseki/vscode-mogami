@@ -98,9 +98,7 @@ export class TOMLVisitor implements Visitor {
 
   private isUvIndex(): boolean {
     return (
-      this.pathStack[0] === 'tool' &&
-      this.pathStack[1] === 'uv' &&
-      this.pathStack[2] === 'index'
+      this.pathStack[0] === 'tool' && this.pathStack[1] === 'uv' && this.pathStack[2] === 'index'
     )
   }
 
