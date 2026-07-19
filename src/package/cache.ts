@@ -1,24 +1,13 @@
-import { LRUCache } from 'lru-cache'
+import { TTLCache } from '@isaacs/ttlcache'
 
-export interface CacheEntry {
-  data: NonNullable<unknown>
-  expiresAt: number
-}
+const DEFAULT_TTL = 1000 * 60 * 5 // 5 minutes
+const MAX_CACHE_SIZE = 2048
 
-export const DEFAULT_TTL = 1000 * 60 * 5 // 5 minutes
-
-const lruCache = new LRUCache<string, CacheEntry>({ max: 2048 })
-
-export function getCacheEntry(key: string): CacheEntry | undefined {
-  const entry = lruCache.get(key)
-  if (entry === undefined || Date.now() >= entry.expiresAt) return undefined
-  return entry
-}
-
-export function setCacheEntry(key: string, data: NonNullable<unknown>, ttl = DEFAULT_TTL): void {
-  lruCache.set(key, { data, expiresAt: Date.now() + ttl })
-}
+export const cache = new TTLCache<string, unknown>({
+  max: MAX_CACHE_SIZE,
+  ttl: DEFAULT_TTL,
+})
 
 export function clearCache(): void {
-  lruCache.clear()
+  cache.clear()
 }

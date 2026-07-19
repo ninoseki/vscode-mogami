@@ -1,6 +1,6 @@
 import { HttpError } from '@/httpError'
 
-import { getCacheEntry, setCacheEntry } from './cache'
+import { cache } from './cache'
 
 export async function cachedFetch(
   url: string,
@@ -10,8 +10,8 @@ export async function cachedFetch(
     signal?: AbortSignal
   },
 ): Promise<NonNullable<unknown>> {
-  const cached = getCacheEntry(url)
-  if (cached) return cached.data
+  const cached = cache.get(url)
+  if (cached) return cached
 
   const response = await fetch(url, {
     headers: new Headers(options.headers),
@@ -30,6 +30,6 @@ export async function cachedFetch(
       ? ((await response.json()) as NonNullable<unknown>)
       : await response.text()
 
-  setCacheEntry(url, data)
+  cache.set(url, data)
   return data
 }

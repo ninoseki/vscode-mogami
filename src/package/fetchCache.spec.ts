@@ -1,6 +1,6 @@
 import { HttpError } from '@/httpError'
 
-import { clearCache, setCacheEntry } from './cache'
+import { cache, clearCache } from './cache'
 import { cachedFetch } from './fetchCache'
 
 function mockFetch(
@@ -69,7 +69,7 @@ describe('cachedFetch', () => {
     })
 
     it('fetches again after TTL expires', async () => {
-      setCacheEntry('https://example.com/expired', { v: 0 }, 1)
+      cache.set('https://example.com/expired', { v: 0 }, { ttl: 1 })
       await new Promise((r) => setTimeout(r, 10))
 
       mockFetch({ v: 1 })

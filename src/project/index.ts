@@ -1,4 +1,4 @@
-import { LRUCache } from 'lru-cache'
+import { TTLCache } from '@isaacs/ttlcache'
 import { ResultAsync } from 'neverthrow'
 import pmap from 'p-map'
 import vscode from 'vscode'
@@ -172,8 +172,9 @@ export class ProjectService {
 
 // forked from https://github.com/Twixes/pypi-assistant/
 export class ProjectParser {
-  private cache: LRUCache<string, ProjectType> = new LRUCache({
+  private cache: TTLCache<string, ProjectType> = new TTLCache({
     max: 30,
+    ttl: Infinity,
   })
 
   constructor(
