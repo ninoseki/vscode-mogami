@@ -6,6 +6,7 @@ on:
 jobs:
   identity:
     runs-on: ubuntu-latest
+    environment: publish-vscode-marketplace
     permissions:
       id-token: write
     steps:
