@@ -7,8 +7,10 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: publish-vscode-marketplace
     permissions:
       contents: write
+      id-token: write # required for OIDC token
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Use Node.js
@@ -21,11 +23,16 @@ jobs:
         run: npm version --no-git-tag-version ${{ github.event.release.tag_name }}
       - name: Package
         run: npm run package
-      - name: Release
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: npm run publish
+      - name: Azure login (user-assigned managed identity)
+        uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3.0.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+          enable-AzPSSession: true
+      - name: Publish to VS Code Marketplace
+        run: npx @vscode/vsce publish --azure-credential --packagePath ./*.vsix
       - name: Upload VSIX to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.release.tag_name }} *.vsix
+        run: gh release upload ${{ github.event.release.tag_name }} ./*.vsix
