@@ -11,7 +11,7 @@ export async function cachedFetch(
   },
 ): Promise<NonNullable<unknown>> {
   const cached = cache.get(url)
-  if (cached) return cached
+  if (cached !== undefined) return cached
 
   const response = await fetch(url, {
     headers: new Headers(options.headers),
