@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { TTLCache } from '@isaacs/ttlcache'
 import { ResultAsync } from 'neverthrow'
 import pmap from 'p-map'
@@ -38,8 +40,6 @@ import * as preCommit from './preCommit'
 import * as pyproject from './python/pyproject'
 import * as requirements from './python/requirements'
 import * as shards from './shards'
-
-type VersionedFileKey = `${string}::${number}`
 
 const versioningConfig: Record<
   ProjectFormatType,
@@ -183,9 +183,10 @@ export class ProjectParser {
   ) {}
 
   public parse(document: vscode.TextDocument): ProjectService {
-    const cacheKey: VersionedFileKey = `${document.uri.toString(true)}::${document.version}`
+    const contentHash = createHash('sha1').update(document.getText()).digest('hex')
+    const cacheKey = `${document.uri.toString(true)}::${contentHash}`
 
-    const project = this.cache.get(cacheKey) ?? parsers[this.projectFormatType](document)
+    const project = this.getOrParse(cacheKey, document)
 
     Logger.debug(`Project detected: ${project.format}`, {
       detailedFormat: project.detailedFormat,
@@ -193,13 +194,22 @@ export class ProjectParser {
       dependenciesCount: project.dependencies.length,
     })
 
-    this.cache.set(cacheKey, project)
-
     const dependencies: [DependencyType, vscode.Range][] = project.dependencies.map(
       ([dependency, range]) => [dependency, new vscode.Range(...range)],
     )
 
     return new ProjectService(this.context, project, dependencies)
+  }
+
+  private getOrParse(cacheKey: string, document: vscode.TextDocument): ProjectType {
+    const cached = this.cache.get(cacheKey)
+    if (cached) {
+      return cached
+    }
+
+    const project = parsers[this.projectFormatType](document)
+    this.cache.set(cacheKey, project)
+    return project
   }
 
   public clear(): void {
