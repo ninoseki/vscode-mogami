@@ -42,7 +42,7 @@ export const projectFormatToSelector = new Map<ProjectFormatType, Selector>([
     ]),
   ],
   ['pyproject', new Selector({ pattern: '**/pyproject.toml', scheme: 'file' })],
-  ['pep723', new Selector({ language: 'python', scheme: 'file' }, /^#\s*\/\/\/\s*script\s*$/gm)],
+  ['pep723', new Selector({ language: 'python', scheme: 'file' }, /^#\s*\/\/\/\s*script\s*$/m)],
   ['shards', new Selector({ pattern: '**/shard.yml', scheme: 'file' })],
   ['npm', new Selector({ pattern: '**/package.json', scheme: 'file' })],
 ])
