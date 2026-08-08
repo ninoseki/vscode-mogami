@@ -6,6 +6,8 @@ export class CodeLensState {
   providerActive: ContextState<string | undefined>
   providerBusy: ContextState<boolean>
 
+  private busyCount = 0
+
   constructor() {
     this.show = new ContextState(ShowStateKey)
     this.providerActive = new ContextState(ProviderActiveStateKey)
@@ -13,6 +15,7 @@ export class CodeLensState {
   }
 
   async applyDefaults(): Promise<void> {
+    this.busyCount = 0
     await this.show.change(true)
     await this.providerActive.change(undefined)
     await this.providerBusy.change(false)
@@ -27,11 +30,17 @@ export class CodeLensState {
   }
 
   async setProviderBusy() {
-    await this.providerBusy.change(true)
+    this.busyCount += 1
+    if (this.busyCount === 1) {
+      await this.providerBusy.change(true)
+    }
   }
 
   async clearProviderBusy() {
-    await this.providerBusy.change(false)
+    this.busyCount = Math.max(this.busyCount - 1, 0)
+    if (this.busyCount === 0) {
+      await this.providerBusy.change(false)
+    }
   }
 
   async setProviderActive(v?: string) {
