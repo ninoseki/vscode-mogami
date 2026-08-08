@@ -11,7 +11,6 @@ import { OnBumpDependencyClick } from './events/onBumpDependencyClick'
 import { OnHideClick } from './events/onHideClick'
 import { OnShowClick } from './events/onShowClick'
 import { OnShowingProgress } from './events/onShowingProgress'
-import { OnTextDocumentChange } from './events/onTextDocumentChange'
 import { OnUpdateDependencyClick } from './events/onUpdateDependencyClick'
 
 export class CodeLensManager implements ExtensionComponent {
@@ -47,7 +46,6 @@ export class CodeLensManager implements ExtensionComponent {
       new OnShowClick(this.codeLensProviders, state),
       new OnHideClick(this.codeLensProviders, state),
       new OnActiveTextEditorChange(this.codeLensProviders, state),
-      new OnTextDocumentChange(this.codeLensProviders),
       new OnUpdateDependencyClick(),
       new OnBumpDependencyClick(),
     )
