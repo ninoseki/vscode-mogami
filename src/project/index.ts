@@ -1,5 +1,3 @@
-import { createHash } from 'node:crypto'
-
 import { TTLCache } from '@isaacs/ttlcache'
 import { ResultAsync } from 'neverthrow'
 import pmap from 'p-map'
@@ -172,7 +170,7 @@ export class ProjectService {
 
 // forked from https://github.com/Twixes/pypi-assistant/
 export class ProjectParser {
-  private cache: TTLCache<string, ProjectType> = new TTLCache({
+  private cache: TTLCache<string, { version: number; project: ProjectType }> = new TTLCache({
     max: 30,
     ttl: Infinity,
   })
@@ -183,10 +181,7 @@ export class ProjectParser {
   ) {}
 
   public parse(document: vscode.TextDocument): ProjectService {
-    const contentHash = createHash('sha1').update(document.getText()).digest('hex')
-    const cacheKey = `${document.uri.toString(true)}::${contentHash}`
-
-    const project = this.getOrParse(cacheKey, document)
+    const project = this.getOrParse(document)
 
     Logger.debug(`Project detected: ${project.format}`, {
       detailedFormat: project.detailedFormat,
@@ -201,14 +196,16 @@ export class ProjectParser {
     return new ProjectService(this.context, project, dependencies)
   }
 
-  private getOrParse(cacheKey: string, document: vscode.TextDocument): ProjectType {
+  private getOrParse(document: vscode.TextDocument): ProjectType {
+    const cacheKey = document.uri.toString(true)
+
     const cached = this.cache.get(cacheKey)
-    if (cached) {
-      return cached
+    if (cached && cached.version === document.version) {
+      return cached.project
     }
 
     const project = parsers[this.projectFormatType](document)
-    this.cache.set(cacheKey, project)
+    this.cache.set(cacheKey, { version: document.version, project })
     return project
   }
 

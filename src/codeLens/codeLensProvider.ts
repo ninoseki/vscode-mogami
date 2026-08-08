@@ -35,10 +35,6 @@ export class CodeLensProvider implements vscode.CodeLensProvider, ExtensionCompo
     this._onDidChangeCodeLenses.fire()
   }
 
-  public matches(document: vscode.TextDocument): boolean {
-    return vscode.languages.match(this.selector.documentSelector, document) > 0
-  }
-
   private async getProjectParser(): Promise<ProjectParser> {
     if (this.projectParser) {
       return this.projectParser
