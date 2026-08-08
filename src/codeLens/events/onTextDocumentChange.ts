@@ -7,7 +7,7 @@ const DEBOUNCE_MS = 500
 export class OnTextDocumentChange {
   disposable: vscode.Disposable
   codeLensProviders: CodeLensProvider[]
-  private timeout: ReturnType<typeof setTimeout> | undefined
+  private timeouts: Map<string, ReturnType<typeof setTimeout>> = new Map()
 
   constructor(codeLensProviders: CodeLensProvider[]) {
     this.codeLensProviders = codeLensProviders
@@ -20,18 +20,36 @@ export class OnTextDocumentChange {
       return
     }
 
-    if (this.timeout) {
-      clearTimeout(this.timeout)
+    // don't reload code lenses if the document doesn't match any of the registered providers
+    if (!this.codeLensProviders.some((provider) => provider.matches(e.document))) {
+      return
     }
-    this.timeout = setTimeout(() => {
-      this.codeLensProviders.forEach((provider) => provider.reloadCodeLenses())
-    }, DEBOUNCE_MS)
+
+    const key = e.document.uri.toString(true)
+    this.clearTimeout(key)
+    this.timeouts.set(
+      key,
+      setTimeout(() => {
+        this.timeouts.delete(key)
+        // NOTE: resolve the providers here, they may have been re-registered
+        this.codeLensProviders
+          .filter((provider) => provider.matches(e.document))
+          .forEach((provider) => provider.reloadCodeLenses())
+      }, DEBOUNCE_MS),
+    )
+  }
+
+  private clearTimeout(key: string): void {
+    const pending = this.timeouts.get(key)
+    if (pending) {
+      clearTimeout(pending)
+      this.timeouts.delete(key)
+    }
   }
 
   dispose() {
-    if (this.timeout) {
-      clearTimeout(this.timeout)
-    }
+    this.timeouts.forEach((timeout) => clearTimeout(timeout))
+    this.timeouts.clear()
     this.disposable.dispose()
   }
 }

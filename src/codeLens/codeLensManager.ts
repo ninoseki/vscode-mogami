@@ -42,13 +42,15 @@ export class CodeLensManager implements ExtensionComponent {
       }),
     )
 
-    new OnShowingProgress()
-    new OnShowClick(this.codeLensProviders, state)
-    new OnHideClick(this.codeLensProviders, state)
-    new OnActiveTextEditorChange(this.codeLensProviders, state)
-    new OnTextDocumentChange(this.codeLensProviders)
-    new OnUpdateDependencyClick()
-    new OnBumpDependencyClick()
+    context.subscriptions.push(
+      new OnShowingProgress(),
+      new OnShowClick(this.codeLensProviders, state),
+      new OnHideClick(this.codeLensProviders, state),
+      new OnActiveTextEditorChange(this.codeLensProviders, state),
+      new OnTextDocumentChange(this.codeLensProviders),
+      new OnUpdateDependencyClick(),
+      new OnBumpDependencyClick(),
+    )
   }
 
   private register(context: vscode.ExtensionContext, concurrency: number, state: CodeLensState) {
