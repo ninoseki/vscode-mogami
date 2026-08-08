@@ -67,14 +67,14 @@ As with Crystal Shards, only GitHub repositories are supported.
 
 ## Configuration
 
-| Key                              | Default | Desc.                                                                           |
-| -------------------------------- | ------- | ------------------------------------------------------------------------------- |
-| `vscode-mogami.concurrency`      | 5       | Concurrency (a number of concurrent requests) to get package data.              |
-| `vscode-mogami.enableCodeLens`   | `true`  | Whether to enable CodeLens or not.                                              |
-| `vscode-mogami.showPrerelease`   | `false` | Whether to show a prerelease version or not.                                    |
-| `vscode-mogami.usePrivateSource` | `true`  | Whether to use a private source (repository) if it's set or not.                |
-| `vscode-mogami.disableHover`     | `[]`    | Project formats for which the hover provider should be disabled (see below).    |
-| `vscode-mogami.disableCodeLens`  | `[]`    | Project formats for which the CodeLens provider should be disabled (see below). |
+| Key                              | Default   | Desc.                                                                           |
+| -------------------------------- | --------- | ------------------------------------------------------------------------------- |
+| `vscode-mogami.concurrency`      | 5         | Concurrency (a number of concurrent requests) to get package data.              |
+| `vscode-mogami.enableCodeLens`   | `true`    | Whether to enable CodeLens or not.                                              |
+| `vscode-mogami.showPrerelease`   | `false`   | Whether to show a prerelease version or not.                                    |
+| `vscode-mogami.usePrivateSource` | `true`    | Whether to use a private source (repository) if it's set or not.                |
+| `vscode-mogami.disableHover`     | `["npm"]` | Project formats for which the hover provider should be disabled (see below).    |
+| `vscode-mogami.disableCodeLens`  | `[]`      | Project formats for which the CodeLens provider should be disabled (see below). |
 
 ### `disableHover/CodeLens`
 
