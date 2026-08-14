@@ -166,6 +166,20 @@ describe('parseProject with PEP 631', () => {
 })
 
 describe('parseProject with uv', () => {
+  it('should extract requirements from build-constraint-dependencies', () => {
+    const document = makeTextDocumentLike([
+      '[tool.uv]',
+      'build-constraint-dependencies = ["hatchling==1.32.0"]',
+    ])
+
+    const result = parseProject(document)
+
+    expect(result.dependencies).toEqual([
+      [{ name: 'hatchling', specifier: '==1.32.0', type: 'ProjectName' }, [1, 33, 1, 52]],
+    ])
+    expect(result.detailedFormat).toBe('uv')
+  })
+
   it('should extract requirements from constraint-dependencies', () => {
     const document = makeTextDocumentLike([
       '[tool.uv]',

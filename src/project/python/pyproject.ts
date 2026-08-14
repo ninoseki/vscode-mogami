@@ -115,7 +115,12 @@ class PyprojectTOMLVisitor extends TOMLVisitor {
   }
 
   private potentiallyRegisterUvDependency(node: TOMLArray): void {
-    const uvDeps = ['constraint-dependencies', 'dev-dependencies', 'override-dependencies']
+    const uvDeps = [
+      'build-constraint-dependencies',
+      'constraint-dependencies',
+      'dev-dependencies',
+      'override-dependencies',
+    ]
     if (
       this.pathStack.length !== 3 ||
       this.pathStack[0] !== 'tool' ||
