@@ -16,7 +16,7 @@ A VS Code extension for checking the latest version of each dependency.
     - [Pixi](https://pixi.sh/): `tool.pixi.dependencies` & `tool.pixi.feature.*.dependencies`
     - [Poetry](https://python-poetry.org/): `tool.poetry.dependencies` & `tool.poetry.group.*.dependencies`. `tool.poetry.source`
     - [PyPA](https://packaging.python.org/en/latest/specifications/pyproject-toml/): `project.dependencies`, `project.optional-dependencies` & `dependency-groups`
-    - [uv](https://docs.astral.sh/uv/): `tool.uv.constraint-dependencies`, `tool.uv.dev-dependencies` & `tool.uv.override-dependencies`
+    - [uv](https://docs.astral.sh/uv/): `tool.uv.build-constraint-dependencies`, `tool.uv.constraint-dependencies`, `tool.uv.dev-dependencies` & `tool.uv.override-dependencies`
     - PEP 518: `build-system.requires`
   - [PEP 723](https://peps.python.org/pep-0723/)
 - Ruby:
