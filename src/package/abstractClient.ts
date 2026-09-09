@@ -61,7 +61,8 @@ export abstract class AbstractPackageClient implements PackageClientType {
       throw new Error('No valid versions found')
     }
 
-    const sortedVersions = versions.sort(compare)
+    const sortedVersions = [...versions].sort(compare)
+    pkg.versions = sortedVersions
     pkg.version = sortedVersions[sortedVersions.length - 1]
     return pkg
   }
