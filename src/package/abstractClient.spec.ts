@@ -25,6 +25,10 @@ class TestClient extends AbstractPackageClient {
   fetchTextPublic(url: string) {
     return this.fetchText(url)
   }
+
+  normalizePackagePublic(pkg: PackageType) {
+    return this.normalizePackage(pkg)
+  }
 }
 
 function mockFetch(body: unknown, status = 200) {
@@ -71,6 +75,48 @@ describe('AbstractPackageClient', () => {
       await expect(client.fetchJsonPublic('https://example.com/api')).rejects.toBeInstanceOf(
         HttpError,
       )
+    })
+  })
+
+  describe('normalizePackage', () => {
+    it('drops prerelease versions from versions, not just version', () => {
+      const pkg = client.normalizePackagePublic({
+        name: 'pydantic',
+        version: '2.14.0b1',
+        versions: ['2.9.0', '2.13.1', '2.14.0b1'],
+      })
+      expect(pkg.versions).toEqual(['2.9.0', '2.13.1'])
+      expect(pkg.version).toBe('2.13.1')
+    })
+
+    it('drops dev releases', () => {
+      const pkg = client.normalizePackagePublic({
+        name: 'bokeh',
+        version: '3.10.1.dev0',
+        versions: ['3.9.0', '3.10.0', '3.10.1.dev0'],
+      })
+      expect(pkg.versions).toEqual(['3.9.0', '3.10.0'])
+      expect(pkg.version).toBe('3.10.0')
+    })
+
+    it('sorts versions in ascending order', () => {
+      const pkg = client.normalizePackagePublic({
+        name: 'foo',
+        version: '1.0.0',
+        versions: ['1.10.0', '1.2.0', '1.9.0'],
+      })
+      expect(pkg.versions).toEqual(['1.2.0', '1.9.0', '1.10.0'])
+      expect(pkg.version).toBe('1.10.0')
+    })
+
+    it('throws when every version is a prerelease', () => {
+      expect(() =>
+        client.normalizePackagePublic({
+          name: 'foo',
+          version: '1.0.0b1',
+          versions: ['1.0.0b1'],
+        }),
+      ).toThrow('No valid versions found')
     })
   })
 

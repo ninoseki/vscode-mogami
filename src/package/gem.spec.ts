@@ -47,7 +47,7 @@ describe('GemClient', () => {
     expect(pkg.version).toBe('7.1.0')
     expect(pkg.summary).toBe('Web-application framework')
     expect(pkg.url).toBe('https://rubyonrails.org')
-    expect(pkg.versions).toEqual(['7.0.0', '7.1.0', '6.1.0'])
+    expect(pkg.versions).toEqual(['6.1.0', '7.0.0', '7.1.0'])
 
     expect(fetchMock.mock.calls[0][0]).toBe('https://rubygems.org/api/v1/gems/rails.json')
     expect(fetchMock.mock.calls[1][0]).toBe('https://rubygems.org/api/v1/versions/rails.json')
