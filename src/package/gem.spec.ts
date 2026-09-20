@@ -41,7 +41,7 @@ describe('GemClient', () => {
   it('returns the latest version with metadata from both endpoints', async () => {
     const fetchMock = mockFetchSequence([gemPayload, versionsPayload])
     const client = new GemClient()
-    const pkg = await client.get('rails')
+    const pkg = await client.get('rails', { name: 'rails' })
 
     expect(pkg.name).toBe('rails')
     expect(pkg.version).toBe('7.1.0')
@@ -56,6 +56,6 @@ describe('GemClient', () => {
   it('throws when the gem response is malformed', async () => {
     mockFetchSequence([{ version: '7.1.0' }, versionsPayload])
     const client = new GemClient()
-    await expect(client.get('rails')).rejects.toThrow(ZodError)
+    await expect(client.get('rails', { name: 'rails' })).rejects.toThrow(ZodError)
   })
 })

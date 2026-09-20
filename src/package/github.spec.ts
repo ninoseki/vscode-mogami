@@ -43,12 +43,13 @@ describe('GitHubClient', () => {
     )
 
     const client = new GitHubClient()
-    const pkg = await client.get('actions/checkout')
+    const pkg = await client.get('actions/checkout', { name: 'actions/checkout' })
 
     expect(pkg).toEqual({
       name: 'actions/checkout',
       version: 'v4',
       versions: ['v4'],
+      prereleaseOnly: false,
       alias: 'abc123',
       versionByAlias: { abc123: 'v4', older: 'v3', oldest: 'v2' },
       format: 'github-actions-workflow',
@@ -68,7 +69,7 @@ describe('GitHubClient', () => {
     )
 
     const client = new GitHubClient()
-    const pkg = await client.get('github/codeql-action/init')
+    const pkg = await client.get('github/codeql-action/init', { name: 'github/codeql-action/init' })
 
     expect(pkg).toMatchObject({
       name: 'github/codeql-action/init',
@@ -99,7 +100,7 @@ describe('GitHubClient', () => {
     )
 
     const client = new GitHubClient()
-    const pkg = await client.get('github/codeql-action/init')
+    const pkg = await client.get('github/codeql-action/init', { name: 'github/codeql-action/init' })
 
     expect(pkg.version).toBe('v4.35.4')
     expect(pkg.alias).toBe('v4354sha')
@@ -120,7 +121,7 @@ describe('GitHubClient', () => {
     )
 
     const client = new GitHubClient()
-    const pkg = await client.get('actions/cache')
+    const pkg = await client.get('actions/cache', { name: 'actions/cache' })
 
     expect(pkg.version).toBe('v5.0.5')
     expect(pkg.alias).toBe(latestSha)
@@ -139,7 +140,7 @@ describe('GitHubClient', () => {
     )
 
     const client = new GitHubClient()
-    const pkg = await client.get('actions/cache')
+    const pkg = await client.get('actions/cache', { name: 'actions/cache' })
 
     expect(pkg.alias).toBe('v505sha')
     expect(pkg.versionByAlias).toEqual({ other1sha: 'other-1' })

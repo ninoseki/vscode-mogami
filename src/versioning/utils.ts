@@ -91,8 +91,8 @@ export function eq(v1: string, v2?: string): boolean {
     return compareVersions(rv1, rv2) === 0
   }
 
-  const cv1 = coerceUnlessValid(v1)
-  const cv2 = coerceUnlessValid(v2)
+  const cv1 = coerceUnlessValid(rv1)
+  const cv2 = coerceUnlessValid(rv2)
 
   if (!cv1 || !cv2) {
     return false
@@ -147,6 +147,33 @@ export function isPrerelease(v: string): boolean {
     return true
   }
   return !/^\d[.\d]+$/.test(v)
+}
+
+function constraintsOf(dependency: DependencyType): string[] {
+  const { specifier, specifierRequirements } = dependency
+  if (specifierRequirements && specifierRequirements.length > 0) {
+    return specifierRequirements
+  }
+  if (specifier) {
+    return [specifier]
+  }
+  return []
+}
+
+const constraintPartRegex = /(?<operator>[~^<>=!]*)\s*(?<version>\d[^\s,;|&]*)/g
+const versionCoreRegex = /^\d+(?:[._]\d+)+/
+const anchoringOperators = ['', '=', '==', '===', '~=', '~>', '^', '~']
+
+export function tracksPrerelease(dependency: DependencyType): boolean {
+  return constraintsOf(dependency).some((constraint) => {
+    return [...constraint.matchAll(constraintPartRegex)].some((part) => {
+      const { operator, version } = part.groups as { operator: string; version: string }
+      if (!versionCoreRegex.test(version) || !isPrerelease(version)) {
+        return false
+      }
+      return anchoringOperators.includes(operator)
+    })
+  })
 }
 
 export function validateRange(dependency: DependencyType): boolean {

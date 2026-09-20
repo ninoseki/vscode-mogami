@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { PackageType } from '@/schemas'
+import { DependencyType, PackageType } from '@/schemas'
 import { urlJoin } from '@/utils'
 
 import { AbstractPackageClient } from './abstractClient'
@@ -32,11 +32,11 @@ export class GemClient extends AbstractPackageClient {
     super('https://rubygems.org', privateSource)
   }
 
-  async get(name: string): Promise<PackageType> {
+  async get(name: string, dependency: DependencyType): Promise<PackageType> {
     const gem = await this.getGem(name)
     const versions = await this.getGemVersions(name)
     gem.versions = versions.map((v) => v.number)
-    return this.normalizePackage(gem)
+    return this.normalizePackage(gem, dependency)
   }
 
   async getGemVersions(name: string): Promise<GemVersionsType> {

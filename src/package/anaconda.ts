@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { PackageType } from '@/schemas'
+import { DependencyType, PackageType } from '@/schemas'
 import { urlJoin } from '@/utils'
 
 import { AbstractPackageClient } from './abstractClient'
@@ -33,13 +33,17 @@ export class AnacondaClient extends AbstractPackageClient {
     super('https://api.anaconda.org/package/conda-forge/', privateSource)
   }
 
-  async get(name: string): Promise<PackageType> {
+  async get(name: string, dependency: DependencyType): Promise<PackageType> {
     const data = await this.fetchJson(urlJoin(this.source.toString(), name))
-    try {
-      const result = parse(data)
-      return this.normalizePackage(result)
-    } catch {
-      throw new Error('Failed to parse Anaconda API response')
-    }
+
+    const parsed = (() => {
+      try {
+        return parse(data)
+      } catch {
+        throw new Error('Failed to parse Anaconda API response')
+      }
+    })()
+
+    return this.normalizePackage(parsed, dependency)
   }
 }

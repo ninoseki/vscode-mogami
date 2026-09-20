@@ -145,7 +145,7 @@ export class ProjectService {
     return this.client
   }
 
-  public async getPackage(name: string, dependency?: DependencyType): Promise<PackageType> {
+  public async getPackage(name: string, dependency: DependencyType): Promise<PackageType> {
     const client = await this.getClient()
     const pkg = await client.get(name, dependency)
     return { ...pkg, format: this.project.format }

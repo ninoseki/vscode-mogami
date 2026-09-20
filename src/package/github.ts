@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { PackageType } from '@/schemas'
+import { DependencyType, PackageType } from '@/schemas'
 import { urlJoin } from '@/utils'
 import { compare } from '@/versioning/utils'
 
@@ -41,7 +41,7 @@ export class GitHubClient extends AbstractPackageClient {
     this.gitHubPersonalAccessToken = gitHubPersonalAccessToken
   }
 
-  async get(name: string): Promise<PackageType> {
+  async get(name: string, dependency: DependencyType): Promise<PackageType> {
     const headers: Record<string, string> = {}
     if (this.gitHubPersonalAccessToken) {
       headers.authorization = `Bearer ${this.gitHubPersonalAccessToken}`
@@ -61,17 +61,20 @@ export class GitHubClient extends AbstractPackageClient {
       )
 
       const releases = GitHubReleasesSchema.parse(data)
-      const filtered = this.showPrerelease
+      const filtered = this.keepPrereleases(dependency)
         ? releases
         : releases.filter((release) => {
             return !release.prerelease
           })
-      if (filtered.length === 0) {
-        throw new Error('No valid versions found')
+
+      const prereleaseOnly = filtered.length === 0 && releases.length > 0
+      const candidates = prereleaseOnly ? releases : filtered
+      if (candidates.length === 0) {
+        throw new Error('No releases found')
       }
 
-      const sorted = filtered.sort((a, b) => compare(a.tag_name, b.tag_name))
-      return sorted[sorted.length - 1]
+      const sorted = candidates.slice().sort((a, b) => compare(a.tag_name, b.tag_name))
+      return { release: sorted[sorted.length - 1], prereleaseOnly }
     }
 
     const getTags = async () => {
@@ -90,7 +93,10 @@ export class GitHubClient extends AbstractPackageClient {
       return GitHubCommitSchema.parse(data)
     }
 
-    const [latest, tags] = await Promise.all([getLatestRelease(), getTags()])
+    const [{ release: latest, prereleaseOnly }, tags] = await Promise.all([
+      getLatestRelease(),
+      getTags(),
+    ])
     const version = latest.tag_name
 
     const versionByAlias = Object.fromEntries(tags.map((tag) => [tag.commit.sha, tag.name]))
@@ -106,6 +112,7 @@ export class GitHubClient extends AbstractPackageClient {
       name,
       version,
       versions: [version],
+      prereleaseOnly,
       alias,
       versionByAlias,
       format: 'github-actions-workflow',

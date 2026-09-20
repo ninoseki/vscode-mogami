@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { PackageType } from '@/schemas'
+import { DependencyType, PackageType } from '@/schemas'
 import { urlJoin } from '@/utils'
 import { compare, isPrerelease } from '@/versioning/utils'
 
@@ -23,20 +23,21 @@ export class NpmClient extends AbstractPackageClient {
     super('https://registry.npmjs.org/', privateSource)
   }
 
-  async get(name: string): Promise<PackageType> {
+  async get(name: string, dependency: DependencyType): Promise<PackageType> {
     const data = await this.fetchJson(urlJoin(this.source.toString(), name))
     const parsed = NpmPackageSchema.parse(data)
     const distTags = parsed['dist-tags']
     const latestTaggedVersion = distTags.latest
 
-    let versions = Object.keys(parsed.versions)
+    const allVersions = Object.keys(parsed.versions)
 
-    // Cap versions to dist-tags.latest when it's a stable release.
-    // This respects the package maintainer's intent: if they haven't promoted
-    // a newer version to 'latest', we shouldn't suggest it as an upgrade.
-    if (latestTaggedVersion && !isPrerelease(latestTaggedVersion)) {
-      versions = versions.filter((v) => compare(v, latestTaggedVersion) <= 0)
-    }
+    const cap = (() => {
+      if (this.keepPrereleases(dependency)) return undefined
+      if (!latestTaggedVersion) return undefined
+      if (isPrerelease(latestTaggedVersion)) return undefined
+      return latestTaggedVersion
+    })()
+    const versions = cap ? allVersions.filter((v) => compare(v, cap) <= 0) : allVersions
 
     const url = (() => {
       if (parsed.homepage) return parsed.homepage
@@ -48,14 +49,21 @@ export class NpmClient extends AbstractPackageClient {
       return repoUrl
     })()
 
+    const version = (() => {
+      if (cap) return cap
+      const newest = versions[versions.length - 1]
+      if (newest) return newest
+      return ''
+    })()
+
     const pkg: PackageType = {
       name: parsed.name,
-      version: latestTaggedVersion ?? versions[versions.length - 1] ?? '',
+      version,
       summary: parsed.description ?? undefined,
       versions,
       url,
     }
 
-    return this.normalizePackage(pkg)
+    return this.normalizePackage(pkg, dependency)
   }
 }

@@ -1,5 +1,5 @@
 import { HttpError } from '@/httpError'
-import { PackageType } from '@/schemas'
+import { DependencyType, PackageType } from '@/schemas'
 
 import { AbstractPackageClient } from './abstractClient'
 import { clearCache } from './cache'
@@ -14,7 +14,7 @@ class TestClient extends AbstractPackageClient {
     super('https://example.com/')
   }
 
-  async get(_name: string): Promise<PackageType> {
+  async get(_name: string, _dependency: DependencyType): Promise<PackageType> {
     throw new Error('not implemented')
   }
 
@@ -26,8 +26,8 @@ class TestClient extends AbstractPackageClient {
     return this.fetchText(url)
   }
 
-  normalizePackagePublic(pkg: PackageType) {
-    return this.normalizePackage(pkg)
+  normalizePackagePublic(pkg: PackageType, dependency: DependencyType = { name: pkg.name }) {
+    return this.normalizePackage(pkg, dependency)
   }
 }
 
@@ -87,6 +87,7 @@ describe('AbstractPackageClient', () => {
       })
       expect(pkg.versions).toEqual(['2.9.0', '2.13.1'])
       expect(pkg.version).toBe('2.13.1')
+      expect(pkg.prereleaseOnly).toBe(false)
     })
 
     it('drops dev releases', () => {
@@ -109,14 +110,46 @@ describe('AbstractPackageClient', () => {
       expect(pkg.version).toBe('1.10.0')
     })
 
-    it('throws when every version is a prerelease', () => {
+    it('keeps prereleases when the dependency itself pins one', () => {
+      const pkg = client.normalizePackagePublic(
+        { name: 'pydantic', version: '2.14.0b1', versions: ['2.9.0', '2.13.1', '2.14.0b1'] },
+        { name: 'pydantic', specifier: '==2.14.0b1' },
+      )
+      expect(pkg.versions).toEqual(['2.9.0', '2.13.1', '2.14.0b1'])
+      expect(pkg.version).toBe('2.14.0b1')
+    })
+
+    it('keeps prereleases when one of several constraints anchors to one', () => {
+      const pkg = client.normalizePackagePublic(
+        { name: 'pydantic', version: '2.14.0b1', versions: ['2.9.0', '2.13.1', '2.14.0b1'] },
+        { name: 'pydantic', specifierRequirements: ['~> 2.14.0b1', '< 3.0'] },
+      )
+      expect(pkg.version).toBe('2.14.0b1')
+    })
+
+    it('drops prereleases when the dependency only sets a prerelease floor', () => {
+      const pkg = client.normalizePackagePublic(
+        { name: 'pydantic', version: '2.14.0b2', versions: ['2.9.0', '2.13.1', '2.14.0b2'] },
+        { name: 'pydantic', specifier: '>=2.14.0b2' },
+      )
+      expect(pkg.version).toBe('2.13.1')
+      expect(pkg.versions).toEqual(['2.9.0', '2.13.1'])
+    })
+
+    it('falls back to prereleases when every version is a prerelease', () => {
+      const pkg = client.normalizePackagePublic({
+        name: 'foo',
+        version: '1.0.0b1',
+        versions: ['1.0.0b1', '1.0.0b2'],
+      })
+      expect(pkg.version).toBe('1.0.0b2')
+      expect(pkg.prereleaseOnly).toBe(true)
+    })
+
+    it('throws when the package has no versions at all', () => {
       expect(() =>
-        client.normalizePackagePublic({
-          name: 'foo',
-          version: '1.0.0b1',
-          versions: ['1.0.0b1'],
-        }),
-      ).toThrow('No valid versions found')
+        client.normalizePackagePublic({ name: 'foo', version: '', versions: [] }),
+      ).toThrow('No versions found')
     })
   })
 
