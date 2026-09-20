@@ -43,12 +43,12 @@ describe('GitHubClient', () => {
     )
 
     const client = new GitHubClient()
-    const pkg = await client.get('actions/checkout', { name: 'actions/checkout' })
+    const pkg = await client.resolve({ name: 'actions/checkout' })
 
     expect(pkg).toEqual({
       name: 'actions/checkout',
       version: 'v4',
-      versions: ['v4'],
+      versions: ['v2', 'v3', 'v4'],
       prereleaseOnly: false,
       alias: 'abc123',
       versionByAlias: { abc123: 'v4', older: 'v3', oldest: 'v2' },
@@ -69,7 +69,7 @@ describe('GitHubClient', () => {
     )
 
     const client = new GitHubClient()
-    const pkg = await client.get('github/codeql-action/init', { name: 'github/codeql-action/init' })
+    const pkg = await client.resolve({ name: 'github/codeql-action/init' })
 
     expect(pkg).toMatchObject({
       name: 'github/codeql-action/init',
@@ -100,10 +100,30 @@ describe('GitHubClient', () => {
     )
 
     const client = new GitHubClient()
-    const pkg = await client.get('github/codeql-action/init', { name: 'github/codeql-action/init' })
+    const pkg = await client.resolve({ name: 'github/codeql-action/init' })
 
     expect(pkg.version).toBe('v4.35.4')
     expect(pkg.alias).toBe('v4354sha')
+    // every release is exposed, ascending, so range specifiers have something to match
+    expect(pkg.versions).toEqual(['codeql-bundle-v2.25.4', 'v3.29.0', 'v4.35.3', 'v4.35.4'])
+  })
+
+  it('drops prereleases from versions, not just from the latest', async () => {
+    mockFetchSequence(
+      [
+        { tag_name: 'v1.0.0', prerelease: false },
+        { tag_name: 'v2.0.0-beta.1', prerelease: true },
+        { tag_name: 'v1.1.0', prerelease: false },
+      ],
+      [{ name: 'v1.1.0', commit: { sha: 'v110sha' } }],
+    )
+
+    const client = new GitHubClient()
+    const pkg = await client.resolve({ name: 'actions/cache' })
+
+    expect(pkg.version).toBe('v1.1.0')
+    expect(pkg.versions).toEqual(['v1.0.0', 'v1.1.0'])
+    expect(pkg.prereleaseOnly).toBe(false)
   })
 
   it('exposes a versionByAlias map keyed by every tag SHA', async () => {
@@ -121,7 +141,7 @@ describe('GitHubClient', () => {
     )
 
     const client = new GitHubClient()
-    const pkg = await client.get('actions/cache', { name: 'actions/cache' })
+    const pkg = await client.resolve({ name: 'actions/cache' })
 
     expect(pkg.version).toBe('v5.0.5')
     expect(pkg.alias).toBe(latestSha)
@@ -140,7 +160,7 @@ describe('GitHubClient', () => {
     )
 
     const client = new GitHubClient()
-    const pkg = await client.get('actions/cache', { name: 'actions/cache' })
+    const pkg = await client.resolve({ name: 'actions/cache' })
 
     expect(pkg.alias).toBe('v505sha')
     expect(pkg.versionByAlias).toEqual({ other1sha: 'other-1' })

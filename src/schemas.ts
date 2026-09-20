@@ -87,6 +87,6 @@ export type SatisfiesFnType = (version: string, dependency: DependencyType) => b
 export type validateRangeFnType = (dependency: DependencyType) => boolean
 
 export interface PackageClientType {
-  get: (name: string, dependency: DependencyType) => Promise<PackageType>
+  resolve: (dependency: DependencyType) => Promise<PackageType>
   clearCache: () => void
 }

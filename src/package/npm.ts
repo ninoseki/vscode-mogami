@@ -23,21 +23,9 @@ export class NpmClient extends AbstractPackageClient {
     super('https://registry.npmjs.org/', privateSource)
   }
 
-  async get(name: string, dependency: DependencyType): Promise<PackageType> {
+  async get(name: string): Promise<PackageType> {
     const data = await this.fetchJson(urlJoin(this.source.toString(), name))
     const parsed = NpmPackageSchema.parse(data)
-    const distTags = parsed['dist-tags']
-    const latestTaggedVersion = distTags.latest
-
-    const allVersions = Object.keys(parsed.versions)
-
-    const cap = (() => {
-      if (this.keepPrereleases(dependency)) return undefined
-      if (!latestTaggedVersion) return undefined
-      if (isPrerelease(latestTaggedVersion)) return undefined
-      return latestTaggedVersion
-    })()
-    const versions = cap ? allVersions.filter((v) => compare(v, cap) <= 0) : allVersions
 
     const url = (() => {
       if (parsed.homepage) return parsed.homepage
@@ -49,21 +37,28 @@ export class NpmClient extends AbstractPackageClient {
       return repoUrl
     })()
 
-    const version = (() => {
-      if (cap) return cap
-      const newest = versions[versions.length - 1]
-      if (newest) return newest
-      return ''
-    })()
-
-    const pkg: PackageType = {
+    return {
       name: parsed.name,
-      version,
-      summary: parsed.description ?? undefined,
-      versions,
+      version: parsed['dist-tags'].latest || '',
+      summary: parsed.description,
+      versions: Object.keys(parsed.versions),
       url,
     }
+  }
 
-    return this.normalizePackage(pkg, dependency)
+  async select(pkg: PackageType, dependency: DependencyType): Promise<PackageType> {
+    const cap = (() => {
+      if (this.keepPrereleases(dependency)) return undefined
+      if (!pkg.version) return undefined
+      if (isPrerelease(pkg.version)) return undefined
+      return pkg.version
+    })()
+
+    if (!cap) {
+      return await super.select(pkg, dependency)
+    }
+
+    const versions = pkg.versions.filter((v) => compare(v, cap) <= 0)
+    return await super.select({ ...pkg, versions }, dependency)
   }
 }

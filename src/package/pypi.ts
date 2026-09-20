@@ -3,7 +3,7 @@ import semver from 'semver'
 import { ZodError } from 'zod'
 import { z } from 'zod'
 
-import { DependencyType, PackageType } from '@/schemas'
+import { PackageType } from '@/schemas'
 import { uniqWith, urlJoin } from '@/utils'
 import { compare } from '@/versioning/utils'
 
@@ -100,7 +100,7 @@ export class PyPIClient extends AbstractPackageClient {
     super('https://pypi.org/pypi/', privateSource)
   }
 
-  async get(name: string, dependency: DependencyType): Promise<PackageType> {
+  async get(name: string): Promise<PackageType> {
     const isSimple = this.source.pathname.includes('/simple')
     const url = isSimple
       ? urlJoin(this.source.toString(), name, '/')
@@ -108,22 +108,18 @@ export class PyPIClient extends AbstractPackageClient {
 
     const text = await this.fetchText(url)
 
-    const parsed = (() => {
-      try {
-        return parse(JSON.parse(text))
-      } catch (error) {
-        if (!(error instanceof ZodError) && !(error instanceof SyntaxError)) {
-          throw error
-        }
+    try {
+      return parse(JSON.parse(text))
+    } catch (error) {
+      if (!(error instanceof ZodError) && !(error instanceof SyntaxError)) {
+        throw error
       }
+    }
 
-      try {
-        return parseSimple(text, name)
-      } catch {
-        throw new Error('Failed to parse PyPI API response')
-      }
-    })()
-
-    return this.normalizePackage(parsed, dependency)
+    try {
+      return parseSimple(text, name)
+    } catch {
+      throw new Error('Failed to parse PyPI API response')
+    }
   }
 }

@@ -109,7 +109,7 @@ describe('PyPIClient', () => {
   it('parses a JSON API response', async () => {
     const fetchMock = mockFetchText(JSON.stringify(jsonPayload))
     const client = new PyPIClient()
-    const pkg = await client.get('requests', { name: 'requests' })
+    const pkg = await client.resolve({ name: 'requests' })
 
     expect(pkg.name).toBe('requests')
     expect(pkg.version).toBe('2.32.0')
@@ -126,7 +126,7 @@ describe('PyPIClient', () => {
     `
     mockFetchText(html)
     const client = new PyPIClient('https://pypi.org/simple/')
-    const pkg = await client.get('requests', { name: 'requests' })
+    const pkg = await client.resolve({ name: 'requests' })
 
     expect(pkg.version).toBe('2.32.0')
     expect(pkg.versions).toEqual(['2.31.0', '2.32.0'])
@@ -135,7 +135,7 @@ describe('PyPIClient', () => {
   it('throws when both parsers fail', async () => {
     mockFetchText('not html or json')
     const client = new PyPIClient()
-    await expect(client.get('requests', { name: 'requests' })).rejects.toThrow(
+    await expect(client.resolve({ name: 'requests' })).rejects.toThrow(
       /Failed to parse PyPI API response/,
     )
   })

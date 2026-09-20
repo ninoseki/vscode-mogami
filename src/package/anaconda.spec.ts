@@ -63,7 +63,7 @@ describe('AnacondaClient', () => {
   it('fetches a package and returns the latest version', async () => {
     const fetchMock = mockFetchOnce(validPayload)
     const client = new AnacondaClient()
-    const pkg = await client.get('numpy', { name: 'numpy' })
+    const pkg = await client.resolve({ name: 'numpy' })
 
     expect(pkg.name).toBe('numpy')
     expect(pkg.version).toBe('2.0.0')
@@ -75,7 +75,7 @@ describe('AnacondaClient', () => {
   it('throws when the API response is malformed', async () => {
     mockFetchOnce({ name: 'numpy' })
     const client = new AnacondaClient()
-    await expect(client.get('numpy', { name: 'numpy' })).rejects.toThrow(
+    await expect(client.resolve({ name: 'numpy' })).rejects.toThrow(
       /Failed to parse Anaconda API response/,
     )
   })
@@ -83,6 +83,6 @@ describe('AnacondaClient', () => {
   it('reports a normalization failure as itself, not as a parse failure', async () => {
     mockFetchOnce({ ...validPayload, versions: [] })
     const client = new AnacondaClient()
-    await expect(client.get('numpy', { name: 'numpy' })).rejects.toThrow(/No versions found/)
+    await expect(client.resolve({ name: 'numpy' })).rejects.toThrow(/No versions found/)
   })
 })

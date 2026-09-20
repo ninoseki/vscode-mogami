@@ -84,14 +84,21 @@ function libraryRepo(name: string): string {
   return name.includes('/') ? name : `library/${name}`
 }
 
-export class DockerClient extends AbstractPackageClient {
+interface DockerTagsType {
+  name: string
+  tags: string[]
+}
+
+export class DockerClient extends AbstractPackageClient<DockerTagsType> {
   constructor(privateSource?: string) {
     super(DOCKER_HUB_API, privateSource)
   }
 
-  async get(name: string, dependency: DependencyType): Promise<PackageType> {
-    const tags = await this.fetchTags(name)
+  async get(name: string): Promise<DockerTagsType> {
+    return { name, tags: await this.fetchTags(name) }
+  }
 
+  async select({ name, tags }: DockerTagsType, dependency: DependencyType): Promise<PackageType> {
     const specifier = dependency.specifier
     const currentShape = specifier ? parseTagShape(specifier) : undefined
 

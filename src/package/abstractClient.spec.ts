@@ -14,7 +14,7 @@ class TestClient extends AbstractPackageClient {
     super('https://example.com/')
   }
 
-  async get(_name: string, _dependency: DependencyType): Promise<PackageType> {
+  async get(_name: string): Promise<PackageType> {
     throw new Error('not implemented')
   }
 

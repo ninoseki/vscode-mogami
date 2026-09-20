@@ -9,7 +9,7 @@ export { HttpError, isHttpError } from '@/httpError'
 
 const DEFAULT_TIMEOUT_MS = 30_000
 
-export abstract class AbstractPackageClient implements PackageClientType {
+export abstract class AbstractPackageClient<Raw = PackageType> implements PackageClientType {
   private usePrivateSource: boolean
   protected showPrerelease: boolean
   private primarySource: URL
@@ -50,7 +50,15 @@ export abstract class AbstractPackageClient implements PackageClientType {
     }) as Promise<string>
   }
 
-  abstract get(name: string, dependency: DependencyType): Promise<PackageType>
+  abstract get(name: string): Promise<Raw>
+
+  async select(raw: Raw, dependency: DependencyType): Promise<PackageType> {
+    return this.normalizePackage(raw as PackageType, dependency)
+  }
+
+  async resolve(dependency: DependencyType): Promise<PackageType> {
+    return await this.select(await this.get(dependency.name), dependency)
+  }
 
   protected keepPrereleases(dependency: DependencyType): boolean {
     if (this.showPrerelease) {
