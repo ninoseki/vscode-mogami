@@ -24,6 +24,10 @@ export const PackageSchema = z.object({
     .optional()
     .describe('A lookup map from an alias (e.g. a commit SHA) to its version'),
   versions: z.array(z.string()),
+  prereleaseOnly: z
+    .boolean()
+    .optional()
+    .describe('True when prereleases are the only versions available'),
   summary: z.string().nullish(),
   url: z.string().optional(),
   format: ProjectFormatSchema.optional(),
@@ -83,6 +87,6 @@ export type SatisfiesFnType = (version: string, dependency: DependencyType) => b
 export type validateRangeFnType = (dependency: DependencyType) => boolean
 
 export interface PackageClientType {
-  get: (name: string, dependency?: DependencyType) => Promise<PackageType>
+  resolve: (dependency: DependencyType) => Promise<PackageType>
   clearCache: () => void
 }

@@ -46,12 +46,23 @@ function createFixedSuggestion(dependency: DependencyType): PackageSuggestion {
   return { title: `🟡 fixed ${dependency.specifier}`, command: '' }
 }
 
+function versionLabel(pkg: PackageType): string {
+  if (pkg.prereleaseOnly) {
+    return `${pkg.version} (prerelease)`
+  }
+  return pkg.version
+}
+
 function createLatestSuggestion(pkg: PackageType): PackageSuggestion {
-  return { title: `🟢 latest ${pkg.version}`, command: '' }
+  return { title: `🟢 latest ${versionLabel(pkg)}`, command: '' }
+}
+
+function createAheadSuggestion(): PackageSuggestion {
+  return { title: `🟡 ahead of latest`, command: '' }
 }
 
 function createLatestSatisfiesSuggestion(pkg: PackageType): PackageSuggestion {
-  return { title: `🟡 satisfies latest ${pkg.version}`, command: '' }
+  return { title: `🟡 satisfies latest ${versionLabel(pkg)}`, command: '' }
 }
 
 function createSatisfiesSuggestion(satisfiesVersion: string): PackageSuggestion {
@@ -59,7 +70,12 @@ function createSatisfiesSuggestion(satisfiesVersion: string): PackageSuggestion 
 }
 
 function createUpdatableSuggestion(pkg: PackageType): PackageSuggestion {
-  const title = `↑ latest ${pkg.version}`
+  const title = `↑ latest ${versionLabel(pkg)}`
+  return { title, command: OnUpdateDependencyClickCommand, replaceable: true }
+}
+
+function createDowngradableSuggestion(pkg: PackageType): PackageSuggestion {
+  const title = `↓ latest ${versionLabel(pkg)}`
   return { title, command: OnUpdateDependencyClickCommand, replaceable: true }
 }
 
@@ -140,14 +156,22 @@ export function createPackageSuggestions({
     } else {
       suggestions.push(createSatisfiesSuggestion(satisfiesVersion))
     }
+  } else if (isAhead) {
+    suggestions.push(createAheadSuggestion())
   }
 
   if (!isLatest && !isAhead) {
     suggestions.push(createUpdatableSuggestion(pkg))
+  } else if (isAhead && !isSatisfying) {
+    suggestions.push(createDowngradableSuggestion(pkg))
   }
 
   if (isRangeSpecifier && satisfiesVersion && !isSatisfying) {
     suggestions.push(createBumpSuggestion(satisfiesVersion))
+  }
+
+  if (suggestions.length === 0) {
+    suggestions.push(createUpdatableSuggestion(pkg))
   }
 
   return suggestions

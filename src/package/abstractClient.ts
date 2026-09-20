@@ -1,6 +1,6 @@
 import { getShowPrerelease, getUsePrivateSource } from '@/configuration'
 import { DependencyType, PackageClientType, PackageType } from '@/schemas'
-import { compare, isPrerelease } from '@/versioning/utils'
+import { compare, isPrerelease, tracksPrerelease } from '@/versioning/utils'
 
 import { clearCache as doClearCache } from './cache'
 import { cachedFetch } from './fetchCache'
@@ -9,7 +9,7 @@ export { HttpError, isHttpError } from '@/httpError'
 
 const DEFAULT_TIMEOUT_MS = 30_000
 
-export abstract class AbstractPackageClient implements PackageClientType {
+export abstract class AbstractPackageClient<Raw = PackageType> implements PackageClientType {
   private usePrivateSource: boolean
   protected showPrerelease: boolean
   private primarySource: URL
@@ -50,21 +50,37 @@ export abstract class AbstractPackageClient implements PackageClientType {
     }) as Promise<string>
   }
 
-  abstract get(name: string, dependency?: DependencyType): Promise<PackageType>
+  abstract get(name: string): Promise<Raw>
 
-  protected normalizePackage(pkg: PackageType) {
-    const versions = this.showPrerelease
+  async select(raw: Raw, dependency: DependencyType): Promise<PackageType> {
+    return this.normalizePackage(raw as PackageType, dependency)
+  }
+
+  async resolve(dependency: DependencyType): Promise<PackageType> {
+    return await this.select(await this.get(dependency.name), dependency)
+  }
+
+  protected keepPrereleases(dependency: DependencyType): boolean {
+    if (this.showPrerelease) {
+      return true
+    }
+    return tracksPrerelease(dependency)
+  }
+
+  protected normalizePackage(pkg: PackageType, dependency: DependencyType): PackageType {
+    const filtered = this.keepPrereleases(dependency)
       ? pkg.versions
       : pkg.versions.filter((v) => !isPrerelease(v))
 
-    if (versions.length === 0) {
-      throw new Error('No valid versions found')
+    const prereleaseOnly = filtered.length === 0 && pkg.versions.length > 0
+    const effective = prereleaseOnly ? pkg.versions : filtered
+
+    if (effective.length === 0) {
+      throw new Error('No versions found')
     }
 
-    const sortedVersions = [...versions].sort(compare)
-    pkg.versions = sortedVersions
-    pkg.version = sortedVersions[sortedVersions.length - 1]
-    return pkg
+    const versions = effective.slice().sort(compare)
+    return { ...pkg, versions, prereleaseOnly, version: versions[versions.length - 1] }
   }
 
   clearCache() {

@@ -109,17 +109,15 @@ export class PyPIClient extends AbstractPackageClient {
     const text = await this.fetchText(url)
 
     try {
-      const result = parse(JSON.parse(text))
-      return this.normalizePackage(result)
-    } catch (err) {
-      if (!(err instanceof ZodError) && !(err instanceof SyntaxError)) {
-        throw err
+      return parse(JSON.parse(text))
+    } catch (error) {
+      if (!(error instanceof ZodError) && !(error instanceof SyntaxError)) {
+        throw error
       }
     }
 
     try {
-      const result = parseSimple(text, name)
-      return this.normalizePackage(result)
+      return parseSimple(text, name)
     } catch {
       throw new Error('Failed to parse PyPI API response')
     }

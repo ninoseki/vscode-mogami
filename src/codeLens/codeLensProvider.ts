@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 
 import { ExtensionComponent } from '@/extensionComponent'
+import { Logger } from '@/logger'
 import { ProjectParser } from '@/project'
 import { ProjectFormatType } from '@/schemas'
 import { Selector } from '@/selector'
@@ -61,7 +62,8 @@ export class CodeLensProvider implements vscode.CodeLensProvider, ExtensionCompo
     try {
       const service = projectParser.parse(document)
       return await createCodeLenses(document, service, { concurrency: this.concurrency })
-    } catch {
+    } catch (err) {
+      Logger.error(`Failed to provide code lenses for ${document.fileName}: ${err}`)
       return []
     } finally {
       await this.state.clearProviderBusy()

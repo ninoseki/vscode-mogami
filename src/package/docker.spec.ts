@@ -150,7 +150,7 @@ describe('DockerClient', () => {
     )
 
     const client = new DockerClient()
-    const pkg = await client.get('node', { name: 'node', specifier: '18-alpine' })
+    const pkg = await client.resolve({ name: 'node', specifier: '18-alpine' })
 
     expect(pkg.name).toBe('node')
     expect(pkg.version).toBe('22-alpine')
@@ -164,7 +164,7 @@ describe('DockerClient', () => {
   it('uses the library namespace for unqualified image names', async () => {
     const fetchMock = mockFetchOnce(tagsPayload(['22.04', '20.04', '18.04']))
     const client = new DockerClient()
-    await client.get('ubuntu', { name: 'ubuntu', specifier: '22.04' })
+    await client.resolve({ name: 'ubuntu', specifier: '22.04' })
 
     expect(fetchMock.mock.calls[0][0]).toContain('/repositories/library/ubuntu/tags/')
   })
@@ -172,7 +172,7 @@ describe('DockerClient', () => {
   it('keeps the namespace for namespaced images', async () => {
     const fetchMock = mockFetchOnce(tagsPayload(['2.0', '1.0']))
     const client = new DockerClient()
-    await client.get('bitnami/postgresql', { name: 'bitnami/postgresql', specifier: '1.0' })
+    await client.resolve({ name: 'bitnami/postgresql', specifier: '1.0' })
 
     expect(fetchMock.mock.calls[0][0]).toContain('/repositories/bitnami/postgresql/tags/')
   })
@@ -185,7 +185,7 @@ describe('DockerClient', () => {
     ])
 
     const client = new DockerClient()
-    const pkg = await client.get('node', { name: 'node', specifier: '18-alpine' })
+    const pkg = await client.resolve({ name: 'node', specifier: '18-alpine' })
 
     expect(pkg.version).toBe('22-alpine')
     expect(pkg.versions).toEqual(['18-alpine', '20-alpine', '22-alpine'])
@@ -196,7 +196,7 @@ describe('DockerClient', () => {
   it('filters prerelease tags by default', async () => {
     mockFetchOnce(tagsPayload(['22-alpine', '20-alpine', '23-alpine-rc1', '24-alpine-beta']))
     const client = new DockerClient()
-    const pkg = await client.get('node', { name: 'node', specifier: '20-alpine' })
+    const pkg = await client.resolve({ name: 'node', specifier: '20-alpine' })
 
     expect(pkg.version).toBe('22-alpine')
     expect(pkg.versions).toEqual(['20-alpine', '22-alpine'])
@@ -205,7 +205,7 @@ describe('DockerClient', () => {
   it('keeps prerelease tags when the current specifier is itself a prerelease', async () => {
     mockFetchOnce(tagsPayload(['1.0.0-alpha', '2.0.0-alpha', '3.0.0-alpha']))
     const client = new DockerClient()
-    const pkg = await client.get('foo', { name: 'foo', specifier: '1.0.0-alpha' })
+    const pkg = await client.resolve({ name: 'foo', specifier: '1.0.0-alpha' })
 
     expect(pkg.version).toBe('3.0.0-alpha')
   })
@@ -213,7 +213,7 @@ describe('DockerClient', () => {
   it('sorts single-component numeric tags numerically (98 < 99 < 100)', async () => {
     mockFetchOnce(tagsPayload(['98', '99', '100']))
     const client = new DockerClient()
-    const pkg = await client.get('foo', { name: 'foo', specifier: '99' })
+    const pkg = await client.resolve({ name: 'foo', specifier: '99' })
 
     expect(pkg.version).toBe('100')
     expect(pkg.versions).toEqual(['98', '99', '100'])
@@ -225,7 +225,7 @@ describe('DockerClient', () => {
     // versions in the same scheme.
     mockFetchOnce(tagsPayload(['1.4.2', '1.4.3', '1.5.0', '5091768']))
     const client = new DockerClient()
-    const pkg = await client.get('boxyhq/mock-saml', {
+    const pkg = await client.resolve({
       name: 'boxyhq/mock-saml',
       specifier: '1.4.2',
     })
@@ -237,7 +237,7 @@ describe('DockerClient', () => {
   it('throws when no compatible tag exists', async () => {
     mockFetchOnce(tagsPayload(['22-slim', '20-slim']))
     const client = new DockerClient()
-    await expect(client.get('node', { name: 'node', specifier: '18-alpine' })).rejects.toThrow(
+    await expect(client.resolve({ name: 'node', specifier: '18-alpine' })).rejects.toThrow(
       /No matching tags/,
     )
   })

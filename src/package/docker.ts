@@ -84,15 +84,22 @@ function libraryRepo(name: string): string {
   return name.includes('/') ? name : `library/${name}`
 }
 
-export class DockerClient extends AbstractPackageClient {
+interface DockerTagsType {
+  name: string
+  tags: string[]
+}
+
+export class DockerClient extends AbstractPackageClient<DockerTagsType> {
   constructor(privateSource?: string) {
     super(DOCKER_HUB_API, privateSource)
   }
 
-  async get(name: string, dependency?: DependencyType): Promise<PackageType> {
-    const tags = await this.fetchTags(name)
+  async get(name: string): Promise<DockerTagsType> {
+    return { name, tags: await this.fetchTags(name) }
+  }
 
-    const specifier = dependency?.specifier
+  async select({ name, tags }: DockerTagsType, dependency: DependencyType): Promise<PackageType> {
+    const specifier = dependency.specifier
     const currentShape = specifier ? parseTagShape(specifier) : undefined
 
     // Tags compatible with the current one (same prefix & suffix), or all tags
@@ -106,22 +113,27 @@ export class DockerClient extends AbstractPackageClient {
 
     // Keep prerelease tags when the current specifier itself is a prerelease,
     // otherwise drop them unless the user opted in via showPrerelease.
-    const keepPrereleases = this.showPrerelease || (specifier ? isPrereleaseTag(specifier) : false)
-    const candidates = keepPrereleases
+    const keepPrereleaseTags =
+      this.showPrerelease || (specifier ? isPrereleaseTag(specifier) : false)
+    const candidates = keepPrereleaseTags
       ? shapeMatched
       : shapeMatched.filter((t) => !isPrereleaseTag(t))
 
-    if (candidates.length === 0) {
+    const prereleaseOnly = candidates.length === 0 && shapeMatched.length > 0
+    const effective = prereleaseOnly ? shapeMatched : candidates
+
+    if (effective.length === 0) {
       throw new Error('No matching tags found')
     }
 
-    const sorted = candidates.slice().sort(compare)
+    const sorted = effective.slice().sort(compare)
     const latest = sorted[sorted.length - 1]
 
     return {
       name,
       version: latest,
       versions: sorted,
+      prereleaseOnly,
       format: 'dockerfile',
     }
   }

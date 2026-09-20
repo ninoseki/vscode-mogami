@@ -1,6 +1,6 @@
 import z from 'zod'
 
-import { PackageType } from '@/schemas'
+import { DependencyType, PackageType } from '@/schemas'
 import { urlJoin } from '@/utils'
 import { compare } from '@/versioning/utils'
 
@@ -24,9 +24,18 @@ export const GitHubTagSchema = z.object({
   commit: z.object({ sha: z.string() }),
 })
 
+export type GitHubTagType = z.infer<typeof GitHubTagSchema>
+
 export const GitHubTagsSchema = z.array(GitHubTagSchema)
 
-export class GitHubClient extends AbstractPackageClient {
+interface GitHubRepoType {
+  name: string
+  repo: string
+  releases: GitHubReleaseType[]
+  tags: GitHubTagType[]
+}
+
+export class GitHubClient extends AbstractPackageClient<GitHubRepoType> {
   private gitHubPersonalAccessToken: string | undefined = undefined
 
   constructor(
@@ -41,74 +50,84 @@ export class GitHubClient extends AbstractPackageClient {
     this.gitHubPersonalAccessToken = gitHubPersonalAccessToken
   }
 
-  async get(name: string): Promise<PackageType> {
-    const headers: Record<string, string> = {}
-    if (this.gitHubPersonalAccessToken) {
-      headers.authorization = `Bearer ${this.gitHubPersonalAccessToken}`
+  private get headers(): Record<string, string> {
+    if (!this.gitHubPersonalAccessToken) {
+      return {}
     }
+    return { authorization: `Bearer ${this.gitHubPersonalAccessToken}` }
+  }
 
+  async get(name: string): Promise<GitHubRepoType> {
     // GitHub Actions can reference a sub-path within a repository
     // (e.g. `github/codeql-action/init`), but the GitHub API only accepts
     // the `owner/repo` portion.
     const repo = name.split('/').slice(0, 2).join('/')
+    const [releases, tags] = await Promise.all([this.getReleases(repo), this.getTags(repo)])
+    return { name, repo, releases, tags }
+  }
 
-    const getLatestRelease = async () => {
-      const data = await this.fetchJson(
-        urlJoin(this.source.toString(), 'repos', repo, 'releases'),
-        {
-          headers,
-        },
-      )
+  async select(
+    { name, repo, releases, tags }: GitHubRepoType,
+    dependency: DependencyType,
+  ): Promise<PackageType> {
+    const filtered = this.keepPrereleases(dependency)
+      ? releases
+      : releases.filter((release) => {
+          return !release.prerelease
+        })
 
-      const releases = GitHubReleasesSchema.parse(data)
-      const filtered = this.showPrerelease
-        ? releases
-        : releases.filter((release) => {
-            return !release.prerelease
-          })
-      if (filtered.length === 0) {
-        throw new Error('No valid versions found')
-      }
-
-      const sorted = filtered.sort((a, b) => compare(a.tag_name, b.tag_name))
-      return sorted[sorted.length - 1]
+    const prereleaseOnly = filtered.length === 0 && releases.length > 0
+    const candidates = prereleaseOnly ? releases : filtered
+    if (candidates.length === 0) {
+      throw new Error('No releases found')
     }
 
-    const getTags = async () => {
-      const data = await this.fetchJson(
-        urlJoin(this.source.toString(), 'repos', repo, 'tags') + '?per_page=100',
-        { headers },
-      )
-      return GitHubTagsSchema.parse(data)
-    }
-
-    const getCommit = async (tagName: string) => {
-      const data = await this.fetchJson(
-        urlJoin(this.source.toString(), 'repos', repo, 'commits', tagName),
-        { headers },
-      )
-      return GitHubCommitSchema.parse(data)
-    }
-
-    const [latest, tags] = await Promise.all([getLatestRelease(), getTags()])
-    const version = latest.tag_name
+    const versions = candidates
+      .slice()
+      .sort((a, b) => compare(a.tag_name, b.tag_name))
+      .map((release) => release.tag_name)
+    const version = versions[versions.length - 1]
 
     const versionByAlias = Object.fromEntries(tags.map((tag) => [tag.commit.sha, tag.name]))
     const aliasByVersion = new Map(tags.map((tag) => [tag.name, tag.commit.sha]))
 
-    // Fall back to /commits/{tag} only when the latest release isn't in the
+    // Fall back to /commits/{tag} only when the picked release isn't in the
     // first 100 tags (rare — /tags is ordered newest-first).
-    const aliasFromTags = aliasByVersion.get(latest.tag_name)
+    const aliasFromTags = aliasByVersion.get(version)
     const alias =
-      aliasFromTags === undefined ? (await getCommit(latest.tag_name)).sha : aliasFromTags
+      aliasFromTags === undefined ? (await this.getCommit(repo, version)).sha : aliasFromTags
 
     return {
       name,
       version,
-      versions: [version],
+      versions,
+      prereleaseOnly,
       alias,
       versionByAlias,
       format: 'github-actions-workflow',
     }
+  }
+
+  private async getReleases(repo: string): Promise<GitHubReleaseType[]> {
+    const data = await this.fetchJson(urlJoin(this.source.toString(), 'repos', repo, 'releases'), {
+      headers: this.headers,
+    })
+    return GitHubReleasesSchema.parse(data)
+  }
+
+  private async getTags(repo: string): Promise<GitHubTagType[]> {
+    const data = await this.fetchJson(
+      urlJoin(this.source.toString(), 'repos', repo, 'tags') + '?per_page=100',
+      { headers: this.headers },
+    )
+    return GitHubTagsSchema.parse(data)
+  }
+
+  private async getCommit(repo: string, tagName: string) {
+    const data = await this.fetchJson(
+      urlJoin(this.source.toString(), 'repos', repo, 'commits', tagName),
+      { headers: this.headers },
+    )
+    return GitHubCommitSchema.parse(data)
   }
 }

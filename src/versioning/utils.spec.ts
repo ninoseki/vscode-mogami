@@ -7,6 +7,7 @@ import {
   isPrerelease,
   preCoerce,
   removeLeading,
+  tracksPrerelease,
   validateRange,
 } from './utils'
 
@@ -127,5 +128,49 @@ describe('validateRange', () => {
     [{ name: 'dummy', specifierRequirements: ['>1.0', '<2.0'] }, true],
   ])('validateRange(%s) === %s', (v: DependencyType, expected: boolean) => {
     expect(validateRange(v)).toBe(expected)
+  })
+})
+
+describe('eq', () => {
+  test.each([
+    ['1.9.0', '==1.9.0', true],
+    ['2.0.0b1', '==2.0.0b1', true],
+    ['2.0.0', '==2.0.0b1', false],
+    ['7.2.0.beta2', '~> 7.2.0.beta2', true],
+    ['2.0.0-beta.1', '2.0.0-beta.1', true],
+    ['2.0.0-beta.5', '2.0.0-beta.1', false],
+  ])('eq(%s, %s) === %s', (v1: string, v2: string, expected: boolean) => {
+    expect(eq(v1, v2)).toBe(expected)
+  })
+})
+
+describe('tracksPrerelease', () => {
+  test.each([
+    [{ name: 'dummy', specifier: undefined }, false],
+    [{ name: 'dummy', specifier: '1.0.0' }, false],
+    [{ name: 'dummy', specifier: '^1.0.0' }, false],
+    [{ name: 'dummy', specifier: '>=1.0.0,<2.0.0' }, false],
+    // anchored to a prerelease: the project runs one
+    [{ name: 'dummy', specifier: '==2.0.0b1' }, true],
+    [{ name: 'dummy', specifier: '===2.0.0b1' }, true],
+    [{ name: 'dummy', specifier: '~=2.0.0b1' }, true],
+    [{ name: 'dummy', specifier: '2.0.0-beta.1' }, true],
+    [{ name: 'dummy', specifier: '^2.0.0-beta.1' }, true],
+    [{ name: 'dummy', specifier: '~2.0.0-beta.1' }, true],
+    [{ name: 'dummy', specifier: '7.2.0.beta2' }, true],
+    [{ name: 'dummy', specifierRequirements: ['~> 7.2.0.beta2'] }, true],
+    // merely bounded by a prerelease: says nothing about what runs
+    [{ name: 'dummy', specifier: '>=2.14.0b2' }, false],
+    [{ name: 'dummy', specifier: '>2.14.0b2' }, false],
+    [{ name: 'dummy', specifier: '>=1.0.0,<2.0.0b1' }, false],
+    [{ name: 'dummy', specifier: '!=2.0.0b1' }, false],
+    [{ name: 'dummy', specifier: '>=2.14.0b2 <3.0.0' }, false],
+    [{ name: 'dummy', specifierRequirements: ['>= 7.2.0.beta2'] }, false],
+    [{ name: 'dummy', specifierRequirements: ['>= 1.9.0', '< 2.0'] }, false],
+    // opaque ids must not be read as prereleases
+    [{ name: 'dummy', specifier: 'a'.repeat(40) }, false],
+    [{ name: 'dummy', specifier: `3${'a'.repeat(39)}` }, false],
+  ])('tracksPrerelease(%s) === %s', (v: DependencyType, expected: boolean) => {
+    expect(tracksPrerelease(v)).toBe(expected)
   })
 })

@@ -35,9 +35,9 @@ export class AnacondaClient extends AbstractPackageClient {
 
   async get(name: string): Promise<PackageType> {
     const data = await this.fetchJson(urlJoin(this.source.toString(), name))
+
     try {
-      const result = parse(data)
-      return this.normalizePackage(result)
+      return parse(data)
     } catch {
       throw new Error('Failed to parse Anaconda API response')
     }

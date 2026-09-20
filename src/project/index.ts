@@ -145,24 +145,18 @@ export class ProjectService {
     return this.client
   }
 
-  public async getPackage(name: string, dependency?: DependencyType): Promise<PackageType> {
+  public async getPackage(dependency: DependencyType): Promise<PackageType> {
     const client = await this.getClient()
-    const pkg = await client.get(name, dependency)
+    const pkg = await client.resolve(dependency)
     return { ...pkg, format: this.project.format }
   }
 
   async getAllPackageResults({ concurrency }: { concurrency: number }) {
-    // NOTE: client may have an error while fetching a package
-    //       thus wrap it with ResultAsync (to show an error in CodeLens)
-    const client = await this.getClient()
-    const format = this.project.format
+    await this.getClient()
     const results = this.dependencies.map(
       ([dep]) =>
         () =>
-          ResultAsync.fromPromise(
-            client.get(dep.name, dep).then((pkg) => ({ ...pkg, format })),
-            (e: unknown) => e,
-          ),
+          ResultAsync.fromPromise(this.getPackage(dep), (e: unknown) => e),
     )
     return await pmap(results, async (t) => await t(), { concurrency })
   }

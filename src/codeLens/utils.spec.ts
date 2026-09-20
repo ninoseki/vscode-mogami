@@ -1,6 +1,7 @@
 import { ok } from 'neverthrow'
 
-import { DependencyType, PackageType, SatisfiesFnType } from '@/schemas'
+import { DependencyType, PackageType, SatisfiesFnType, validateRangeFnType } from '@/schemas'
+import { satisfies as pypiSatisfies, validateRange as pypiValidateRange } from '@/versioning/pypi'
 import { satisfies, validateRange } from '@/versioning/utils'
 
 import { createPackageSuggestions, PackageSuggestion } from './utils'
@@ -92,14 +93,28 @@ describe('createPackageSuggestions', () => {
       { name: 'foo', specifier: '2.0.0' } as DependencyType,
       { name: 'foo', version: '1.0.0', versions: ['1.0.0'] } as PackageType,
       satisfies,
-      [{ title: '🟡 fixed 2.0.0', command: '' }] as PackageSuggestion[],
+      [
+        { title: '🟡 fixed 2.0.0', command: '' },
+        {
+          command: 'vscode-mogami.suggestions.updateDependencyClick',
+          replaceable: true,
+          title: '↓ latest 1.0.0',
+        },
+      ] as PackageSuggestion[],
     ],
     // current version is higher than the found "latest" with a range specifier
     [
       { name: 'foo', specifier: '^2.0.0' } as DependencyType,
       { name: 'foo', version: '1.0.0', versions: ['1.0.0'] } as PackageType,
       satisfies,
-      [] as PackageSuggestion[],
+      [
+        { title: '🟡 ahead of latest', command: '' },
+        {
+          command: 'vscode-mogami.suggestions.updateDependencyClick',
+          replaceable: true,
+          title: '↓ latest 1.0.0',
+        },
+      ] as PackageSuggestion[],
     ],
     // outdated & range specifier (un-satisfies & has newer version)
     [
@@ -174,6 +189,42 @@ describe('createPackageSuggestions', () => {
         },
       ] as PackageSuggestion[],
     ],
+    [
+      { name: 'foo', specifier: '2.0.0-beta.1' } as DependencyType,
+      {
+        name: 'foo',
+        version: '2.0.0-beta.5',
+        versions: ['1.9.0', '2.0.0-beta.1', '2.0.0-beta.5'],
+      } as PackageType,
+      satisfies,
+      [
+        { title: '🟡 fixed 2.0.0-beta.1', command: '' },
+        {
+          command: 'vscode-mogami.suggestions.updateDependencyClick',
+          replaceable: true,
+          title: '↑ latest 2.0.0-beta.5',
+        },
+      ] as PackageSuggestion[],
+    ],
+    // the package publishes nothing stable: label the fallback
+    [
+      { name: 'foo', specifier: '1.0.0' } as DependencyType,
+      {
+        name: 'foo',
+        version: '2.0.0b1',
+        versions: ['2.0.0b1'],
+        prereleaseOnly: true,
+      } as PackageType,
+      satisfies,
+      [
+        { title: '🟡 fixed 1.0.0', command: '' },
+        {
+          command: 'vscode-mogami.suggestions.updateDependencyClick',
+          replaceable: true,
+          title: '↑ latest 2.0.0b1 (prerelease)',
+        },
+      ] as PackageSuggestion[],
+    ],
     // SHA-pinned but specifier missing from versionByAlias — treated as outdated
     [
       { name: 'actions/cache', specifier: 'e'.repeat(40) } as DependencyType,
@@ -210,6 +261,43 @@ describe('createPackageSuggestions', () => {
           validateRange,
         }),
       ).toEqual(expected)
+    },
+  )
+})
+
+describe('createPackageSuggestions with a prerelease ahead of the latest release', () => {
+  test.each([
+    [
+      { name: 'foo', specifier: '==2.0.0b1' } as DependencyType,
+      { name: 'foo', version: '1.9.0', versions: ['1.9.0'] } as PackageType,
+      pypiSatisfies,
+      pypiValidateRange,
+    ],
+    [
+      { name: 'foo', specifier: '7.2.0.beta2' } as DependencyType,
+      { name: 'foo', version: '7.1.0', versions: ['7.1.0'] } as PackageType,
+      satisfies,
+      validateRange,
+    ],
+  ])(
+    'createPackageSuggestions(%s, %s) reports the gap and offers a way back',
+    (
+      dependency: DependencyType,
+      pkg: PackageType,
+      satisfies: SatisfiesFnType,
+      validateRange: validateRangeFnType,
+    ) => {
+      const pkgResult = ok(pkg) // eslint-disable-line neverthrow/must-use-result
+      expect(createPackageSuggestions({ dependency, pkgResult, satisfies, validateRange })).toEqual(
+        [
+          { title: '🟡 ahead of latest', command: '' },
+          {
+            command: 'vscode-mogami.suggestions.updateDependencyClick',
+            replaceable: true,
+            title: `↓ latest ${pkg.version}`,
+          },
+        ],
+      )
     },
   )
 })

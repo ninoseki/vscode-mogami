@@ -33,10 +33,8 @@ export class GemClient extends AbstractPackageClient {
   }
 
   async get(name: string): Promise<PackageType> {
-    const gem = await this.getGem(name)
-    const versions = await this.getGemVersions(name)
-    gem.versions = versions.map((v) => v.number)
-    return this.normalizePackage(gem)
+    const [gem, versions] = await Promise.all([this.getGem(name), this.getGemVersions(name)])
+    return { ...gem, versions: versions.map((v) => v.number) }
   }
 
   async getGemVersions(name: string): Promise<GemVersionsType> {
