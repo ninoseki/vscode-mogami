@@ -45,12 +45,12 @@
     "jsonc-parser": "^3.3.1",
     "linkedom": "^0.18.13",
     "neverthrow": "^8.2.0",
-    "p-map": "^7.0.7",
+    "p-map": "^7.0.8",
     "semver": "^7.8.5",
     "toml-eslint-parser": "^1.0.3",
     "winston-transport-vscode": "^0.1.0",
-    "yaml": "^2.9.0",
-    "zod": "^4.5.4"
+    "yaml": "^2.9.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@ninoseki/eslint-plugin-neverthrow": "^0.3.1",
@@ -61,25 +61,25 @@
     "@types/node": "^26.5.0",
     "@types/semver": "^7.8.0",
     "@types/vscode": "^1.80.0",
-    "@vitest/coverage-v8": "^5.0.0",
+    "@vitest/coverage-v8": "^5.0.1",
     "@vitest/eslint-plugin": "^1.6.27",
-    "@vscode/vsce": "^3.9.2",
-    "eslint": "^10.10.0",
+    "@vscode/vsce": "^4.0.0",
+    "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-oxlint": "^1.83.0",
     "eslint-plugin-regexp": "^3.3.0",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "husky": "^9.1.7",
     "jiti": "^2.7.0",
-    "lint-staged": "^17.5.0",
+    "lint-staged": "^17.5.1",
     "npm-run-all2": "^9.0.3",
     "oxfmt": "^0.68.0",
-    "rollup": "^4.63.1",
+    "rollup": "^4.63.4",
     "rollup-plugin-esbuild": "^6.2.1",
-    "type-fest": "^5.9.0",
+    "type-fest": "^5.10.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.0",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.1"
   },
   "lint-staged": {
     "*.ts": [
