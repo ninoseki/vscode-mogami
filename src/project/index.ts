@@ -12,6 +12,7 @@ import { NpmClient } from '@/package/npm'
 import { PyPIClient } from '@/package/pypi'
 import type {
   DependencyType,
+  isValidSpecifierFnType,
   PackageClientType,
   PackageType,
   ProjectFormatType,
@@ -21,8 +22,13 @@ import type {
 } from '@/schemas'
 import { getGitHubPersonalAccessToken } from '@/secrets'
 import { satisfies as gemSatisfies } from '@/versioning/gem'
-import { satisfies as pypiSatisfies, validateRange as pypiValidateRange } from '@/versioning/pypi'
 import {
+  isValidSpecifier as pypiIsValidSpecifier,
+  satisfies as pypiSatisfies,
+  validateRange as pypiValidateRange,
+} from '@/versioning/pypi'
+import {
+  isValidSpecifier as utilsIsValidSpecifier,
   satisfies as utilsSatisfies,
   validateRange as utilsValidateRange,
 } from '@/versioning/utils'
@@ -41,25 +47,67 @@ import * as shards from './shards'
 
 const versioningConfig: Record<
   ProjectFormatType,
-  { satisfies: SatisfiesFnType; validateRange: validateRangeFnType }
+  {
+    satisfies: SatisfiesFnType
+    validateRange: validateRangeFnType
+    isValidSpecifier: isValidSpecifierFnType
+  }
 > = {
-  'docker-compose': { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
-  dockerfile: { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
-  gemfile: { satisfies: gemSatisfies, validateRange: utilsValidateRange },
-  gemspec: { satisfies: gemSatisfies, validateRange: utilsValidateRange },
+  'docker-compose': {
+    satisfies: utilsSatisfies,
+    validateRange: utilsValidateRange,
+    isValidSpecifier: utilsIsValidSpecifier,
+  },
+  dockerfile: {
+    satisfies: utilsSatisfies,
+    validateRange: utilsValidateRange,
+    isValidSpecifier: utilsIsValidSpecifier,
+  },
+  gemfile: {
+    satisfies: gemSatisfies,
+    validateRange: utilsValidateRange,
+    isValidSpecifier: utilsIsValidSpecifier,
+  },
+  gemspec: {
+    satisfies: gemSatisfies,
+    validateRange: utilsValidateRange,
+    isValidSpecifier: utilsIsValidSpecifier,
+  },
   'github-actions-workflow': {
     satisfies: utilsSatisfies,
     validateRange: utilsValidateRange,
+    isValidSpecifier: utilsIsValidSpecifier,
   },
-  npm: { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
-  pyproject: { satisfies: pypiSatisfies, validateRange: pypiValidateRange },
-  'pre-commit-config': { satisfies: utilsSatisfies, validateRange: utilsValidateRange },
+  npm: {
+    satisfies: utilsSatisfies,
+    validateRange: utilsValidateRange,
+    isValidSpecifier: utilsIsValidSpecifier,
+  },
+  pyproject: {
+    satisfies: pypiSatisfies,
+    validateRange: pypiValidateRange,
+    isValidSpecifier: pypiIsValidSpecifier,
+  },
+  'pre-commit-config': {
+    satisfies: utilsSatisfies,
+    validateRange: utilsValidateRange,
+    isValidSpecifier: utilsIsValidSpecifier,
+  },
   'pip-requirements': {
     satisfies: pypiSatisfies,
     validateRange: pypiValidateRange,
+    isValidSpecifier: pypiIsValidSpecifier,
   },
-  pep723: { satisfies: pypiSatisfies, validateRange: pypiValidateRange },
-  shards: { satisfies: pypiSatisfies, validateRange: pypiValidateRange },
+  pep723: {
+    satisfies: pypiSatisfies,
+    validateRange: pypiValidateRange,
+    isValidSpecifier: pypiIsValidSpecifier,
+  },
+  shards: {
+    satisfies: pypiSatisfies,
+    validateRange: pypiValidateRange,
+    isValidSpecifier: pypiIsValidSpecifier,
+  },
 }
 
 const parsers: Record<ProjectFormatType, (doc: vscode.TextDocument) => ProjectType> = {
@@ -116,6 +164,7 @@ async function createClient(
 export class ProjectService {
   public satisfies: SatisfiesFnType
   public validateRange: validateRangeFnType
+  private isValidSpecifier: isValidSpecifierFnType
   private client: PackageClientType | undefined
 
   constructor(
@@ -126,6 +175,7 @@ export class ProjectService {
     const config = versioningConfig[project.format]
     this.satisfies = config.satisfies
     this.validateRange = config.validateRange
+    this.isValidSpecifier = config.isValidSpecifier
   }
 
   public getDependencyByPosition(
@@ -146,6 +196,10 @@ export class ProjectService {
   }
 
   public async getPackage(dependency: DependencyType): Promise<PackageType> {
+    if (!this.isValidSpecifier(dependency)) {
+      throw new Error('invalid version specifier')
+    }
+
     const client = await this.getClient()
     const pkg = await client.resolve(dependency)
     return { ...pkg, format: this.project.format }

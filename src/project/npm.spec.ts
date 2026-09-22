@@ -139,6 +139,57 @@ describe('parseProject', () => {
     expect(result.dependencies[0][0].specifier).toBe('^3.4.6')
   })
 
+  it('should resolve npm aliases to the real package name and specifier', () => {
+    const document = makeTextDocumentLike([
+      '{',
+      '  "dependencies": {',
+      '    "typescript": "npm:typescript-native-bridge@^6.0.3-bridge.17.tsgo.7.0.2"',
+      '  }',
+      '}',
+    ])
+
+    const result = parseProject(document)
+
+    expect(result.dependencies).toHaveLength(1)
+    const [dep] = result.dependencies[0]
+    expect(dep.name).toBe('typescript-native-bridge')
+    expect(dep.specifier).toBe('^6.0.3-bridge.17.tsgo.7.0.2')
+  })
+
+  it('should resolve scoped npm aliases', () => {
+    const document = makeTextDocumentLike([
+      '{',
+      '  "dependencies": {',
+      '    "foo": "npm:@scope/bar@^1.0.0"',
+      '  }',
+      '}',
+    ])
+
+    const result = parseProject(document)
+
+    expect(result.dependencies).toHaveLength(1)
+    const [dep] = result.dependencies[0]
+    expect(dep.name).toBe('@scope/bar')
+    expect(dep.specifier).toBe('^1.0.0')
+  })
+
+  it('should resolve npm aliases without a specifier (implicit latest)', () => {
+    const document = makeTextDocumentLike([
+      '{',
+      '  "dependencies": {',
+      '    "foo": "npm:bar"',
+      '  }',
+      '}',
+    ])
+
+    const result = parseProject(document)
+
+    expect(result.dependencies).toHaveLength(1)
+    const [dep] = result.dependencies[0]
+    expect(dep.name).toBe('bar')
+    expect(dep.specifier).toBeUndefined()
+  })
+
   it('should extract source from publishConfig.registry', () => {
     const document = makeTextDocumentLike([
       '{',

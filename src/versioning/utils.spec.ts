@@ -5,6 +5,7 @@ import {
   eq,
   formatWithExistingLeading,
   isPrerelease,
+  isValidSpecifier,
   preCoerce,
   removeLeading,
   tracksPrerelease,
@@ -128,6 +129,26 @@ describe('validateRange', () => {
     [{ name: 'dummy', specifierRequirements: ['>1.0', '<2.0'] }, true],
   ])('validateRange(%s) === %s', (v: DependencyType, expected: boolean) => {
     expect(validateRange(v)).toBe(expected)
+  })
+})
+
+describe('isValidSpecifier', () => {
+  test.each([
+    [{ name: 'dummy', specifier: undefined }, true],
+    [{ name: 'dummy', specifier: 'latest' }, true],
+    [{ name: 'dummy', specifier: '7.2.0.beta2' }, true],
+    [{ name: 'dummy', specifier: '==1.0.0' }, true],
+    [{ name: 'dummy', specifier: '^1.2.3' }, true],
+    [{ name: 'dummy', specifier: '~1.2.3' }, true],
+    [{ name: 'dummy', specifier: '>=1.0.0' }, true],
+    [{ name: 'dummy', specifier: '^^1.2.3' }, false],
+    [{ name: 'dummy', specifier: '>=1.0.0,<2.0.0' }, false],
+    [{ name: 'dummy', specifier: '>=1.0.0 <2.0.0' }, true],
+    [{ name: 'dummy', specifier: 'a'.repeat(40) }, true],
+    [{ name: 'dummy', specifierRequirements: ['>= 1.9.0', '< 2.0'] }, true],
+    [{ name: 'dummy', specifierRequirements: ['>= 1.9.0', '^^2.0'] }, false],
+  ])('isValidSpecifier(%s) === %s', (v: DependencyType, expected: boolean) => {
+    expect(isValidSpecifier(v)).toBe(expected)
   })
 })
 

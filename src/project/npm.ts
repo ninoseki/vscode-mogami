@@ -5,7 +5,6 @@ import type { DependencyType, ProjectType, RawRangeType, TextDocumentLikeType } 
 const nonRegistryPrefixes = [
   'workspace:',
   'catalog:',
-  'npm:',
   'file:',
   'link:',
   'portal:',
@@ -20,6 +19,20 @@ const nonRegistryPrefixes = [
 
 function isRegistrySpecifier(specifier: string): boolean {
   return !nonRegistryPrefixes.some((prefix) => specifier.startsWith(prefix))
+}
+
+function parseNpmAlias(specifier: string): { name: string; specifier?: string } | undefined {
+  const rest = specifier.slice('npm:'.length)
+  if (!rest) return undefined
+
+  const searchFrom = rest.startsWith('@') ? 1 : 0
+  const atIndex = rest.indexOf('@', searchFrom)
+  if (atIndex === -1) return { name: rest }
+
+  const name = rest.slice(0, atIndex)
+  if (!name) return undefined
+
+  return { name, specifier: rest.slice(atIndex + 1) || undefined }
 }
 
 const FLAT_DEP_PATHS: Segment[][] = [
@@ -124,8 +137,17 @@ export function parseProject(document: TextDocumentLikeType): ProjectType {
 
   const add = (entries: DepEntry[]) => {
     for (const entry of entries) {
-      if (!isRegistrySpecifier(entry.specifier)) continue
       if (seen.has(entry.name)) continue
+
+      if (entry.specifier.startsWith('npm:')) {
+        const alias = parseNpmAlias(entry.specifier)
+        if (!alias) continue
+        seen.add(entry.name)
+        dependencies.push([{ name: alias.name, specifier: alias.specifier }, entry.range])
+        continue
+      }
+
+      if (!isRegistrySpecifier(entry.specifier)) continue
       seen.add(entry.name)
       dependencies.push([{ name: entry.name, specifier: entry.specifier }, entry.range])
     }
