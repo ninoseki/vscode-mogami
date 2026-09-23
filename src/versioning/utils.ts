@@ -196,3 +196,23 @@ export function validateRange(dependency: DependencyType): boolean {
 
   return semver.validRange(dependency.specifier) !== null
 }
+
+const rangeOperatorLeadingRegex = /^([\^~<>=]+)/
+const nonRangeLeadings = new Set(['==', '==='])
+
+function isValidConstraint(constraint: string): boolean {
+  const match = rangeOperatorLeadingRegex.exec(constraint.trim())
+  if (!match || nonRangeLeadings.has(match[1])) return true
+  return semver.validRange(constraint) !== null
+}
+
+export function isValidSpecifier(dependency: DependencyType): boolean {
+  const { specifier, specifierRequirements } = dependency
+  if (specifierRequirements && specifierRequirements.length > 0) {
+    return specifierRequirements.every(isValidConstraint)
+  }
+  if (!specifier) {
+    return true
+  }
+  return isValidConstraint(specifier)
+}

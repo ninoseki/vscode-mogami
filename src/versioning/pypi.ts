@@ -30,3 +30,14 @@ export function validateRange(dependency: DependencyType): boolean {
 
   return constraints.every((constraint) => !isStrictEqualityOperator(constraint.operator))
 }
+
+const operatorLeadingCharRegex = /^[~^<>=!]/
+
+export function isValidSpecifier(dependency: DependencyType): boolean {
+  const { specifier } = dependency
+  if (!specifier || !operatorLeadingCharRegex.test(specifier.trim())) {
+    return true
+  }
+
+  return parse(specifier) !== null
+}
