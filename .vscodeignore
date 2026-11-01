@@ -7,7 +7,7 @@ __mocks__/
 **/*.map
 **/*.ts
 coverage/
-eslint.config.mjs
+eslint.config.ts
 node_modules/
 screenshots/
 src/**

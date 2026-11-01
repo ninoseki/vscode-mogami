@@ -1,56 +1,21 @@
 import neverthrow from '@ninoseki/eslint-plugin-neverthrow'
-import pluginVitest from '@vitest/eslint-plugin'
-import { globalIgnores } from 'eslint/config'
-import { defineConfig } from 'eslint/config'
-import skipFormatting from 'eslint-config-prettier/flat'
-import pluginOxlint from 'eslint-plugin-oxlint'
-import * as regexpPlugin from 'eslint-plugin-regexp'
-import simpleImportSort from 'eslint-plugin-simple-import-sort'
+import { defineConfig, globalIgnores } from 'eslint/config'
 import tseslint from 'typescript-eslint'
 
-// To allow more languages other than `ts` in `.vue` files, uncomment the following lines:
-// import { configureVueProject } from '@vue/eslint-config-typescript'
-// configureVueProject({ scriptLangs: ['ts', 'tsx'] })
-// More info at https://github.com/vuejs/eslint-config-typescript/#advanced-setup
+export default defineConfig(globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']), {
+  name: 'app/neverthrow',
+  files: ['**/*.{ts,mts,tsx}'],
 
-const mode = process.env.NODE_ENV === 'production' ? 'error' : 'warn'
+  plugins: { neverthrow },
 
-export default defineConfig(
-  {
-    name: 'app/files-to-lint',
-    files: ['**/*.{ts,mts,tsx}'],
+  rules: {
+    'neverthrow/must-use-result': 'error',
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
-
-  tseslint.configs.recommended,
-
-  {
-    ...pluginVitest.configs.recommended,
-    files: ['src/**/__tests__/*'],
-  },
-
-  ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
-
-  skipFormatting,
-
-  regexpPlugin.configs['flat/recommended'],
-
-  {
-    plugins: { neverthrow, 'simple-import-sort': simpleImportSort },
-
-    rules: {
-      'simple-import-sort/imports': mode,
-      'simple-import-sort/exports': mode,
-      'neverthrow/must-use-result': 'error',
-      'no-console': mode,
-      'no-debugger': mode,
-    },
-
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.json',
-      },
+  languageOptions: {
+    parser: tseslint.parser,
+    parserOptions: {
+      projectService: true,
     },
   },
-)
+})
