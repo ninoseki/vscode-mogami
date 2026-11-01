@@ -30,4 +30,6 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - run: NODE_ENV=production npm run lint
+      - run: npx oxlint . --deny-warnings
+      - run: npx eslint .
+      - run: npx oxfmt --check src/

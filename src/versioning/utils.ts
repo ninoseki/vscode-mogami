@@ -5,7 +5,7 @@ import semver from 'semver'
 import { DependencyType, PackageType, SatisfiesFnType } from '@/schemas'
 
 // Forked from https://gitlab.com/versionlens/vscode-versionlens/
-// eslint-disable-next-line regexp/no-super-linear-backtracking
+// oxlint-disable-next-line regexp/no-super-linear-backtracking
 export const extractSymbolFromVersionRegex = /^(\D*).*$/
 
 export const semverLeadingChars = ['^', '~', '<', '<=', '>', '>=', '~>', '==', '~=']

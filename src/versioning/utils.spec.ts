@@ -152,7 +152,7 @@ describe('isValidSpecifier', () => {
   })
 })
 
-describe('eq', () => {
+describe('eq (prerelease)', () => {
   test.each([
     ['1.9.0', '==1.9.0', true],
     ['2.0.0b1', '==2.0.0b1', true],
