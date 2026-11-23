@@ -69,6 +69,14 @@ function createSatisfiesSuggestion(satisfiesVersion: string): PackageSuggestion 
   return { title: `🟡 satisfies ${satisfiesVersion}`, command: '' }
 }
 
+function createYankedSuggestion(yankedVersion: string): PackageSuggestion {
+  return { title: `🔴 yanked ${yankedVersion}`, command: '' }
+}
+
+function createDeprecatedSuggestion(deprecatedVersion: string): PackageSuggestion {
+  return { title: `🔴 deprecated ${deprecatedVersion}`, command: '' }
+}
+
 function createUpdatableSuggestion(pkg: PackageType): PackageSuggestion {
   const title = `↑ latest ${versionLabel(pkg)}`
   return { title, command: OnUpdateDependencyClickCommand, replaceable: true }
@@ -87,6 +95,100 @@ function createBumpSuggestion(satisfiesVersion: string): PackageSuggestion {
   }
 }
 
+interface SuggestionContext {
+  pkg: PackageType
+  dependency: DependencyType
+  isLatest: boolean
+  isAhead: boolean
+  isFixedSpecifier: boolean
+  isRangeSpecifier: boolean
+  satisfiesVersion?: string
+  yankedVersion?: string
+}
+
+function createContext({
+  pkg,
+  dependency,
+  satisfies,
+  validateRange,
+}: {
+  pkg: PackageType
+  dependency: DependencyType
+  satisfies: SatisfiesFnType
+  validateRange: validateRangeFnType
+}): SuggestionContext {
+  const { specifier } = dependency
+  // Alias equality must compare the raw specifier (e.g. a commit SHA) to pkg.alias
+  // never the resolved tag, since one SHA can be tagged multiple ways (e.g. `v4` and `v4.2.0`).
+  const isAlias = specifier !== undefined && pkg.alias === specifier
+  // Prefer the client-resolved version (e.g. SHA → tag) over the raw specifier
+  // so we can compare against pkg.version meaningfully.
+  const effectiveSpecifier = specifier ? pkg.versionByAlias?.[specifier] || specifier : undefined
+  const isEqual = effectiveSpecifier !== undefined && eq(pkg.version, effectiveSpecifier)
+
+  const isAhead =
+    !isAlias &&
+    effectiveSpecifier !== undefined &&
+    !isEqual &&
+    compare(pkg.version, removeLeading(effectiveSpecifier)) < 0
+  // consider it's the latest version if no specifier is provided
+  const isLatest = !isAhead && (isAlias || effectiveSpecifier === undefined || isEqual)
+
+  const satisfiesVersion = maxSatisfying({ pkg, dependency, satisfies })
+  // fall back to yanked versions only when no available version satisfies the specifier
+  const yankedVersion =
+    satisfiesVersion === undefined && pkg.yankedVersions
+      ? maxSatisfying({ pkg: { ...pkg, versions: [...pkg.yankedVersions] }, dependency, satisfies })
+      : undefined
+
+  return {
+    pkg,
+    dependency,
+    isLatest,
+    isAhead,
+    isFixedSpecifier: semver.valid(specifier) !== null,
+    isRangeSpecifier: validateRange(dependency),
+    satisfiesVersion,
+    yankedVersion,
+  }
+}
+
+function createStatusSuggestion(ctx: SuggestionContext): PackageSuggestion | undefined {
+  const { pkg, satisfiesVersion } = ctx
+  if (ctx.yankedVersion) return createYankedSuggestion(ctx.yankedVersion)
+  if (satisfiesVersion && pkg.deprecatedVersions?.includes(satisfiesVersion)) {
+    return createDeprecatedSuggestion(satisfiesVersion)
+  }
+  if (ctx.isLatest) return createLatestSuggestion(pkg)
+  if (ctx.isFixedSpecifier) return createFixedSuggestion(ctx.dependency)
+  if (ctx.isRangeSpecifier && satisfiesVersion) {
+    return satisfiesVersion === pkg.version
+      ? createLatestSatisfiesSuggestion(pkg)
+      : createSatisfiesSuggestion(satisfiesVersion)
+  }
+  if (ctx.isAhead) return createAheadSuggestion()
+  return undefined
+}
+
+function createActionSuggestions(ctx: SuggestionContext): PackageSuggestion[] {
+  const { pkg, satisfiesVersion } = ctx
+  const isSatisfying =
+    satisfiesVersion !== undefined &&
+    (satisfiesVersion === pkg.version || eq(satisfiesVersion, ctx.dependency.specifier))
+
+  const update = (() => {
+    if (!ctx.isLatest && !ctx.isAhead) return createUpdatableSuggestion(pkg)
+    if (ctx.isAhead && !isSatisfying) return createDowngradableSuggestion(pkg)
+    return undefined
+  })()
+  const bump =
+    ctx.isRangeSpecifier && satisfiesVersion && !isSatisfying
+      ? createBumpSuggestion(satisfiesVersion)
+      : undefined
+
+  return [update, bump].filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
+}
+
 export function createPackageSuggestions({
   dependency,
   pkgResult,
@@ -102,77 +204,8 @@ export function createPackageSuggestions({
     return [createErrorSuggestion(pkgResult.error)]
   }
 
-  const suggestions: PackageSuggestion[] = []
-  const pkg = pkgResult.value
-
-  // Prefer the client-resolved version (e.g. SHA → tag) over the raw specifier
-  // so we can compare against pkg.version meaningfully.
-  const effectiveSpecifier = (() => {
-    if (!dependency.specifier) return undefined
-    const resolved = pkg.versionByAlias?.[dependency.specifier]
-    return resolved || dependency.specifier
-  })()
-
-  const checkIsLatest = (): boolean => {
-    // Alias equality must compare the raw specifier (e.g. a commit SHA) to pkg.alias
-    // never the resolved tag, since one SHA can be tagged multiple ways (e.g. `v4` and `v4.2.0`).
-    if (dependency.specifier && pkg.alias === dependency.specifier) {
-      return true
-    }
-    if (effectiveSpecifier) {
-      return eq(pkg.version, effectiveSpecifier)
-    }
-    // consider it's the latest version if no specifier is provided
-    return true
-  }
-
-  const checkIsAhead = (): boolean => {
-    if (dependency.specifier && pkg.alias === dependency.specifier) return false
-    if (!effectiveSpecifier) return false
-    if (eq(pkg.version, effectiveSpecifier)) return false
-    return compare(pkg.version, removeLeading(effectiveSpecifier)) < 0
-  }
-
-  const isAhead = checkIsAhead()
-  const isLatest = !isAhead && checkIsLatest()
-  const isFixedSpecifier: boolean = semver.valid(dependency.specifier) !== null
-  const isRangeSpecifier: boolean = validateRange(dependency)
-  const satisfiesVersion = maxSatisfying({
-    pkg,
-    dependency,
-    satisfies,
-  })
-  const isSatisfying: boolean =
-    satisfiesVersion !== undefined &&
-    (satisfiesVersion === pkg.version || eq(satisfiesVersion, dependency.specifier))
-
-  if (isLatest) {
-    suggestions.push(createLatestSuggestion(pkg))
-  } else if (isFixedSpecifier) {
-    suggestions.push(createFixedSuggestion(dependency))
-  } else if (isRangeSpecifier && satisfiesVersion) {
-    if (satisfiesVersion === pkg.version) {
-      suggestions.push(createLatestSatisfiesSuggestion(pkg))
-    } else {
-      suggestions.push(createSatisfiesSuggestion(satisfiesVersion))
-    }
-  } else if (isAhead) {
-    suggestions.push(createAheadSuggestion())
-  }
-
-  if (!isLatest && !isAhead) {
-    suggestions.push(createUpdatableSuggestion(pkg))
-  } else if (isAhead && !isSatisfying) {
-    suggestions.push(createDowngradableSuggestion(pkg))
-  }
-
-  if (isRangeSpecifier && satisfiesVersion && !isSatisfying) {
-    suggestions.push(createBumpSuggestion(satisfiesVersion))
-  }
-
-  if (suggestions.length === 0) {
-    suggestions.push(createUpdatableSuggestion(pkg))
-  }
-
-  return suggestions
+  const ctx = createContext({ pkg: pkgResult.value, dependency, satisfies, validateRange })
+  return [createStatusSuggestion(ctx), ...createActionSuggestions(ctx)].filter(
+    (i): i is Exclude<typeof i, undefined> => i !== undefined,
+  )
 }

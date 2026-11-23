@@ -52,6 +52,11 @@ describe('parse', () => {
     expect(result.versions).not.toContain('2.30.0')
   })
 
+  it('collects yanked releases', () => {
+    const result = parse(jsonPayload)
+    expect(result.yankedVersions).toEqual(['2.30.0'])
+  })
+
   it('falls back to project_url when home_page is empty', () => {
     const result = parse({
       ...jsonPayload,

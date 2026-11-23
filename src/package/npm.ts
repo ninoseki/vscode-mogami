@@ -10,7 +10,13 @@ const NpmPackageSchema = z.object({
   name: z.string(),
   description: z.string().nullish(),
   'dist-tags': z.object({ latest: z.string().optional() }).passthrough(),
-  versions: z.record(z.string(), z.unknown()),
+  versions: z.record(
+    z.string(),
+    z
+      .object({ deprecated: z.union([z.string(), z.boolean()]).optional() })
+      .passthrough()
+      .catch({}),
+  ),
   homepage: z.string().nullish(),
   repository: z
     .union([z.object({ url: z.string() }), z.string()])
@@ -42,6 +48,9 @@ export class NpmClient extends AbstractPackageClient {
       version: parsed['dist-tags'].latest || '',
       summary: parsed.description,
       versions: Object.keys(parsed.versions),
+      deprecatedVersions: Object.entries(parsed.versions)
+        .filter(([, v]) => v.deprecated)
+        .map(([version]) => version),
       url,
     }
   }
