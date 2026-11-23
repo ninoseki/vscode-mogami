@@ -34,23 +34,17 @@ export function parse(data: unknown): PackageType {
   const url = [parsed.info.home_page, parsed.info.project_url, parsed.info.package_url].find(
     (url): url is Exclude<typeof url, null> => url !== null && url !== '',
   )
-  const versions = Object.entries(parsed.releases)
-    .map((entry): string | undefined => {
-      const version = entry[0]
-      const release = entry[1]
-      const isYanked = release.some((r) => r.yanked)
-      if (isYanked) {
-        return undefined
-      }
-      return version
-    })
-    .filter((i): i is Exclude<typeof i, undefined> => i !== undefined)
+  const isYanked = (version: string) => parsed.releases[version].some((r) => r.yanked)
+  const allVersions = Object.keys(parsed.releases)
+  const versions = allVersions.filter((version) => !isYanked(version))
+  const yankedVersions = allVersions.filter((version) => isYanked(version))
 
   return {
     name: parsed.info.name,
     version: parsed.info.version,
     summary: parsed.info.summary,
     versions,
+    yankedVersions,
     url,
   }
 }

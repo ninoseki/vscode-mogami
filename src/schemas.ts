@@ -24,6 +24,8 @@ export const PackageSchema = z.object({
     .optional()
     .describe('A lookup map from an alias (e.g. a commit SHA) to its version'),
   versions: z.array(z.string()),
+  yankedVersions: z.array(z.string()).optional().describe('Yanked versions'),
+  deprecatedVersions: z.array(z.string()).optional().describe('Deprecated versions'),
   prereleaseOnly: z
     .boolean()
     .optional()

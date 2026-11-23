@@ -225,6 +225,75 @@ describe('createPackageSuggestions', () => {
         },
       ] as PackageSuggestion[],
     ],
+    // pinned to a yanked version
+    [
+      { name: 'foo', specifier: '1.1.0' } as DependencyType,
+      {
+        name: 'foo',
+        version: '2.0.0',
+        versions: ['2.0.0', '1.0.0'],
+        yankedVersions: ['1.1.0'],
+      } as PackageType,
+      satisfies,
+      [
+        { title: '🔴 yanked 1.1.0', command: '' },
+        {
+          command: 'vscode-mogami.suggestions.updateDependencyClick',
+          replaceable: true,
+          title: '↑ latest 2.0.0',
+        },
+      ] as PackageSuggestion[],
+    ],
+    // range satisfied by an available version: yanked versions are ignored
+    [
+      { name: 'foo', specifier: '^1.0.0' } as DependencyType,
+      {
+        name: 'foo',
+        version: '2.0.0',
+        versions: ['2.0.0', '1.0.0'],
+        yankedVersions: ['1.1.0'],
+      } as PackageType,
+      satisfies,
+      [
+        { title: '🟡 satisfies 1.0.0', command: '' },
+        {
+          command: 'vscode-mogami.suggestions.updateDependencyClick',
+          replaceable: true,
+          title: '↑ latest 2.0.0',
+        },
+      ] as PackageSuggestion[],
+    ],
+    // pinned to a deprecated version
+    [
+      { name: 'foo', specifier: '1.0.0' } as DependencyType,
+      {
+        name: 'foo',
+        version: '2.0.0',
+        versions: ['2.0.0', '1.0.0'],
+        deprecatedVersions: ['1.0.0'],
+      } as PackageType,
+      satisfies,
+      [
+        { title: '🔴 deprecated 1.0.0', command: '' },
+        {
+          command: 'vscode-mogami.suggestions.updateDependencyClick',
+          replaceable: true,
+          title: '↑ latest 2.0.0',
+        },
+      ] as PackageSuggestion[],
+    ],
+    // pinned to the latest version which is deprecated
+    [
+      { name: 'foo', specifier: '1.0.0' } as DependencyType,
+      {
+        name: 'foo',
+        version: '1.0.0',
+        versions: ['1.0.0'],
+        deprecatedVersions: ['1.0.0'],
+      } as PackageType,
+      satisfies,
+      [{ title: '🔴 deprecated 1.0.0', command: '' }] as PackageSuggestion[],
+    ],
     // SHA-pinned but specifier missing from versionByAlias — treated as outdated
     [
       { name: 'actions/cache', specifier: 'e'.repeat(40) } as DependencyType,
